@@ -37,7 +37,7 @@ You will also need a [Supabase](https://supabase.com/) project set up.
 
    ```bash
    git clone <repository-url>
-   cd "Gmera Solusi V4"
+   cd "Gmera Solusi"
    ```
 
 2. **Install dependencies**:
