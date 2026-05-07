@@ -79,3 +79,7 @@ You will also need a [Supabase](https://supabase.com/) project set up.
 - `src/store/`: Zustand state management (Auth, etc.).
 - `schema/`: Database migration and seed files.
 - `docs/`: Detailed project documentation and technical specifications.
+
+---
+
+Built with ❤️ for GMera Solusi.
