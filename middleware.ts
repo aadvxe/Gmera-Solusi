@@ -18,12 +18,20 @@ export async function middleware(request: NextRequest) {
         },
         set(name: string, value: string, options: CookieOptions) {
           request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({ request: { headers: request.headers } })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
           response.cookies.set({ name, value, ...options })
         },
         remove(name: string, options: CookieOptions) {
           request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({ request: { headers: request.headers } })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
           response.cookies.set({ name, value: '', ...options })
         },
       },
@@ -31,7 +39,6 @@ export async function middleware(request: NextRequest) {
   )
 
   // IMPORTANT: getUser() validates the session server-side.
-  // It also silently refreshes expired tokens and sets new cookies.
   const { data: { user } } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
@@ -45,14 +52,24 @@ export async function middleware(request: NextRequest) {
 
   if (isProtected && !user) {
     const loginUrl = new URL('/login', request.url)
-    // Preserve destination so we can redirect back after login (optional)
     loginUrl.searchParams.set('next', pathname)
-    return NextResponse.redirect(loginUrl)
+    // Create the redirect and then copy cookies from our 'response' object
+    const redirectResponse = NextResponse.redirect(loginUrl)
+    // Transfer cookies set by supabase.auth.getUser() to the redirect response
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    return redirectResponse
   }
 
   // If already authenticated, redirect away from login/root
   if (user && (pathname === '/login' || pathname === '/')) {
-    return NextResponse.redirect(new URL('/beranda', request.url))
+    const berandaUrl = new URL('/beranda', request.url)
+    const redirectResponse = NextResponse.redirect(berandaUrl)
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    return redirectResponse
   }
 
   // If root with no auth — go to login

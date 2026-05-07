@@ -50,30 +50,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const init = async () => {
       setIsLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        // Use getUser() for better security and server-sync
+        const { data: { user }, error } = await supabase.auth.getUser();
 
         if (!isMounted) return;
 
-        if (session?.user) {
-          // ✅ STEP 1: Set user immediately from session — prevents null user state
-          const baseRole = session.user.user_metadata?.role || "viewer";
-          setUser(session.user as any);
+        if (user) {
+          // ✅ STEP 1: Set user immediately from session
+          const baseRole = user.user_metadata?.role || "viewer";
+          setUser(user as any);
           setRole(baseRole);
 
-          // ✅ STEP 2: Enrich with DB profile (async, non-blocking for loading state)
-          enrichWithProfile(session.user);
+          // ✅ STEP 2: Enrich with DB profile
+          enrichWithProfile(user);
         } else {
+          // If there's an error like "Refresh Token Not Found", just sign out cleanly
+          if (error) {
+            console.warn("[AuthProvider] Session invalidated:", error.message);
+          }
           setUser(null);
           setRole(null);
         }
       } catch (err) {
-        console.error("[AuthProvider] Session check failed:", err);
+        console.error("[AuthProvider] Initialization error:", err);
         if (isMounted) {
           setUser(null);
           setRole(null);
         }
       } finally {
-        // Always unblock the UI, regardless of what happened
         if (isMounted) setIsLoading(false);
       }
     };
@@ -82,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth state changes (sign out, token refresh, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: string, session: any) => {
         if (!isMounted) return;
 
         if (event === "SIGNED_OUT") {
