@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { ArrowLeftIcon, SaveIcon, CloudUploadIcon, ChevronDownIcon } from "@astraicons/react/bold";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -113,10 +114,17 @@ export default function TambahPendapatanPage() {
         created_by: null // handled by RLS typically
       });
       
+      toast.success("Pendapatan", {
+        description: `Berhasil dicatat: Rp ${finalAmount.toLocaleString('id-ID')} dari ${clientName}`
+      });
+      
+      // Auto-update the Navbar notifications
+      window.dispatchEvent(new Event('refreshNotifications'));
+
       router.push('/pendapatan');
     } catch (error) {
       console.error(error);
-      alert("Gagal menyimpan pendapatan");
+      toast.error("Gagal menyimpan pendapatan");
     } finally {
       setLoading(false);
     }

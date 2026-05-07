@@ -171,7 +171,11 @@ export default function PengaturanPage() {
       toast.error("Gagal mengubah urutan: " + error.message);
       loadData(); // Revert
     } else {
-      toast.success("Urutan berhasil disimpan");
+      toast.warning("Pengaturan Sistem", {
+        description: "Urutan kategori berhasil diperbarui"
+      });
+      // Auto-update the Navbar notifications
+      window.dispatchEvent(new Event('refreshNotifications'));
       loadData(); // Reload to get fresh from DB
     }
     setLoading(false);

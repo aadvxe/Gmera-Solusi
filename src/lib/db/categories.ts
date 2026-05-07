@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/client';
 import type { Category, PaymentMethod } from './types';
+import { createAuditLog } from './users';
 
 export async function getCategories(type?: 'income' | 'expense'): Promise<Category[]> {
   const supabase = createClient();
@@ -40,6 +41,13 @@ export async function updateCategoryOrder(categories: { id: string; order_index:
   if (emptyData) {
     console.error('updateCategoryOrder: RLS blocking or wrong ID', emptyData);
     return { error: { message: 'Gagal menyimpan ke database (0 baris diubah).' } as any };
+  }
+
+  if (!error) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await createAuditLog(user.id, 'update', 'Category Order', null, null, null);
+    }
   }
 
   return { error };

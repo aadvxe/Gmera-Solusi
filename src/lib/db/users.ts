@@ -92,14 +92,25 @@ export async function updateCompanyProfile(payload: Partial<CompanyProfile>) {
 
 // ─── AUDIT LOG ────────────────────────────────────────────────────────────────
 
-export async function logAudit(payload: {
-  user_id: string;
-  action: 'create' | 'update' | 'delete' | 'view' | 'export' | 'login' | 'logout';
-  entity_type: string;
-  entity_id?: string;
-  old_values?: Record<string, unknown>;
-  new_values?: Record<string, unknown>;
-}) {
+export async function createAuditLog(
+  user_id: string,
+  action: 'create' | 'update' | 'delete' | 'view' | 'export' | 'login' | 'logout',
+  entity_type: string,
+  entity_id?: string | null,
+  old_values?: any,
+  new_values?: any
+) {
   const supabase = createClient();
-  await supabase.from('audit_logs').insert([payload]);
+  const { error } = await supabase.from('audit_logs').insert([{
+    user_id,
+    action,
+    entity_type,
+    entity_id: entity_id || null,
+    old_values: old_values || null,
+    new_values: new_values || null
+  }]);
+  
+  if (error) {
+    console.error('[createAuditLog] Error inserting audit log:', error);
+  }
 }

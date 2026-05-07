@@ -21,20 +21,48 @@ export function Navbar() {
   const getDisplayName = useAuthStore((state) => state.getDisplayName);
   const getRoleLabel = useAuthStore((state) => state.getRoleLabel);
   const getInitials = useAuthStore((state) => state.getInitials);
+  const role = useAuthStore((state) => state.role);
 
   const displayName = getDisplayName();
   const roleLabel = getRoleLabel();
   const initials = getInitials();
+  
+  const hasPrivilege = role === 'super_admin' || role === 'finance_manager';
 
   const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
-      const activities = await getRecentActivities(5);
-      setNotifications(activities);
+      const activities = await getRecentActivities(10); // Fetch a bit more to account for filtering
+      const lastCleared = localStorage.getItem('last_cleared_notifications');
+      
+      let filtered = activities;
+      
+      if (lastCleared) {
+        const clearedTime = new Date(lastCleared).getTime();
+        filtered = filtered.filter(a => new Date(a.date).getTime() > clearedTime);
+      }
+      
+      // Filter based on role (super_admin or finance_manager can see system logs)
+      if (!hasPrivilege) {
+        filtered = filtered.filter(a => a.type !== 'system');
+      }
+
+      setNotifications(filtered.slice(0, 5)); // Keep only top 5 after filtering
     };
+
     fetchNotifications();
-  }, []);
+
+    const handleRefresh = () => fetchNotifications();
+    window.addEventListener('refreshNotifications', handleRefresh);
+    
+    return () => window.removeEventListener('refreshNotifications', handleRefresh);
+  }, [hasPrivilege, role]);
+
+  const clearNotifications = () => {
+    setNotifications([]);
+    localStorage.setItem('last_cleared_notifications', new Date().toISOString());
+  };
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -81,62 +109,64 @@ export function Navbar() {
       {/* Right Actions */}
       <div className="flex items-center gap-6">
 
-        {/* Notifications */}
+        {/* Notifications (Visible to all, contents filtered by role) */}
         <div className="relative" ref={notifRef}>
-          <button
-            onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className={`relative p-3 rounded-xl transition-colors ${notifications.length > 0 ? 'bg-[#FFF4E5] text-[#FF9F43] hover:bg-[#FFE5C2]' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-          >
-            <NotificationIcon className="w-5 h-5" />
-            {notifications.length > 0 && (
-              <span className="absolute top-2.5 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-            )}
-          </button>
+            <button
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              className={`relative p-3 rounded-xl transition-colors ${notifications.length > 0 ? 'bg-[#FFF4E5] text-[#FF9F43] hover:bg-[#FFE5C2]' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+            >
+              <NotificationIcon className="w-5 h-5" />
+              {notifications.length > 0 && (
+                <span className="absolute top-2.5 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+              )}
+            </button>
 
-          {isNotifOpen && (
-            <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
-              <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                <h3 className="font-bold text-[#151D48]">Notifikasi</h3>
-                {notifications.length > 0 && (
-                  <button onClick={() => setNotifications([])} className="text-xs font-semibold text-[#5C67F2] hover:text-[#4a55c2] hover:underline transition-colors">Tandai dibaca</button>
-                )}
-              </div>
-              <div className="max-h-[300px] overflow-y-auto">
-                {notifications.length > 0 ? (
-                  notifications.map((n: any) => (
-                    <div key={n.id} className="relative p-4 border-b border-gray-50 hover:bg-[#5C67F2]/5 cursor-pointer transition-colors group flex items-start gap-3">
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#5C67F2] rounded-r-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${
-                        n.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
-                        n.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
-                        'bg-[#5C67F2]/10 text-[#5C67F2]'
-                      }`}>
-                        {n.type === 'income' && <StatusUpIcon className="w-5 h-5" />}
-                        {n.type === 'expense' && <ArrowDownIcon className="w-5 h-5" />}
-                        {n.type === 'invoice' && <DocumentIcon className="w-5 h-5" />}
+            {isNotifOpen && (
+              <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
+                <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                  <h3 className="font-bold text-[#151D48]">Notifikasi</h3>
+                  {notifications.length > 0 && (
+                    <button onClick={clearNotifications} className="text-xs font-semibold text-[#5C67F2] hover:text-[#4a55c2] hover:underline transition-colors">Tandai dibaca</button>
+                  )}
+                </div>
+                <div className="max-h-[300px] overflow-y-auto">
+                  {notifications.length > 0 ? (
+                    notifications.map((n: any) => (
+                      <div key={n.id} className="relative p-4 border-b border-gray-50 hover:bg-[#5C67F2]/5 cursor-pointer transition-colors group flex items-start gap-3">
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#5C67F2] rounded-r-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${
+                          n.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
+                          n.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
+                          n.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                          'bg-[#5C67F2]/10 text-[#5C67F2]'
+                        }`}>
+                          {n.type === 'income' && <StatusUpIcon className="w-5 h-5" />}
+                          {n.type === 'expense' && <ArrowDownIcon className="w-5 h-5" />}
+                          {n.type === 'invoice' && <DocumentIcon className="w-5 h-5" />}
+                          {n.type === 'system' && <SettingsIcon className="w-5 h-5" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-[#151D48] mb-0.5 group-hover:text-[#5C67F2] transition-colors line-clamp-1">{n.title}</p>
+                          <p className="text-xs text-gray-500 mb-1 line-clamp-1">{n.desc}</p>
+                          <p className="text-[10px] font-medium text-gray-400">{new Date(n.date).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-[#151D48] mb-0.5 group-hover:text-[#5C67F2] transition-colors line-clamp-1">{n.title}</p>
-                        <p className="text-xs text-gray-500 mb-1 line-clamp-1">{n.desc}</p>
-                        <p className="text-[10px] font-medium text-gray-400">{new Date(n.date).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-gray-500 text-sm flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
+                        <NotificationIcon className="w-5 h-5 text-gray-400" />
                       </div>
+                      <span className="font-medium">Belum ada notifikasi baru.</span>
                     </div>
-                  ))
-                ) : (
-                  <div className="p-8 text-center text-gray-500 text-sm flex flex-col items-center gap-3">
-                    <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
-                      <NotificationIcon className="w-5 h-5 text-gray-400" />
-                    </div>
-                    <span className="font-medium">Belum ada notifikasi baru.</span>
-                  </div>
-                )}
+                  )}
+                </div>
+                <div className="p-3 bg-gray-50/80 text-center border-t border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer">
+                  <button className="text-sm font-semibold text-[#151D48] hover:text-[#5C67F2] transition-colors">Lihat Semua</button>
+                </div>
               </div>
-              <div className="p-3 bg-gray-50/80 text-center border-t border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer">
-                <button className="text-sm font-semibold text-[#151D48] hover:text-[#5C67F2] transition-colors">Lihat Semua</button>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
         {/* Profile */}
         <div className="relative" ref={profileRef}>

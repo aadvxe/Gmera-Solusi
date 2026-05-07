@@ -171,11 +171,14 @@ export async function getTopProducts(limit = 3) {
 export async function getRecentActivities(limit = 5) {
   const supabase = createClient();
 
-  const [incomes, expenses, invoices] = await Promise.all([
+  const [incomes, expenses, invoices, audits] = await Promise.all([
     supabase.from('income').select('id, date, source, amount').order('created_at', { ascending: false }).limit(limit),
     supabase.from('expense').select('id, date, expense_type, amount').order('created_at', { ascending: false }).limit(limit),
     supabase.from('invoices').select('id, invoice_date, invoice_number, client_name, status').order('created_at', { ascending: false }).limit(limit),
+    supabase.from('audit_logs').select('id, created_at, entity_type, action').eq('entity_type', 'Category Order').order('created_at', { ascending: false }).limit(limit),
   ]);
+
+  console.log('[DEBUG] getRecentActivities audits:', { error: audits.error, data: audits.data });
 
   const activities: any[] = [];
 
@@ -189,6 +192,19 @@ export async function getRecentActivities(limit = 5) {
 
   (invoices.data || []).forEach(inv => {
     activities.push({ id: `inv-${inv.id}`, type: 'invoice', title: 'Invoice Dibuat', desc: `${inv.invoice_number} - ${inv.client_name}`, amount: null, date: new Date(inv.invoice_date) });
+  });
+
+  (audits.data || []).forEach(aud => {
+    activities.push({ 
+      id: `aud-${aud.id}`, 
+      type: 'system', 
+      title: 'Konfigurasi Sistem', 
+      desc: aud.action === 'update' && aud.entity_type === 'Category Order' 
+            ? 'Urutan kategori diperbarui' 
+            : `Sistem diperbarui: ${aud.action} ${aud.entity_type}`,
+      amount: null, 
+      date: new Date(aud.created_at) 
+    });
   });
 
   return activities
