@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeftIcon, DocumentDownloadIcon, EmailIcon, PrinterIcon, CheckCircleIcon } from "@astraicons/react/bold";
+import { ArrowLeftIcon, DocumentDownloadIcon, EmailIcon, PrinterIcon, CheckCircleIcon, HelpIcon, Download2Icon } from "@astraicons/react/bold";
 import { Button } from "@/components/ui/Button";
 import { getInvoiceById, getCompanyProfile, CompanyProfile, Invoice } from "@/lib/db";
+import { createAuditLog } from "@/lib/db/users";
+import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 
@@ -19,6 +21,7 @@ export default function DetailInvoicePage() {
   const invoiceId = params.id as string;
   
   const [loading, setLoading] = useState(true);
+  const user = useAuthStore(state => state.user);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [company, setCompany] = useState<CompanyProfile | null>(null);
 
@@ -90,10 +93,21 @@ export default function DetailInvoicePage() {
       // Restore original classes
       element.className = origClass;
 
-      toast.success("PDF berhasil diunduh");
+      toast("Ekspor PDF Selesai", {
+        description: `Invoice ${invoice.invoice_number} berhasil diunduh dalam format PDF.`,
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+      });
+
+      if (user) {
+        await createAuditLog(user.id, 'create', 'Export', null, null, { description: `Invoice ${invoice.invoice_number} berhasil diunduh (PDF)` });
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
+      }
     } catch (error) {
       console.error("html2pdf error:", error);
-      toast.error("Gagal membuat PDF. Coba gunakan tombol Cetak.");
+      toast("Gagal Ekspor PDF", {
+        description: "Terjadi kesalahan saat membuat PDF. Coba gunakan tombol Cetak.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
+      });
     }
   };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { DocumentDownloadIcon, Document1Icon, ArrowUpRightIcon, ArrowDownIcon, WalletIcon, StatusUpIcon, CalenderIcon } from "@astraicons/react/bold";
+import { DocumentDownloadIcon, Document1Icon, ArrowUpRightIcon, ArrowDownIcon, WalletIcon, StatusUpIcon, CalenderIcon, HelpIcon, Download2Icon } from "@astraicons/react/bold";
 import { Button } from "@/components/ui/Button";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { FinancialChart } from "@/components/dashboard/FinancialChart";
@@ -9,12 +9,15 @@ import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { getFinancialReport, getReportChartData } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
 import { exportToExcel, exportToPDF } from "@/lib/export";
+import { createAuditLog } from "@/lib/db/users";
+import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 
 export default function LaporanPage() {
   const [periodFrom, setPeriodFrom] = useState("2026-01-01");
   const [periodTo, setPeriodTo] = useState("2026-12-31");
   const [loading, setLoading] = useState(true);
+  const user = useAuthStore(state => state.user);
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, netProfit: 0 });
   const [chartData, setChartData] = useState<any[]>([]);
 
@@ -46,18 +49,45 @@ export default function LaporanPage() {
     { header: 'Pengeluaran (Rp)', key: 'expense', isCurrency: true, width: 24 }
   ];
 
-  const handleExportExcel = () => {
-    exportToExcel(chartData, exportColumns, `Laporan_Keuangan_${periodFrom}_${periodTo}`);
+  const handleExportExcel = async () => {
+    try {
+      exportToExcel(chartData, exportColumns, `Laporan_Keuangan_${periodFrom}_${periodTo}`);
+      toast("Ekspor Excel Selesai", {
+        description: "Laporan keuangan berhasil diekspor ke format Excel.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+      });
+      
+      if (user) {
+        await createAuditLog(user.id, 'create', 'Export', null, null, { description: `Laporan Keuangan (${periodFrom} - ${periodTo}) (Excel) berhasil diunduh` });
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
+      }
+    } catch (error) {
+      toast("Gagal Ekspor Excel", {
+        description: "Terjadi kesalahan saat mengekspor data ke Excel.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
+      });
+    }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     toast.info("Sedang menyiapkan PDF...");
     try {
       exportToPDF(chartData, exportColumns, 'Laporan Keuangan Bulanan', `Laporan_Keuangan_${periodFrom}_${periodTo}`);
-      toast.success("PDF berhasil diunduh");
+      toast("Ekspor PDF Selesai", {
+        description: "Laporan keuangan berhasil diunduh dalam format PDF.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+      });
+
+      if (user) {
+        await createAuditLog(user.id, 'create', 'Export', null, null, { description: `Laporan Keuangan (${periodFrom} - ${periodTo}) (PDF) berhasil diunduh` });
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
+      }
     } catch (error) {
       console.error("PDF Export Error:", error);
-      toast.error("Gagal mengekspor PDF");
+      toast("Gagal Ekspor PDF", {
+        description: "Terjadi kesalahan saat mengekspor data ke PDF.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
+      });
     }
   };
 

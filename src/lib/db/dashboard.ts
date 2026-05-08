@@ -175,7 +175,7 @@ export async function getRecentActivities(limit = 5) {
     supabase.from('income').select('id, date, source, amount').order('created_at', { ascending: false }).limit(limit),
     supabase.from('expense').select('id, date, expense_type, amount').order('created_at', { ascending: false }).limit(limit),
     supabase.from('invoices').select('id, invoice_date, invoice_number, client_name, status').order('created_at', { ascending: false }).limit(limit),
-    supabase.from('audit_logs').select('id, created_at, entity_type, action, new_values, old_values').eq('entity_type', 'Category Order').order('created_at', { ascending: false }).limit(limit),
+    supabase.from('audit_logs').select('id, created_at, entity_type, action, new_values, old_values').in('entity_type', ['Category Order', 'Export']).order('created_at', { ascending: false }).limit(limit),
     supabase.from('invoices').select('id, invoice_number, client_name, due_date').eq('status', 'overdue').order('due_date', { ascending: false }).limit(limit),
   ]);
 
@@ -197,7 +197,16 @@ export async function getRecentActivities(limit = 5) {
 
   (audits.data || []).forEach(aud => {
     let desc = `Sistem diperbarui: ${aud.action} ${aud.entity_type}`;
-    if (aud.entity_type === 'Category Order') {
+    let type = 'system';
+    let title = 'Konfigurasi Sistem';
+
+    if (aud.entity_type === 'Export') {
+      type = 'export';
+      title = 'Ekspor Data';
+      let val = aud.new_values;
+      if (typeof val === 'string') try { val = JSON.parse(val); } catch(e) {}
+      desc = val?.description || `Ekspor ${aud.action} berhasil diunduh`;
+    } else if (aud.entity_type === 'Category Order') {
       let val = aud.new_values;
       if (typeof val === 'string') {
         try { val = JSON.parse(val); } catch(e) {}
@@ -240,8 +249,8 @@ export async function getRecentActivities(limit = 5) {
 
     activities.push({ 
       id: `aud-${aud.id}`, 
-      type: 'system', 
-      title: 'Konfigurasi Sistem', 
+      type, 
+      title, 
       desc,
       amount: null, 
       date: new Date(aud.created_at) 

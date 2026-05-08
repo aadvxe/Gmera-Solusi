@@ -462,10 +462,10 @@ export default function EditInvoicePage() {
                     <a href={existingAttachmentUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary font-medium hover:underline">Lihat</a>
                   </div>
                 )}
-                <div className="flex justify-center px-4 py-4 border-2 border-dashed border-border rounded-xl bg-surface hover:bg-background transition-colors">
+                <label htmlFor="file-upload" className="flex justify-center px-4 py-4 border-2 border-dashed border-border rounded-xl bg-surface hover:bg-background transition-colors cursor-pointer relative">
                   <div className="space-y-1 text-center">
                     <div className="flex text-sm text-text-secondary justify-center">
-                      <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
+                      <div className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
                         <span>{attachment ? "Ganti file" : "Unggah file baru"}</span>
                         <input 
                           id="file-upload" 
@@ -478,7 +478,7 @@ export default function EditInvoicePage() {
                             }
                           }}
                         />
-                      </label>
+                      </div>
                     </div>
                     {attachment ? (
                       <p className="text-xs font-medium text-text-primary mt-1">{attachment.name}</p>
@@ -486,7 +486,7 @@ export default function EditInvoicePage() {
                       <p className="text-[10px] text-text-muted mt-1">PNG, JPG, PDF hingga 5MB</p>
                     )}
                   </div>
-                </div>
+                </label>
               </div>
             </div>
 

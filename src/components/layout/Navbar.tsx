@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { NotificationIcon, ChevronDownIcon, Profile1Icon, SettingsIcon, Logout2Icon, StatusUpIcon, ArrowDownIcon, DocumentIcon, PricingAlertIcon, CalenderIcon, CloseIcon as CloseCircleIcon } from "@astraicons/react/bold";
+import { NotificationIcon, ChevronDownIcon, Profile1Icon, SettingsIcon, Logout2Icon, StatusUpIcon, ArrowDownIcon, DocumentIcon, PricingAlertIcon, CalenderIcon, DocumentDownloadIcon, Download2Icon, CloseIcon as CloseCircleIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { useAuthStore } from "@/store/authStore";
 import { getRecentActivities } from "@/lib/db";
@@ -196,6 +196,7 @@ export function Navbar() {
                           n.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
                           n.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
                           n.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                          n.type === 'export' ? 'bg-[#5C67F2]/10 text-[#5C67F2]' :
                           'bg-[#5C67F2]/10 text-[#5C67F2]'
                         }`}>
                           {n.type === 'income' && <StatusUpIcon className="w-5 h-5" />}
@@ -203,6 +204,7 @@ export function Navbar() {
                           {n.type === 'invoice' && <DocumentIcon className="w-5 h-5" />}
                           {n.type === 'system' && <SettingsIcon className="w-5 h-5" />}
                           {n.type === 'reminder' && <CalenderIcon className="w-5 h-5" />}
+                          {n.type === 'export' && <Download2Icon className="w-5 h-5" />}
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-[#151D48] mb-0.5 group-hover:text-[#5C67F2] transition-colors line-clamp-1">{n.title}</p>
@@ -318,12 +320,14 @@ export function Navbar() {
                     n.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
                     n.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
                     n.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                    n.type === 'export' ? 'bg-[#5C67F2]/10 text-[#5C67F2]' :
                     'bg-[#5C67F2]/10 text-[#5C67F2]'
                   }`}>
                     {n.type === 'income' ? <StatusUpIcon className="w-[18px] h-[18px]" /> : 
                      n.type === 'expense' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> : 
                      n.type === 'system' ? <SettingsIcon className="w-[18px] h-[18px]" /> :
                      n.type === 'reminder' ? <CalenderIcon className="w-[18px] h-[18px]" /> :
+                     n.type === 'export' ? <Download2Icon className="w-[18px] h-[18px]" /> :
                      <DocumentIcon className="w-[18px] h-[18px]" />}
                   </div>
                   

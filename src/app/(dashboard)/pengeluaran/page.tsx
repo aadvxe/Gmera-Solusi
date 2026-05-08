@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { BarsIcon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon } from "@astraicons/react/bold";
+import { BarsIcon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, HelpIcon, Download2Icon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Modal } from "@/components/ui/Modal";
@@ -19,6 +19,8 @@ import {
   TableRow 
 } from "@/components/ui/Table";
 import { getExpense, deleteExpense, updateExpense, getCategories, Expense, Category } from "@/lib/db";
+import { createAuditLog } from "@/lib/db/users";
+import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { uploadFile } from "@/lib/storage";
@@ -28,6 +30,7 @@ export default function PengeluaranPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const user = useAuthStore(state => state.user);
 
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -147,18 +150,45 @@ export default function PengeluaranPage() {
     { header: 'Status', key: 'status', width: 12 }
   ];
 
-  const handleExportExcel = () => {
-    exportToExcel(expenses, exportColumns, `Pengeluaran_${new Date().toISOString().slice(0,10)}`);
+  const handleExportExcel = async () => {
+    try {
+      exportToExcel(expenses, exportColumns, `Pengeluaran_${new Date().toISOString().slice(0,10)}`);
+      toast("Ekspor Excel Selesai", {
+        description: "Data pengeluaran berhasil diekspor ke format Excel.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+      });
+      
+      if (user) {
+        await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Laporan Pengeluaran (Excel) berhasil diunduh' });
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
+      }
+    } catch (error) {
+      toast("Gagal Ekspor Excel", {
+        description: "Terjadi kesalahan saat mengekspor data ke Excel.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
+      });
+    }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     toast.info("Sedang menyiapkan PDF...");
     try {
       exportToPDF(expenses, exportColumns, 'Laporan Pengeluaran', `Laporan_Pengeluaran_${new Date().toISOString().slice(0,10)}`);
-      toast.success("PDF berhasil diunduh");
+      toast("Ekspor PDF Selesai", {
+        description: "Laporan pengeluaran berhasil diunduh dalam format PDF.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+      });
+
+      if (user) {
+        await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Laporan Pengeluaran (PDF) berhasil diunduh' });
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
+      }
     } catch (error) {
       console.error("PDF Export Error:", error);
-      toast.error("Gagal mengekspor PDF");
+      toast("Gagal Ekspor PDF", {
+        description: "Terjadi kesalahan saat mengekspor data ke PDF.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
+      });
     }
   };
 
@@ -446,10 +476,10 @@ export default function PengeluaranPage() {
                   <a href={editFormData.attachment_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#5C67F2] font-medium hover:underline">Lihat</a>
                 </div>
               )}
-              <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+              <label htmlFor="edit-file-upload" className="flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer relative">
                 <div className="space-y-1 text-center">
                   <div className="flex text-sm text-gray-600 justify-center">
-                    <label htmlFor="edit-file-upload" className="relative cursor-pointer rounded-md font-medium text-[#5C67F2] hover:text-[#4a55c2] focus-within:outline-none">
+                    <div className="relative cursor-pointer rounded-md font-medium text-[#5C67F2] hover:text-[#4a55c2] focus-within:outline-none">
                       <span>{editAttachment ? "Ganti file" : "Unggah file baru"}</span>
                       <input 
                         id="edit-file-upload" 
@@ -462,11 +492,11 @@ export default function PengeluaranPage() {
                           }
                         }}
                       />
-                    </label>
+                    </div>
                   </div>
                   {editAttachment && <p className="text-sm font-medium text-gray-800 mt-2">{editAttachment.name}</p>}
                 </div>
-              </div>
+              </label>
             </div>
 
             <div className="pt-4 flex justify-end gap-3 border-t border-gray-100 mt-6">

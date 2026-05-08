@@ -319,11 +319,11 @@ export default function TambahPendapatanPage() {
 
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1.5">Lampiran Bukti (Opsional)</label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-xl bg-background/50 hover:bg-background transition-colors cursor-pointer group">
+              <label htmlFor="file-upload" className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-xl bg-background/50 hover:bg-background transition-colors cursor-pointer group relative">
                 <div className="space-y-1 text-center">
                   <CloudUploadIcon className="mx-auto h-12 w-12 text-text-muted group-hover:text-primary transition-colors" />
                   <div className="flex text-sm text-text-secondary justify-center">
-                    <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
+                    <div className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
                       <span>{attachment ? "Ganti file" : "Unggah file"}</span>
                       <input 
                         id="file-upload" 
@@ -336,7 +336,7 @@ export default function TambahPendapatanPage() {
                           }
                         }}
                       />
-                    </label>
+                    </div>
                     {!attachment && <p className="pl-1">atau tarik dan lepas ke sini</p>}
                   </div>
                   {attachment ? (
@@ -345,7 +345,7 @@ export default function TambahPendapatanPage() {
                     <p className="text-xs text-text-muted">PNG, JPG, PDF hingga 5MB</p>
                   )}
                 </div>
-              </div>
+              </label>
             </div>
           </div>
 

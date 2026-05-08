@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { BarsIcon, PlusIcon, DocumentDownloadIcon, MoreHorizontalIcon, EyeIcon, EmailSentIcon, TrashIcon, CheckCircleIcon, CloseIcon, CalculatorIcon, TruckIcon, Document1Icon, ChevronDownIcon, EditIcon } from "@astraicons/react/bold";
+import { BarsIcon, PlusIcon, DocumentDownloadIcon, MoreHorizontalIcon, EyeIcon, EmailSentIcon, TrashIcon, CheckCircleIcon, CloseIcon, CalculatorIcon, TruckIcon, Document1Icon, ChevronDownIcon, EditIcon, HelpIcon, Download2Icon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
@@ -18,6 +18,8 @@ import {
   TableRow 
 } from "@/components/ui/Table";
 import { getInvoices, deleteInvoice, getClients, Invoice, Client } from "@/lib/db";
+import { createAuditLog } from "@/lib/db/users";
+import { useAuthStore } from "@/store/authStore";
 import { formatCurrency } from "@/lib/utils";
 import { exportToExcel, exportToPDF } from "@/lib/export";
 import { toast } from "sonner";
@@ -34,6 +36,7 @@ export default function EInvoicePage() {
   const [invoices, setInvoices] = useState<(Invoice & { clients: { name: string } | null })[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const user = useAuthStore(state => state.user);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clientId, setClientId] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -173,18 +176,45 @@ export default function EInvoicePage() {
     { header: 'Status', key: 'status', width: 12 }
   ];
 
-  const handleExportExcel = () => {
-    exportToExcel(invoices, exportColumns, `Invoice_${new Date().toISOString().slice(0,10)}`);
+  const handleExportExcel = async () => {
+    try {
+      exportToExcel(invoices, exportColumns, `Invoice_${new Date().toISOString().slice(0,10)}`);
+      toast("Ekspor Excel Selesai", {
+        description: "Daftar invoice berhasil diekspor ke format Excel.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+      });
+      
+      if (user) {
+        await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Daftar E-Invoice (Excel) berhasil diunduh' });
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
+      }
+    } catch (error) {
+      toast("Gagal Ekspor Excel", {
+        description: "Terjadi kesalahan saat mengekspor data ke Excel.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
+      });
+    }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     toast.info("Sedang menyiapkan PDF...");
     try {
       exportToPDF(invoices, exportColumns, 'Laporan Invoice', `Laporan_Invoice_${new Date().toISOString().slice(0,10)}`);
-      toast.success("PDF berhasil diunduh");
+      toast("Ekspor PDF Selesai", {
+        description: "Laporan invoice berhasil diunduh dalam format PDF.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+      });
+
+      if (user) {
+        await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Laporan E-Invoice (PDF) berhasil diunduh' });
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
+      }
     } catch (error) {
       console.error("PDF Export Error:", error);
-      toast.error("Gagal mengekspor PDF");
+      toast("Gagal Ekspor PDF", {
+        description: "Terjadi kesalahan saat mengekspor data ke PDF.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
+      });
     }
   };
 
