@@ -51,6 +51,23 @@ export default function DetailInvoicePage() {
     if (invoiceId) fetchData();
   }, [invoiceId]);
 
+  // Auto-download if ?download=true is in URL
+  useEffect(() => {
+    if (!loading && invoice && typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('download') === 'true') {
+        // Remove the query param to prevent re-triggering if user refreshes
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+        
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+          handleDownloadPDF();
+        }, 500);
+      }
+    }
+  }, [loading, invoice]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -77,15 +94,12 @@ export default function DetailInvoicePage() {
         filename:     `Invoice_${invoice.invoice_number}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  {
-          scale: 2,
+          scale: 3,
           useCORS: true,
           scrollY: 0,
-          // Force html2canvas to render at a width matching A5 landscape proportions
-          // A5 landscape = 210mm wide. At 96dpi that's ~794px.
-          // We use a slightly smaller value so padding fits comfortably.
-          windowWidth: 760,
+          windowWidth: 800,
         },
-        jsPDF: { unit: 'mm', format: 'a5', orientation: 'landscape' },
+        jsPDF: { unit: 'mm', format: 'a5', orientation: 'landscape', compress: true },
       };
 
       await html2pdf().set(opt).from(element).save();
@@ -154,9 +168,6 @@ export default function DetailInvoicePage() {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" className="flex-1 sm:flex-none flex items-center justify-center gap-2">
-            <EmailIcon className="w-4 h-4" /> Kirim
-          </Button>
           <Button variant="outline" className="flex-1 sm:flex-none flex items-center justify-center gap-2" onClick={handleDownloadPDF}>
             <DocumentDownloadIcon className="w-4 h-4" /> PDF
           </Button>
@@ -172,10 +183,10 @@ export default function DetailInvoicePage() {
           ═══════════════════════════════════════════════════════════════════ */}
       <div
         id="invoice-document"
-        className="bg-white border border-gray-200 shadow-sm p-6 md:p-8 print:border-none print:shadow-none print:p-6"
+        className="bg-white border border-gray-200 shadow-sm p-4 md:p-6 print:border-none print:shadow-none print:p-4"
       >
         {/* Invoice Header */}
-        <div className="flex justify-between items-start border-b border-gray-100 pb-5 mb-5 gap-6">
+        <div className="flex justify-between items-start border-b border-gray-100 pb-3 mb-3 gap-6">
           <div className="flex flex-row items-center gap-4">
             {company?.logo_url ? (
               <img src={company.logo_url} alt="Logo" className="h-20 w-auto object-contain max-w-[160px]" />
@@ -219,23 +230,23 @@ export default function DetailInvoicePage() {
         </div>
 
         {/* Invoice Items Table */}
-        <div className="mb-4 overflow-hidden rounded-md">
+        <div className="mb-3 overflow-hidden rounded-md">
           <table className="w-full text-[11px] text-left border-collapse">
             <thead>
               <tr className="bg-[#5C67F2] text-white">
-                <th className="px-3 py-1.5 font-semibold">Deskripsi Barang / Jasa</th>
-                <th className="px-3 py-1.5 font-semibold text-center w-14">Qty</th>
-                <th className="px-3 py-1.5 font-semibold text-right w-28">Harga Satuan (Rp)</th>
-                <th className="px-3 py-1.5 font-semibold text-right w-28">Total (Rp)</th>
+                <th className="px-4 py-2 font-semibold">Deskripsi Barang / Jasa</th>
+                <th className="px-4 py-2 font-semibold text-center w-16">Qty</th>
+                <th className="px-4 py-2 font-semibold text-right w-32">Harga Satuan (Rp)</th>
+                <th className="px-4 py-2 font-semibold text-right w-32">Total (Rp)</th>
               </tr>
             </thead>
             <tbody className="text-gray-700">
               {invoice.invoice_items?.map((item: any, idx: number) => (
                 <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8F9FF]'} style={{ borderBottom: '1px solid #eee' }}>
-                  <td className="px-3 py-1.5">{item.description}</td>
-                  <td className="px-3 py-1.5 text-center">{item.quantity} {item.unit}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{fmtNum(item.unit_price)}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums font-semibold text-[#151D48]">{fmtNum(item.total_price)}</td>
+                  <td className="px-4 py-2">{item.description}</td>
+                  <td className="px-4 py-2 text-center">{item.quantity} {item.unit}</td>
+                  <td className="px-4 py-2 text-right tabular-nums">{fmtNum(item.unit_price)}</td>
+                  <td className="px-4 py-2 text-right tabular-nums font-semibold text-[#151D48]">{fmtNum(item.total_price)}</td>
                 </tr>
               ))}
             </tbody>
@@ -243,18 +254,39 @@ export default function DetailInvoicePage() {
         </div>
 
         {/* Bottom: Payment info (left) + Totals (right) */}
-        <div className="flex gap-5">
+        <div className="flex gap-4">
           {/* Payment info */}
           <div className="flex-1 text-[11px]">
-            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">INFORMASI PEMBAYARAN:</h3>
-            <div className="bg-gray-50 rounded-md p-2.5 border border-gray-100">
-              <p className="font-semibold text-[#151D48] mb-0.5">Transfer Bank:</p>
-              <p className="text-gray-600">Bank: <span className="font-medium text-[#151D48]">{company?.bank_name || '-'}</span></p>
-              <p className="text-gray-600">No. Rekening: <span className="font-medium text-[#151D48]">{company?.bank_account || '-'}</span></p>
-              <p className="text-gray-600">Atas Nama: <span className="font-medium text-[#151D48]">{company?.bank_account_name || '-'}</span></p>
+            <div className="flex gap-3 mb-2">
+              {/* Payment info Column */}
+              <div className="flex-1">
+                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">INFORMASI PEMBAYARAN:</h3>
+                <div className="bg-gray-50 rounded-md p-2.5 border border-gray-100 min-h-[70px]">
+                  <p className="font-semibold text-[#151D48] mb-0.5">Transfer Bank:</p>
+                  <p className="text-gray-600">Bank: <span className="font-medium text-[#151D48]">{company?.bank_name || '-'}</span></p>
+                  <p className="text-gray-600">No. Rekening: <span className="font-medium text-[#151D48]">{company?.bank_account || '-'}</span></p>
+                  <p className="text-gray-600">Atas Nama: <span className="font-medium text-[#151D48]">{company?.bank_account_name || '-'}</span></p>
+                </div>
+              </div>
+              
+              {/* Shipping info Column */}
+              {invoice.shipping_method && (
+                <div className="flex-1">
+                  <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">PENGIRIMAN:</h3>
+                  <div className="bg-gray-50 rounded-md p-2.5 border border-gray-100 min-h-[70px]">
+                    <p className="text-gray-600">Kurir: <span className="font-medium text-[#151D48]">{invoice.shipping_method}</span></p>
+                    {invoice.tracking_number && (
+                      <p className="text-gray-600 mt-0.5">
+                        No. Resi: <span className="font-medium text-[#151D48]">{invoice.tracking_number}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
+
             {invoice.notes && (
-              <div className="mt-1.5">
+              <div className="mt-2">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">CATATAN:</p>
                 <p className="text-[11px] text-gray-600 whitespace-pre-wrap">{invoice.notes}</p>
               </div>
@@ -282,7 +314,7 @@ export default function DetailInvoicePage() {
               )}
               {invoice.shipping_cost > 0 && (
                 <div className="flex justify-between">
-                  <span>Ongkos Kirim</span>
+                  <span>Ongkos Kirim {invoice.shipping_method ? `(${invoice.shipping_method})` : ''}</span>
                   <span className="font-medium text-[#151D48] tabular-nums">Rp {fmtNum(invoice.shipping_cost)}</span>
                 </div>
               )}
@@ -293,16 +325,15 @@ export default function DetailInvoicePage() {
             </div>
 
             {invoice.status === 'paid' && (
-              <div className="mt-2 flex items-center justify-center gap-1 py-1.5 bg-[#3CD856]/10 text-[#3CD856] rounded-md border border-[#3CD856]/20 font-bold uppercase tracking-wider text-[10px]">
-                <CheckCircleIcon className="w-3.5 h-3.5" />
-                Lunas
+              <div className="mt-3 flex items-center justify-center py-1.5 bg-[#76c893]/10 text-[#76c893] rounded-md border border-[#76c893]/20 font-bold uppercase tracking-wider text-[10px]">
+                <span className="leading-none">Lunas</span>
               </div>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="pt-3 mt-3 border-t border-gray-100 text-center text-[10px] text-gray-400">
+        <div className="pt-2 mt-2 border-t border-gray-100 text-center text-[10px] text-gray-400">
           <p>Terima kasih atas kepercayaan Anda kepada {company?.company_name || 'kami'}.</p>
         </div>
       </div>

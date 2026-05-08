@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeftIcon, SaveIcon, PlusIcon, TrashIcon, Document1Icon, TruckIcon, CalculatorIcon } from "@astraicons/react/bold";
+import { ArrowLeftIcon, SaveIcon, PlusIcon, TrashIcon, Document1Icon, TruckIcon, CalculatorIcon, CheckCircleIcon } from "@astraicons/react/bold";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { getClients, getInvoiceById, updateInvoiceWithItems, Client } from "@/lib/db";
@@ -12,8 +12,6 @@ import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { uploadFile } from "@/lib/storage";
-import { toast } from "sonner";
-
 interface InvoiceItem {
   id: number;
   name: string;
@@ -200,7 +198,10 @@ export default function EditInvoicePage() {
         console.error(error);
         toast.error(`Gagal memperbarui invoice: ${error.message}`);
       } else {
-        toast.success("Invoice berhasil diperbarui");
+        toast("Pembaruan Berhasil", {
+          description: `Invoice ${invoiceNumber} telah berhasil diperbarui.`,
+          icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#76c893]/10 text-[#76c893]"><CheckCircleIcon className="w-5 h-5" /></div>,
+        });
         router.push('/e-invoice');
       }
     } catch (error: any) {
@@ -263,6 +264,60 @@ export default function EditInvoicePage() {
                   placeholder="Alamat akan terisi otomatis setelah klien dipilih..."
                   value={selectedClient ? `${selectedClient.address || ''}, ${selectedClient.city || ''}, ${selectedClient.province || ''}` : ""}
                   readOnly
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          {/* Section: Informasi Pengiriman */}
+          <div className="bg-surface border border-border rounded-2xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
+              <TruckIcon className="w-[18px] h-[18px] text-[#5C67F2]" /> Informasi Pengiriman (Opsional)
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Kurir / Metode Pengiriman</label>
+                <CustomSelect 
+                  placeholder="Pilih Kurir"
+                  options={[
+                    { value: "JNE", label: "JNE" },
+                    { value: "J&T", label: "J&T" },
+                    { value: "SiCepat", label: "SiCepat" },
+                    { value: "Anteraja", label: "Anteraja" },
+                    { value: "GoSend", label: "GoSend" },
+                    { value: "GrabExpress", label: "GrabExpress" },
+                    { value: "Self Pickup", label: "Ambil Sendiri" },
+                    { value: "Lainnya", label: "Lainnya" }
+                  ]}
+                  value={shippingMethod}
+                  onChange={setShippingMethod}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Ongkos Kirim (Rp)</label>
+                <Input 
+                  type="text" 
+                  value={formatRupiah(shippingCost)}
+                  onChange={(e) => setShippingCost(parseRupiah(e.target.value))}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">No. Resi</label>
+                <Input 
+                  type="text" 
+                  placeholder="Contoh: JNE123456789"
+                  value={trackingNumber} 
+                  onChange={e => setTrackingNumber(e.target.value)} 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Alamat Pengiriman (Opsional)</label>
+                <textarea 
+                  className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20 min-h-[40px] resize-y text-xs"
+                  placeholder="Masukkan alamat pengiriman jika berbeda dengan alamat klien..."
+                  value={shippingAddress}
+                  onChange={e => setShippingAddress(e.target.value)}
                 ></textarea>
               </div>
             </div>
@@ -369,40 +424,48 @@ export default function EditInvoicePage() {
                 <span className="font-medium text-text-primary">{formatCurrency(subtotal)}</span>
               </div>
               
-              <div className="flex justify-between items-center text-text-secondary">
-                <div className="flex items-center gap-2">
-                  <span>Pajak (PPN)</span>
-                  <div className="flex items-center border border-border rounded-md overflow-hidden h-6">
-                    <input 
-                      type="number" 
-                      className="w-12 text-center text-xs outline-none bg-transparent" 
-                      value={taxRate}
-                      onChange={(e) => setTaxRate(parseInt(e.target.value) || 0)}
-                      disabled={!applyTax}
-                    />
-                    <span className="bg-background px-1.5 text-xs border-l border-border h-full flex items-center">%</span>
+              <div className="flex justify-between items-start text-text-secondary">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs">Pajak (PPN)</span>
+                    <button 
+                      type="button"
+                      onClick={() => setApplyTax(!applyTax)}
+                      className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                        applyTax ? 'bg-[#5C67F2]' : 'bg-gray-200'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform duration-200 ${
+                          applyTax ? 'translate-x-4' : 'translate-x-0.5'
+                        }`}
+                      />
+                    </button>
                   </div>
-                  <input 
-                    type="checkbox" 
-                    checked={applyTax}
-                    onChange={(e) => setApplyTax(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded text-[#5C67F2]"
-                  />
+                  
+                  {applyTax && (
+                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden h-7 bg-white w-fit animate-in fade-in slide-in-from-top-1 duration-200">
+                      <input 
+                        type="number" 
+                        className="w-14 text-center text-xs font-bold outline-none bg-transparent text-[#5C67F2]" 
+                        value={taxRate}
+                        onChange={(e) => setTaxRate(parseInt(e.target.value) || 0)}
+                      />
+                      <span className="bg-gray-50 px-2 text-[10px] font-bold text-gray-400 border-l border-gray-100 h-full flex items-center">%</span>
+                    </div>
+                  )}
                 </div>
                 <span className="font-medium text-text-primary">{formatCurrency(taxAmount)}</span>
               </div>
               
-              <div className="flex justify-between items-center text-text-secondary">
-                <span>Ongkos Kirim</span>
-                <div className="w-32">
-                  <Input 
-                    icon={<span className="text-[10px] font-medium">Rp</span>}
-                    type="text" 
-                    className="text-right h-8 text-xs"
-                    value={formatRupiah(shippingCost)}
-                    onChange={(e) => setShippingCost(parseRupiah(e.target.value))}
-                  />
+              <div className="flex justify-between items-start text-text-secondary">
+                <div className="space-y-1">
+                  <span className="text-xs">Ongkos Kirim</span>
+                  {shippingMethod && (
+                    <p className="text-[10px] font-semibold text-[#5C67F2]">{shippingMethod}</p>
+                  )}
                 </div>
+                <span className="font-medium text-text-primary">{formatCurrency(shippingCost)}</span>
               </div>
               
               <div className="flex justify-between items-center text-text-secondary">

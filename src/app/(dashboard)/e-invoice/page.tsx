@@ -407,19 +407,16 @@ export default function EInvoicePage() {
                             <EyeIcon className="w-4 h-4" />
                           </button>
                         </Link>
-                        {row.status !== 'paid' && row.status !== 'lunas' && (
-                          <Link href={`/e-invoice/${row.id}/edit`}>
-                            <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
-                              <EditIcon className="w-4 h-4" />
-                            </button>
-                          </Link>
-                        )}
-                        <button className="p-1.5 text-gray-400 hover:text-[#3CD856] hover:bg-[#3CD856]/10 rounded-md transition-colors" title="Kirim Email/WA">
-                          <EmailSentIcon className="w-4 h-4" />
-                        </button>
-                        <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Download PDF">
-                          <DocumentDownloadIcon className="w-4 h-4" />
-                        </button>
+                        <Link href={`/e-invoice/${row.id}/edit`}>
+                          <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
+                            <EditIcon className="w-4 h-4" />
+                          </button>
+                        </Link>
+                        <Link href={`/e-invoice/${row.id}/detail?download=true`}>
+                          <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Download PDF">
+                            <DocumentDownloadIcon className="w-4 h-4" />
+                          </button>
+                        </Link>
                         <button onClick={() => handleDeleteClick(row.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
                           <TrashIcon className="w-4 h-4" />
                         </button>
