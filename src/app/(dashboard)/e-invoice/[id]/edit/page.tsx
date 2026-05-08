@@ -12,6 +12,8 @@ import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { uploadFile } from "@/lib/storage";
+import { createAuditLog } from "@/lib/db/users";
+import { useAuthStore } from "@/store/authStore";
 interface InvoiceItem {
   id: number;
   name: string;
@@ -23,6 +25,7 @@ interface InvoiceItem {
 export default function EditInvoicePage() {
   const router = useRouter();
   const params = useParams();
+  const user = useAuthStore(state => state.user);
   const invoiceId = params.id as string;
   
   const [loading, setLoading] = useState(true);
@@ -202,7 +205,21 @@ export default function EditInvoicePage() {
           description: `Invoice ${invoiceNumber} telah berhasil diperbarui.`,
           icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#76c893]/10 text-[#76c893]"><CheckCircleIcon className="w-5 h-5" /></div>,
         });
-        router.push('/e-invoice');
+
+        // Add to Audit Log & Refresh Notifications
+        if (user) {
+          await createAuditLog(user.id, 'update', 'E-Invoice', invoiceId as string, null, { 
+            description: `Invoice ${invoiceNumber} berhasil diperbarui` 
+          });
+          
+          // Small delay to ensure DB consistency before refresh and allow UI to update
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('refreshNotifications'));
+            router.push('/e-invoice');
+          }, 200);
+        } else {
+          router.push('/e-invoice');
+        }
       }
     } catch (error: any) {
       toast.error(`Terjadi kesalahan: ${error.message}`);

@@ -12,6 +12,8 @@ import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { uploadFile } from "@/lib/storage";
 import { toast } from "sonner";
+import { createAuditLog } from "@/lib/db/users";
+import { useAuthStore } from "@/store/authStore";
 
 interface InvoiceItem {
   id: number;
@@ -23,6 +25,7 @@ interface InvoiceItem {
 
 export default function BuatInvoicePage() {
   const router = useRouter();
+  const user = useAuthStore(state => state.user);
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
 
@@ -145,7 +148,21 @@ export default function BuatInvoicePage() {
           description: `Invoice ${invoiceNumber} telah berhasil dibuat.`,
           icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#76c893]/10 text-[#76c893]"><CheckCircleIcon className="w-5 h-5" /></div>,
         });
-        router.push('/e-invoice');
+
+        // Add to Audit Log & Refresh Notifications
+        if (user) {
+          await createAuditLog(user.id, 'create', 'E-Invoice', null, null, { 
+            description: `Invoice ${invoiceNumber} berhasil dibuat` 
+          });
+          
+          // Small delay to ensure DB consistency before refresh and allow UI to update
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('refreshNotifications'));
+            router.push('/e-invoice');
+          }, 200);
+        } else {
+          router.push('/e-invoice');
+        }
       }
     } catch (error: any) {
       toast.error(`Terjadi kesalahan: ${error.message}`);

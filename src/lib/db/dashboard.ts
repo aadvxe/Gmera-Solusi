@@ -172,10 +172,10 @@ export async function getRecentActivities(limit = 5) {
   const supabase = createClient();
 
   const [incomes, expenses, invoices, audits, reminders] = await Promise.all([
-    supabase.from('income').select('id, date, source, amount').order('created_at', { ascending: false }).limit(limit),
-    supabase.from('expense').select('id, date, expense_type, amount').order('created_at', { ascending: false }).limit(limit),
-    supabase.from('invoices').select('id, invoice_date, invoice_number, client_name, status').order('created_at', { ascending: false }).limit(limit),
-    supabase.from('audit_logs').select('id, created_at, entity_type, action, new_values, old_values').in('entity_type', ['Category Order', 'Export']).order('created_at', { ascending: false }).limit(limit),
+    supabase.from('income').select('id, created_at, date, source, amount').order('created_at', { ascending: false }).limit(limit),
+    supabase.from('expense').select('id, created_at, date, expense_type, amount').order('created_at', { ascending: false }).limit(limit),
+    supabase.from('invoices').select('id, created_at, invoice_date, invoice_number, client_name, status').order('created_at', { ascending: false }).limit(limit),
+    supabase.from('audit_logs').select('id, created_at, entity_type, action, new_values, old_values').order('created_at', { ascending: false }).limit(limit * 2),
     supabase.from('invoices').select('id, invoice_number, client_name, due_date').eq('status', 'overdue').order('due_date', { ascending: false }).limit(limit),
   ]);
 
@@ -184,15 +184,15 @@ export async function getRecentActivities(limit = 5) {
   const activities: any[] = [];
 
   (incomes.data || []).forEach(inc => {
-    activities.push({ id: `inc-${inc.id}`, type: 'income', title: 'Pendapatan Diterima', desc: inc.source, amount: inc.amount, date: new Date(inc.date) });
+    activities.push({ id: `inc-${inc.id}`, type: 'income', title: 'Pendapatan Diterima', desc: inc.source, amount: inc.amount, date: new Date(inc.created_at || inc.date) });
   });
 
   (expenses.data || []).forEach(exp => {
-    activities.push({ id: `exp-${exp.id}`, type: 'expense', title: 'Pengeluaran Dicatat', desc: exp.expense_type, amount: exp.amount, date: new Date(exp.date) });
+    activities.push({ id: `exp-${exp.id}`, type: 'expense', title: 'Pengeluaran Dicatat', desc: exp.expense_type, amount: exp.amount, date: new Date(exp.created_at || exp.date) });
   });
 
   (invoices.data || []).forEach(inv => {
-    activities.push({ id: `inv-${inv.id}`, type: 'invoice', title: 'Invoice Dibuat', desc: `${inv.invoice_number} - ${inv.client_name}`, amount: null, date: new Date(inv.invoice_date) });
+    activities.push({ id: `inv-${inv.id}`, type: 'invoice', title: 'Invoice Dibuat', desc: `${inv.invoice_number} - ${inv.client_name}`, amount: null, date: new Date(inv.created_at || inv.invoice_date) });
   });
 
   (audits.data || []).forEach(aud => {
@@ -206,6 +206,12 @@ export async function getRecentActivities(limit = 5) {
       let val = aud.new_values;
       if (typeof val === 'string') try { val = JSON.parse(val); } catch(e) {}
       desc = val?.description || `Ekspor ${aud.action} berhasil diunduh`;
+    } else if (aud.entity_type === 'E-Invoice' || aud.entity_type === 'Invoice') {
+      type = 'invoice';
+      title = aud.action === 'create' ? 'Invoice Dibuat' : 'Invoice Diperbarui';
+      let val = aud.new_values;
+      if (typeof val === 'string') try { val = JSON.parse(val); } catch(e) {}
+      desc = val?.description || (aud.action === 'create' ? 'Invoice baru berhasil dibuat' : 'Invoice berhasil diperbarui');
     } else if (aud.entity_type === 'Category Order') {
       let val = aud.new_values;
       if (typeof val === 'string') {
