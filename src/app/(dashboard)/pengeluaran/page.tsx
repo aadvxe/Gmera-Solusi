@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BarsIcon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { 
@@ -15,17 +16,25 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/Table";
-import { getExpense, deleteExpense, Expense } from "@/lib/db";
+import { getExpense, deleteExpense, updateExpense, getCategories, Expense, Category } from "@/lib/db";
+import { toast } from "sonner";
+import { formatRupiah, parseRupiah } from "@/lib/utils";
 
 export default function PengeluaranPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [categories, setCategories] = useState<Category[]>([]);
+
   const loadData = async () => {
     setLoading(true);
-    const data = await getExpense();
+    const [data, catsData] = await Promise.all([
+      getExpense(),
+      getCategories('expense')
+    ]);
     setExpenses(data);
+    setCategories(catsData);
     setLoading(false);
   };
 
@@ -53,6 +62,62 @@ export default function PengeluaranPage() {
     
     setIsDeleteModalOpen(false);
     setItemToDelete(null);
+  };
+
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+
+  const [editFormData, setEditFormData] = useState({
+    date: "",
+    vendor: "",
+    amount: 0,
+    category_id: "",
+    status: "",
+    reference_number: ""
+  });
+
+  const handleView = (expense: Expense) => {
+    setSelectedExpense(expense);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleEdit = (expense: Expense) => {
+    setSelectedExpense(expense);
+    setEditFormData({
+      date: new Date(expense.date).toISOString().split('T')[0],
+      vendor: expense.vendor || "",
+      amount: expense.amount || 0,
+      category_id: expense.category_id || "",
+      status: expense.status || "",
+      reference_number: expense.reference_number || ""
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const submitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedExpense) return;
+    
+    setLoading(true);
+    const { error } = await updateExpense(selectedExpense.id, {
+      date: editFormData.date,
+      vendor: editFormData.vendor,
+      amount: editFormData.amount,
+      category_id: editFormData.category_id || null,
+      status: editFormData.status,
+      reference_number: editFormData.reference_number
+    });
+    setLoading(false);
+
+    if (error) {
+      toast.error("Gagal memperbarui data: " + error.message);
+    } else {
+      toast.success("Pengeluaran berhasil diperbarui");
+      setIsEditModalOpen(false);
+      setSelectedExpense(null);
+      loadData();
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -153,14 +218,14 @@ export default function PengeluaranPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <button 
-                          onClick={() => alert("Fitur lihat detail pengeluaran segera hadir.")}
+                          onClick={() => handleView(row)}
                           className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" 
                           title="Lihat"
                         >
                           <EyeIcon className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => alert("Fitur edit pengeluaran sedang dalam pengembangan.")}
+                          onClick={() => handleEdit(row)}
                           className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" 
                           title="Edit"
                         >
@@ -204,6 +269,125 @@ export default function PengeluaranPage() {
         confirmText="Hapus"
         isDanger={true}
       />
+
+      {/* Detail Modal */}
+      <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h2 className="text-xl font-bold text-[#151D48]">Detail Pengeluaran</h2>
+            <button onClick={() => setIsDetailModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+          </div>
+          {selectedExpense && (
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between border-b border-gray-100 pb-3">
+                <span className="text-gray-500 text-sm">Tanggal</span>
+                <span className="font-semibold text-[#151D48]">
+                  {new Date(selectedExpense.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-3">
+                <span className="text-gray-500 text-sm">No. Referensi</span>
+                <span className="font-semibold text-[#151D48]">{selectedExpense.reference_number || '-'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-3">
+                <span className="text-gray-500 text-sm">Vendor / Penerima</span>
+                <span className="font-semibold text-[#151D48]">{selectedExpense.vendor}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-3">
+                <span className="text-gray-500 text-sm">Kategori</span>
+                <span className="font-semibold text-[#151D48]">{selectedExpense.categories?.name || 'Lain-lain'}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-3">
+                <span className="text-gray-500 text-sm">Status</span>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                  selectedExpense.status?.toLowerCase() === 'paid' || selectedExpense.status?.toLowerCase() === 'lunas' ? 'bg-[#3CD856]/10 text-[#3CD856]' : 'bg-[#FF947A]/10 text-[#FF947A]'
+                }`}>
+                  {selectedExpense.status?.toLowerCase() === 'paid' || selectedExpense.status?.toLowerCase() === 'lunas' ? 'Lunas' : selectedExpense.status || 'Pending'}
+                </span>
+              </div>
+              <div className="flex justify-between pt-2">
+                <span className="text-gray-500 font-medium">Total Jumlah</span>
+                <span className="text-xl font-bold text-[#FA5A7D]">{formatCurrency(selectedExpense.amount)}</span>
+              </div>
+            </div>
+          )}
+          <div className="p-6 bg-gray-50 flex justify-end">
+            <Button onClick={() => setIsDetailModalOpen(false)} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">Tutup</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h2 className="text-xl font-bold text-[#151D48]">Edit Pengeluaran</h2>
+            <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+          </div>
+          <form onSubmit={submitEdit} className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#151D48] mb-1.5">Tanggal</label>
+                <Input type="date" value={editFormData.date} onChange={e => setEditFormData({...editFormData, date: e.target.value})} required className="bg-[#F9FAFB]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#151D48] mb-1.5">No. Referensi</label>
+                <Input type="text" value={editFormData.reference_number} onChange={e => setEditFormData({...editFormData, reference_number: e.target.value})} className="bg-[#F9FAFB]" />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-[#151D48] mb-1.5">Vendor / Penerima</label>
+              <Input type="text" value={editFormData.vendor} onChange={e => setEditFormData({...editFormData, vendor: e.target.value})} required className="bg-[#F9FAFB]" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#151D48] mb-1.5">Jumlah (Rp)</label>
+                <Input 
+                  type="text" 
+                  value={formatRupiah(editFormData.amount)} 
+                  onChange={e => setEditFormData({...editFormData, amount: parseRupiah(e.target.value)})} 
+                  required 
+                  className="bg-[#F9FAFB]" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#151D48] mb-1.5">Status</label>
+                <select 
+                  className="flex h-10 w-full rounded-xl border border-gray-200 bg-[#F9FAFB] px-3 py-2 text-sm text-gray-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+                  value={editFormData.status}
+                  onChange={e => setEditFormData({...editFormData, status: e.target.value})}
+                >
+                  <option value="paid">Lunas</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#151D48] mb-1.5">Kategori</label>
+              <select 
+                className="flex h-10 w-full rounded-xl border border-gray-200 bg-[#F9FAFB] px-3 py-2 text-sm text-gray-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+                value={editFormData.category_id}
+                onChange={e => setEditFormData({...editFormData, category_id: e.target.value})}
+              >
+                <option value="">-- Tanpa Kategori --</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="pt-4 flex justify-end gap-3 border-t border-gray-100 mt-6">
+              <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Batal</Button>
+              <Button type="submit" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
+                {loading ? "Menyimpan..." : "Simpan Perubahan"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
     </>
   );
 }

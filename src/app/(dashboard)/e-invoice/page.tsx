@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { BarsIcon, PlusIcon, DocumentDownloadIcon, MoreHorizontalIcon, EyeIcon, EmailSentIcon, TrashIcon, CheckCircleIcon, CloseIcon, CalculatorIcon, TruckIcon, Document1Icon, ChevronDownIcon } from "@astraicons/react/bold";
+import { BarsIcon, PlusIcon, DocumentDownloadIcon, MoreHorizontalIcon, EyeIcon, EmailSentIcon, TrashIcon, CheckCircleIcon, CloseIcon, CalculatorIcon, TruckIcon, Document1Icon, ChevronDownIcon, EditIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
@@ -250,9 +250,18 @@ export default function EInvoicePage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Lihat">
-                          <EyeIcon className="w-4 h-4" />
-                        </button>
+                        <Link href={`/e-invoice/${row.id}/detail`}>
+                          <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Lihat">
+                            <EyeIcon className="w-4 h-4" />
+                          </button>
+                        </Link>
+                        {row.status !== 'paid' && row.status !== 'lunas' && (
+                          <Link href={`/e-invoice/${row.id}/edit`}>
+                            <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
+                              <EditIcon className="w-4 h-4" />
+                            </button>
+                          </Link>
+                        )}
                         <button className="p-1.5 text-gray-400 hover:text-[#3CD856] hover:bg-[#3CD856]/10 rounded-md transition-colors" title="Kirim Email/WA">
                           <EmailSentIcon className="w-4 h-4" />
                         </button>

@@ -15,7 +15,8 @@ import {
   TableHeader, 
   TableRow,
 } from "@/components/ui/Table";
-import { getClients, insertClient, updateClient, deleteClient, Client, getClientInvoiceStats } from "@/lib/db";
+import { getClients, insertClient, updateClient, deleteClient, Client, getClientInvoiceStats, getInvoicesByClient, Invoice } from "@/lib/db";
+import { toast } from "sonner";
 
 export default function KlienPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,6 +27,20 @@ export default function KlienPage() {
   const [currentClientId, setCurrentClientId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<string | null>(null);
+
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<(Client & { stats?: { totalInvoices: number, unpaidAmount: number } }) | null>(null);
+  const [clientInvoices, setClientInvoices] = useState<Invoice[]>([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
+
+  const handleViewDetail = async (client: (Client & { stats?: { totalInvoices: number, unpaidAmount: number } })) => {
+    setSelectedClient(client);
+    setIsDetailModalOpen(true);
+    setLoadingInvoices(true);
+    const invoices = await getInvoicesByClient(client.id);
+    setClientInvoices(invoices);
+    setLoadingInvoices(false);
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -104,8 +119,9 @@ export default function KlienPage() {
     setLoading(false);
 
     if (error) {
-      alert("Gagal menghapus klien: " + error.message);
+      toast.error("Gagal menghapus klien: " + error.message);
     } else {
+      toast.success("Klien berhasil dihapus");
       setIsDeleteModalOpen(false);
       setClientToDelete(null);
       loadData();
@@ -120,15 +136,17 @@ export default function KlienPage() {
       if (isEdit && currentClientId) {
         const { error } = await updateClient(currentClientId, formData);
         if (error) throw error;
+        toast.success("Klien berhasil diperbarui");
       } else {
         const { error } = await insertClient(formData);
         if (error) throw error;
+        toast.success("Klien baru berhasil ditambahkan");
       }
       setIsModalOpen(false);
       resetForm();
       loadData();
     } catch (error: any) {
-      alert("Error: " + error.message);
+      toast.error("Error: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -233,7 +251,7 @@ export default function KlienPage() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <button 
-                          onClick={() => alert("Fitur lihat profil klien segera hadir.")}
+                          onClick={() => handleViewDetail(row)}
                           className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" 
                           title="Lihat Profil & Riwayat"
                         >
@@ -414,6 +432,106 @@ export default function KlienPage() {
         isDanger={true}
         isLoading={loading}
       />
+
+      {/* Detail Klien Modal */}
+      <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div>
+              <h2 className="text-xl font-bold text-[#151D48]">Profil Klien</h2>
+              <p className="text-sm text-gray-500 mt-1">Detail informasi dan riwayat invoice.</p>
+            </div>
+            <button 
+              onClick={() => setIsDetailModalOpen(false)}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <CloseIcon className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-6 overflow-y-auto space-y-6">
+            {selectedClient && (
+              <>
+                <div className="bg-[#F9FAFB] rounded-xl p-5 border border-gray-100 flex flex-col gap-4">
+                  <div>
+                    <h3 className="font-bold text-lg text-[#151D48]">{selectedClient.name}</h3>
+                    <p className="text-sm text-gray-500">{selectedClient.npwp ? `NPWP: ${selectedClient.npwp}` : 'Tidak ada NPWP'}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500 block mb-1">Kontak</span>
+                      <div className="flex items-center gap-1.5 text-[#151D48] mb-1"><CallIcon className="w-3.5 h-3.5" /> {selectedClient.phone || '-'}</div>
+                      <div className="flex items-center gap-1.5 text-[#151D48]"><EmailIcon className="w-3.5 h-3.5" /> {selectedClient.email || '-'}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block mb-1">Alamat</span>
+                      <p className="text-[#151D48] leading-tight">
+                        {selectedClient.address}<br/>
+                        {[selectedClient.city, selectedClient.province, selectedClient.postal_code].filter(Boolean).join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                  {selectedClient.notes && (
+                    <div className="pt-3 border-t border-gray-200">
+                      <span className="text-gray-500 text-xs block mb-1">Catatan</span>
+                      <p className="text-sm text-[#151D48] italic">{selectedClient.notes}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-[#151D48] mb-4">Riwayat Invoice</h3>
+                  <div className="border border-gray-100 rounded-xl overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-gray-50">
+                        <TableRow>
+                          <TableHead>Invoice</TableHead>
+                          <TableHead>Tanggal</TableHead>
+                          <TableHead className="text-right">Total</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {loadingInvoices ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-6 text-gray-500">Memuat riwayat...</TableCell>
+                          </TableRow>
+                        ) : clientInvoices.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-6 text-gray-500">Belum ada invoice untuk klien ini.</TableCell>
+                          </TableRow>
+                        ) : (
+                          clientInvoices.map((inv) => (
+                            <TableRow key={inv.id}>
+                              <TableCell className="font-medium text-[#5C67F2]">{inv.invoice_number}</TableCell>
+                              <TableCell>{new Date(inv.invoice_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                              <TableCell className="text-right font-medium text-[#151D48]">{formatCurrency(inv.grand_total || 0)}</TableCell>
+                              <TableCell>
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                  inv.status?.toLowerCase() === 'paid' || inv.status?.toLowerCase() === 'lunas' ? 'bg-[#3CD856]/10 text-[#3CD856]' : 
+                                  inv.status?.toLowerCase() === 'overdue' ? 'bg-[#FA5A7D]/10 text-[#FA5A7D]' : 
+                                  'bg-[#FF947A]/10 text-[#FF947A]'
+                                }`}>
+                                  {inv.status?.toLowerCase() === 'paid' || inv.status?.toLowerCase() === 'lunas' ? 'Lunas' : 
+                                   inv.status?.toLowerCase() === 'overdue' ? 'Jatuh Tempo' : 'Pending'}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
+            <Button onClick={() => setIsDetailModalOpen(false)} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
+              Tutup
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

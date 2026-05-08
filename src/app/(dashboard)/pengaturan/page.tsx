@@ -37,6 +37,7 @@ import {
   updateUserRole,
   deleteUser,
   deleteCategory,
+  updateCategory,
   updateCategoryOrder,
   createCategory,
   CompanyProfile,
@@ -76,6 +77,14 @@ export default function PengaturanPage() {
 
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+
+  const [isEditCategoryModalOpen, setIsEditCategoryModalOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
+
+  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<UserProfile | null>(null);
+  const [editUserRole, setEditUserRole] = useState("staff");
 
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
@@ -205,6 +214,56 @@ export default function PengaturanPage() {
       window.dispatchEvent(new Event('refreshNotifications'));
       setNewCategoryName("");
       setIsAddCategoryModalOpen(false);
+      loadData();
+    }
+    setLoading(false);
+  };
+
+  const handleEditCategoryClick = (cat: Category) => {
+    setCategoryToEdit(cat);
+    setEditCategoryName(cat.name);
+    setIsEditCategoryModalOpen(true);
+  };
+
+  const handleUpdateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryToEdit || !editCategoryName.trim()) return;
+
+    setLoading(true);
+    const { error } = await updateCategory(categoryToEdit.id, { name: editCategoryName.trim() });
+    
+    if (error) {
+      toast.error("Gagal mengubah kategori: " + error.message);
+    } else {
+      toast.success("Kategori berhasil diubah");
+      window.dispatchEvent(new Event('refreshNotifications'));
+      setIsEditCategoryModalOpen(false);
+      setCategoryToEdit(null);
+      loadData();
+    }
+    setLoading(false);
+  };
+
+  const handleEditUserClick = (user: UserProfile) => {
+    setUserToEdit(user);
+    setEditUserRole(user.role || "staff");
+    setIsEditUserModalOpen(true);
+  };
+
+  const handleUpdateUserRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userToEdit) return;
+
+    setLoading(true);
+    const { error } = await updateUserRole(userToEdit.id, editUserRole);
+    
+    if (error) {
+      toast.error("Gagal mengubah akses pengguna: " + error.message);
+    } else {
+      toast.success("Akses pengguna berhasil diperbarui");
+      window.dispatchEvent(new Event('refreshNotifications'));
+      setIsEditUserModalOpen(false);
+      setUserToEdit(null);
       loadData();
     }
     setLoading(false);
@@ -381,7 +440,7 @@ export default function PengaturanPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <button onClick={() => alert("Fitur edit pengguna sedang dikembangkan.")} className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
+                          <button onClick={() => handleEditUserClick(user)} className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
                             <EditIcon className="w-4 h-4" />
                           </button>
                           <button onClick={() => handleDeleteUserClick(user.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
@@ -452,7 +511,7 @@ export default function PengaturanPage() {
                       </TableCell>
                       <TableCell className="text-right whitespace-nowrap">
                         <div className="flex justify-end gap-2 items-center">
-                          <button onClick={() => alert("Fitur edit kategori sedang dikembangkan.")} className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
+                          <button onClick={() => handleEditCategoryClick(cat)} className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
                             <EditIcon className="w-4 h-4" />
                           </button>
                           <button onClick={() => handleDeleteCategoryClick(cat.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
@@ -651,6 +710,81 @@ export default function PengaturanPage() {
             <Button variant="outline" onClick={() => setIsAddCategoryModalOpen(false)} disabled={loading}>Batal</Button>
             <Button type="submit" form="category-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
               {loading ? "Menyimpan..." : "Simpan Kategori"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={isEditCategoryModalOpen} onClose={() => setIsEditCategoryModalOpen(false)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div>
+              <h2 className="text-xl font-bold text-[#151D48]">Edit Kategori</h2>
+            </div>
+            <button 
+              onClick={() => setIsEditCategoryModalOpen(false)}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <CloseCircleIcon className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-6">
+            <form id="edit-category-form" onSubmit={handleUpdateCategory}>
+              <label className="block text-sm font-medium text-[#151D48] mb-1.5">Nama Kategori <span className="text-red-500">*</span></label>
+              <Input 
+                type="text" 
+                required 
+                className="bg-[#F9FAFB] border-gray-200" 
+                value={editCategoryName}
+                onChange={(e) => setEditCategoryName(e.target.value)}
+                autoFocus
+              />
+            </form>
+          </div>
+          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+            <Button variant="outline" onClick={() => setIsEditCategoryModalOpen(false)} disabled={loading}>Batal</Button>
+            <Button type="submit" form="edit-category-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
+              {loading ? "Menyimpan..." : "Simpan Perubahan"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={isEditUserModalOpen} onClose={() => setIsEditUserModalOpen(false)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div>
+              <h2 className="text-xl font-bold text-[#151D48]">Ubah Akses Pengguna</h2>
+            </div>
+            <button 
+              onClick={() => setIsEditUserModalOpen(false)}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <CloseCircleIcon className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-6">
+            <form id="edit-user-form" onSubmit={handleUpdateUserRole}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-500">Nama Pengguna</label>
+                <div className="font-semibold text-[#151D48]">{userToEdit?.name}</div>
+                <div className="text-xs text-gray-500">{userToEdit?.email}</div>
+              </div>
+              <label className="block text-sm font-medium text-[#151D48] mb-1.5">Peran Akses <span className="text-red-500">*</span></label>
+              <select 
+                className="flex h-10 w-full rounded-xl border border-gray-200 bg-[#F9FAFB] px-3 py-2 text-sm text-gray-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+                value={editUserRole}
+                onChange={(e) => setEditUserRole(e.target.value)}
+              >
+                <option value="staff">Staff (Terbatas)</option>
+                <option value="manager">Manager (Penuh)</option>
+              </select>
+            </form>
+          </div>
+          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+            <Button variant="outline" onClick={() => setIsEditUserModalOpen(false)} disabled={loading}>Batal</Button>
+            <Button type="submit" form="edit-user-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
+              {loading ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </div>
         </div>

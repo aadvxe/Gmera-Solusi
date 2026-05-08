@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { ArrowLeftIcon, SaveIcon, PlusIcon, TrashIcon, Document1Icon, TruckIcon, CalculatorIcon } from "@astraicons/react/bold";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { getClients, createInvoiceWithItems, Client } from "@/lib/db";
+import { getClients, getInvoiceById, updateInvoiceWithItems, Client } from "@/lib/db";
+import { toast } from "sonner";
 import { formatRupiah, parseRupiah } from "@/lib/utils";
 
 interface InvoiceItem {
@@ -17,38 +18,94 @@ interface InvoiceItem {
   price: number;
 }
 
-export default function BuatInvoicePage() {
+export default function EditInvoicePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const params = useParams();
+  const invoiceId = params.id as string;
+  
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
 
   // Form State
-  const [invoiceNumber, setInvoiceNumber] = useState(`INV-${Date.now().toString().slice(-6)}`);
-  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [clientId, setClientId] = useState("");
   const [shippingMethod, setShippingMethod] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [estimatedArrival, setEstimatedArrival] = useState("");
-  const [notes, setNotes] = useState("Terima kasih atas bisnis Anda bersama PT GMera Solusi. Pembayaran harap ditransfer ke rekening BCA 1234567890 a.n PT GMera Solusi.");
+  const [notes, setNotes] = useState("");
 
-  const [items, setItems] = useState<InvoiceItem[]>([
-    { id: 1, name: "", qty: 1, unit: "Pcs", price: 0 }
-  ]);
+  const [items, setItems] = useState<InvoiceItem[]>([]);
   
   const [shippingCost, setShippingCost] = useState(0);
   const [shippingAddress, setShippingAddress] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [taxRate, setTaxRate] = useState(11); // 11% PPN
   const [applyTax, setApplyTax] = useState(true);
+  
+  const [status, setStatus] = useState("unpaid");
 
   useEffect(() => {
-    const fetchClients = async () => {
-      const data = await getClients();
-      setClients(data);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [clientsData, invoiceData] = await Promise.all([
+          getClients(),
+          getInvoiceById(invoiceId)
+        ]);
+        
+        setClients(clientsData);
+        
+        if (invoiceData) {
+          setInvoiceNumber(invoiceData.invoice_number);
+          setInvoiceDate(invoiceData.invoice_date);
+          setDueDate(invoiceData.due_date);
+          setClientId(invoiceData.client_id || "");
+          setShippingMethod(invoiceData.shipping_method || "");
+          setTrackingNumber(invoiceData.tracking_number || "");
+          setEstimatedArrival(invoiceData.estimated_arrival || "");
+          setNotes(invoiceData.notes || "");
+          setShippingCost(invoiceData.shipping_cost || 0);
+          setShippingAddress(invoiceData.shipping_address || "");
+          setDiscountAmount(invoiceData.discount_amount || 0);
+          
+          if (invoiceData.tax_rate && invoiceData.tax_rate > 0) {
+            setApplyTax(true);
+            setTaxRate(invoiceData.tax_rate);
+          } else {
+            setApplyTax(false);
+          }
+          
+          setStatus(invoiceData.status);
+
+          if (invoiceData.invoice_items && invoiceData.invoice_items.length > 0) {
+            setItems(invoiceData.invoice_items.map((item: any) => ({
+              id: item.id,
+              name: item.description,
+              qty: item.quantity,
+              unit: item.unit || "Pcs",
+              price: item.unit_price
+            })));
+          } else {
+            setItems([{ id: Date.now(), name: "", qty: 1, unit: "Pcs", price: 0 }]);
+          }
+        } else {
+          toast.error("Invoice tidak ditemukan");
+          router.push('/e-invoice');
+        }
+      } catch (error) {
+        console.error("Error fetching invoice:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchClients();
-  }, []);
+    
+    if (invoiceId) {
+      fetchData();
+    }
+  }, [invoiceId, router]);
 
   // Selected Client Data
   const selectedClient = clients.find(c => c.id === clientId);
@@ -83,11 +140,11 @@ export default function BuatInvoicePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientId) return alert("Silakan pilih klien terlebih dahulu.");
-    if (!dueDate) return alert("Silakan tentukan tanggal jatuh tempo.");
-    if (items.some(i => !i.name || i.price <= 0)) return alert("Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid.");
+    if (!clientId) return toast.error("Silakan pilih klien terlebih dahulu.");
+    if (!dueDate) return toast.error("Silakan tentukan tanggal jatuh tempo.");
+    if (items.some(i => !i.name || i.price <= 0)) return toast.error("Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid.");
 
-    setLoading(true);
+    setSaving(true);
     try {
       const invoiceData = {
         invoice_number: invoiceNumber,
@@ -98,7 +155,7 @@ export default function BuatInvoicePage() {
         client_email: selectedClient?.email || null,
         invoice_date: invoiceDate,
         due_date: dueDate,
-        status: 'unpaid' as const,
+        status: status as any,
         subtotal: subtotal,
         tax_rate: applyTax ? taxRate : 0,
         tax_amount: taxAmount,
@@ -110,8 +167,6 @@ export default function BuatInvoicePage() {
         discount_amount: discountAmount,
         grand_total: grandTotal,
         notes: notes || null,
-        attachment_url: null, // Placeholder for future file upload implementation
-        created_by: null // Handled by RLS
       };
 
       const itemsData = items.map(item => ({
@@ -122,33 +177,38 @@ export default function BuatInvoicePage() {
         total_price: item.qty * item.price
       }));
 
-      const { error } = await createInvoiceWithItems(invoiceData, itemsData);
+      const { error } = await updateInvoiceWithItems(invoiceId, invoiceData, itemsData);
       
       if (error) {
         console.error(error);
-        alert(`Gagal membuat invoice: ${error.message}`);
+        toast.error(`Gagal memperbarui invoice: ${error.message}`);
       } else {
+        toast.success("Invoice berhasil diperbarui");
         router.push('/e-invoice');
       }
     } catch (error: any) {
-      alert(`Terjadi kesalahan: ${error.message}`);
+      toast.error(`Terjadi kesalahan: ${error.message}`);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  if (loading) {
+    return <div className="p-10 text-center text-gray-500">Memuat data invoice...</div>;
+  }
 
   return (
     <form className="max-w-5xl mx-auto space-y-6 pb-20" onSubmit={handleSubmit}>
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/e-invoice">
-          <button className="p-2 bg-surface border border-border rounded-xl hover:bg-background transition-colors text-text-secondary">
+          <button type="button" className="p-2 bg-surface border border-border rounded-xl hover:bg-background transition-colors text-text-secondary">
             <ArrowLeftIcon className="w-5 h-5" />
           </button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Buat Invoice Baru</h1>
-          <p className="text-sm text-text-secondary mt-1">Buat faktur penagihan untuk klien Anda</p>
+          <h1 className="text-2xl font-bold text-text-primary">Edit Invoice</h1>
+          <p className="text-sm text-text-secondary mt-1">{invoiceNumber}</p>
         </div>
       </div>
 
@@ -158,7 +218,7 @@ export default function BuatInvoicePage() {
           {/* Section 1: Informasi Klien */}
           <div className="bg-surface border border-border rounded-2xl shadow-sm p-6">
             <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
-              <Document1Icon className="w-[18px] h-[18px] text-primary" /> Informasi Invoice & Klien
+              <Document1Icon className="w-[18px] h-[18px] text-[#5C67F2]" /> Informasi Invoice & Klien
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -173,7 +233,7 @@ export default function BuatInvoicePage() {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Klien <span className="text-danger">*</span></label>
                 <select 
-                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
                   value={clientId}
                   onChange={e => setClientId(e.target.value)}
                   required
@@ -187,7 +247,7 @@ export default function BuatInvoicePage() {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Alamat Penagihan</label>
                 <textarea 
-                  className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[60px] resize-y"
+                  className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20 min-h-[60px] resize-y"
                   placeholder="Alamat akan terisi otomatis setelah klien dipilih..."
                   value={selectedClient ? `${selectedClient.address || ''}, ${selectedClient.city || ''}, ${selectedClient.province || ''}` : ""}
                   readOnly
@@ -199,7 +259,7 @@ export default function BuatInvoicePage() {
           {/* Section 2: Detail Barang/Jasa */}
           <div className="bg-surface border border-border rounded-2xl shadow-sm p-6 overflow-hidden">
             <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
-              <PlusIcon className="w-[18px] h-[18px] text-primary" /> Detail Barang & Jasa
+              <PlusIcon className="w-[18px] h-[18px] text-[#5C67F2]" /> Detail Barang & Jasa
             </h3>
             
             <div className="overflow-x-auto">
@@ -234,7 +294,7 @@ export default function BuatInvoicePage() {
                       </td>
                       <td className="px-2 py-3">
                         <select 
-                          className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
                           value={item.unit}
                           onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
                         >
@@ -257,6 +317,7 @@ export default function BuatInvoicePage() {
                       </td>
                       <td className="px-2 py-3 text-center">
                         <button 
+                          type="button"
                           onClick={() => removeItem(item.id)}
                           className="p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 rounded-md transition-colors"
                           disabled={items.length === 1}
@@ -271,71 +332,9 @@ export default function BuatInvoicePage() {
             </div>
             
             <div className="mt-4">
-              <Button type="button" variant="outline" size="sm" onClick={addItem} className="flex items-center gap-1 text-primary border-primary/20 hover:bg-primary/5">
+              <Button type="button" variant="outline" size="sm" onClick={addItem} className="flex items-center gap-1 text-[#5C67F2] border-[#5C67F2]/20 hover:bg-[#5C67F2]/5">
                 <PlusIcon className="w-3.5 h-3.5" /> Tambah Baris
               </Button>
-            </div>
-          </div>
-
-          {/* Section 3: Informasi Pengiriman (Feature Ideation 1.2) */}
-          <div className="bg-surface border border-border rounded-2xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
-              <TruckIcon className="w-[18px] h-[18px] text-primary" /> Informasi Pengiriman
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Metode Pengiriman</label>
-                <select 
-                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  value={shippingMethod}
-                  onChange={e => setShippingMethod(e.target.value)}
-                >
-                  <option value="">-- Pilih Kurir --</option>
-                  <option value="jne_reg">JNE Regular</option>
-                  <option value="jne_yes">JNE YES</option>
-                  <option value="gosend">GoSend / GrabExpress</option>
-                  <option value="custom">Kurir Internal / Custom</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">No. Resi / Pelacakan</label>
-                <Input type="text" placeholder="Opsional" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Estimasi Sampai</label>
-                <Input type="date" value={estimatedArrival} onChange={e => setEstimatedArrival(e.target.value)} />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Alamat Pengiriman (Jika berbeda dengan penagihan)</label>
-                <textarea 
-                  className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[60px] resize-y"
-                  placeholder="Opsional..."
-                  value={shippingAddress}
-                  onChange={(e) => setShippingAddress(e.target.value)}
-                ></textarea>
-              </div>
-            </div>
-          </div>
-          
-          {/* Section 4: Lampiran */}
-          <div className="bg-surface border border-border rounded-2xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
-              <Document1Icon className="w-[18px] h-[18px] text-primary" /> Lampiran
-            </h3>
-            <div>
-              <label className="block text-sm font-medium text-text-primary mb-1.5">File PO / Kontrak (Opsional)</label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-xl bg-background/50 hover:bg-background transition-colors cursor-pointer">
-                <div className="space-y-1 text-center">
-                  <div className="flex text-sm text-text-secondary justify-center">
-                    <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
-                      <span>Unggah file lampiran</span>
-                      <input id="file-upload" name="file-upload" type="file" className="sr-only" />
-                    </label>
-                  </div>
-                  <p className="text-xs text-text-muted">PDF, PNG, JPG maksimal 5MB</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -344,7 +343,7 @@ export default function BuatInvoicePage() {
         <div className="lg:col-span-1">
           <div className="bg-surface border border-border rounded-2xl shadow-sm p-6 sticky top-24">
             <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
-              <CalculatorIcon className="w-[18px] h-[18px] text-primary" /> Ringkasan Pembayaran
+              <CalculatorIcon className="w-[18px] h-[18px] text-[#5C67F2]" /> Ringkasan Pembayaran
             </h3>
             
             <div className="space-y-3 text-sm">
@@ -370,7 +369,7 @@ export default function BuatInvoicePage() {
                     type="checkbox" 
                     checked={applyTax}
                     onChange={(e) => setApplyTax(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded text-primary"
+                    className="w-3.5 h-3.5 rounded text-[#5C67F2]"
                   />
                 </div>
                 <span className="font-medium text-text-primary">{formatCurrency(taxAmount)}</span>
@@ -402,7 +401,7 @@ export default function BuatInvoicePage() {
               
               <div className="pt-3 mt-3 border-t border-border flex justify-between items-center">
                 <span className="font-bold text-base text-text-primary">TOTAL AKHIR</span>
-                <span className="font-bold text-lg text-primary">{formatCurrency(grandTotal)}</span>
+                <span className="font-bold text-lg text-[#5C67F2]">{formatCurrency(grandTotal)}</span>
               </div>
             </div>
             
@@ -412,9 +411,22 @@ export default function BuatInvoicePage() {
                 <Input type="date" required value={dueDate} onChange={e => setDueDate(e.target.value)} />
               </div>
               <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Status</label>
+                <select 
+                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+                  value={status}
+                  onChange={e => setStatus(e.target.value)}
+                >
+                  <option value="unpaid">Belum Bayar (Unpaid)</option>
+                  <option value="paid">Lunas (Paid)</option>
+                  <option value="overdue">Jatuh Tempo (Overdue)</option>
+                  <option value="cancelled">Dibatalkan (Cancelled)</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Catatan untuk Klien</label>
                 <textarea 
-                  className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[80px] resize-y text-xs"
+                  className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20 min-h-[80px] resize-y text-xs"
                   placeholder="Terima kasih atas bisnis Anda..."
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
@@ -423,11 +435,8 @@ export default function BuatInvoicePage() {
             </div>
 
             <div className="mt-8 pt-4 border-t border-border flex flex-col gap-3">
-              <Button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-6 text-base bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
-                <SaveIcon className="w-[18px] h-[18px]" /> {loading ? "Menyimpan..." : "Simpan Invoice"}
-              </Button>
-              <Button variant="outline" type="button" className="w-full flex items-center justify-center gap-2">
-                <Document1Icon className="w-4 h-4" /> Pratinjau PDF
+              <Button type="submit" disabled={saving} className="w-full flex items-center justify-center gap-2 py-6 text-base bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
+                <SaveIcon className="w-[18px] h-[18px]" /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
               </Button>
             </div>
           </div>
