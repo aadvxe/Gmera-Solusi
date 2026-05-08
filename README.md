@@ -176,205 +176,183 @@ The latest database schema is in [`schema/db_dump.sql`](schema/db_dump.sql). Use
 
 ## 🗺️ Entity Relationship Diagram (ERD)
 
+The system consists of 13 main database tables with the following relationships:
+
 ```mermaid
 erDiagram
-    users ||--o{ invoices : "creates"
-    users ||--o{ income : "records"
-    users ||--o{ expense : "records"
-    users ||--o{ audit_logs : "generates"
+    users ||--o{ invoices : creates
+    users ||--o{ income : records
+    users ||--o{ expense : records
+    users ||--o{ audit_logs : generates
     
-    clients ||--o{ invoices : "receives"
+    clients ||--o{ invoices : has
     
-    categories ||--o{ income : "categorizes"
-    categories ||--o{ expense : "categorizes"
+    categories ||--o{ income : categorizes
+    categories ||--o{ expense : categorizes
     
-    payment_methods ||--o{ income : "uses"
-    payment_methods ||--o{ expense : "uses"
+    payment_methods ||--o{ income : uses
+    payment_methods ||--o{ expense : uses
     
-    invoices ||--|{ invoice_items : "contains"
-    invoices ||--o| income : "linked_to"
+    invoices ||--|{ invoice_items : contains
+    invoices ||--o| income : linked
     
-    income ||--|{ income_items : "contains"
-    expense ||--|{ expense_items : "contains"
+    income ||--|{ income_items : contains
+    expense ||--|{ expense_items : contains
     
     users {
         uuid id PK
-        varchar name
         varchar email UK
         user_role role
-        varchar phone
-        varchar department
-        varchar avatar_url
-        boolean is_active
-        timestamptz last_login
-        timestamptz created_at
-        timestamptz updated_at
     }
     
     clients {
         uuid id PK
         varchar name
-        text address
-        varchar city
-        varchar province
-        varchar postal_code
-        varchar phone
         varchar email
         varchar npwp
-        text notes
-        boolean is_active
-        timestamptz created_at
-        timestamptz updated_at
-    }
-    
-    categories {
-        uuid id PK
-        varchar name
-        category_type type
-        varchar description
-        boolean is_active
-        int order_index
-        timestamptz created_at
-    }
-    
-    payment_methods {
-        uuid id PK
-        varchar name
-        boolean is_active
     }
     
     invoices {
         uuid id PK
         varchar invoice_number UK
         uuid client_id FK
-        varchar client_name
-        text client_address
-        varchar client_phone
-        varchar client_email
-        date invoice_date
-        date due_date
-        invoice_status status
-        decimal subtotal
-        decimal tax_rate
-        decimal tax_amount
-        decimal shipping_cost
-        varchar shipping_method
-        varchar tracking_number
-        text shipping_address
-        date estimated_arrival
-        decimal discount_amount
-        decimal grand_total
-        text notes
-        varchar attachment_url
         uuid created_by FK
-        timestamptz created_at
-        timestamptz updated_at
-        timestamptz paid_at
+        invoice_status status
+        decimal grand_total
     }
     
     invoice_items {
         uuid id PK
         uuid invoice_id FK
-        varchar description
         decimal quantity
-        varchar unit
-        decimal unit_price
         decimal total_price
     }
     
     income {
         uuid id PK
-        date date
-        varchar source
         uuid category_id FK
         uuid payment_method_id FK
-        decimal amount
-        varchar reference_number
         uuid invoice_id FK
-        entry_method entry_method
-        varchar status
-        text description
-        varchar attachment_url
-        uuid created_by FK
-        timestamptz created_at
-        timestamptz updated_at
+        decimal amount
     }
     
     income_items {
         uuid id PK
         uuid income_id FK
-        varchar description
-        decimal quantity
-        varchar unit
-        decimal unit_price
         decimal total_price
     }
     
     expense {
         uuid id PK
-        date date
-        varchar expense_type
         uuid category_id FK
         uuid payment_method_id FK
         decimal amount
-        varchar reference_number
-        varchar status
-        text description
-        varchar attachment_url
-        uuid created_by FK
-        timestamptz created_at
-        timestamptz updated_at
     }
     
     expense_items {
         uuid id PK
         uuid expense_id FK
-        varchar description
-        decimal quantity
-        varchar unit
-        decimal unit_price
         decimal total_price
+    }
+    
+    categories {
+        uuid id PK
+        varchar name
+        category_type type
+    }
+    
+    payment_methods {
+        uuid id PK
+        varchar name
     }
     
     audit_logs {
         uuid id PK
         uuid user_id FK
         audit_action action
-        varchar entity_type
-        uuid entity_id
-        jsonb old_values
-        jsonb new_values
-        varchar ip_address
-        varchar user_agent
-        timestamptz created_at
-    }
-    
-    company_profile {
-        uuid id PK
-        varchar company_name
-        text address
-        varchar phone
-        varchar email
-        varchar npwp
-        varchar logo_url
-        varchar website
-        varchar bank_name
-        varchar bank_account
-        varchar bank_account_name
-        decimal tax_rate
-        timestamptz created_at
-        timestamptz updated_at
-    }
-    
-    couriers {
-        uuid id PK
-        varchar code UK
-        varchar name
-        varchar type
-        varchar estimated_days
-        boolean is_active
     }
 ```
+
+### 📋 Complete Table Descriptions
+
+<details>
+<summary><b>Click to view detailed table schemas</b></summary>
+
+#### **users** - User Management
+- `id` (uuid, PK) - User identifier
+- `name`, `email` (UK), `role` (user_role enum)
+- `phone`, `department`, `avatar_url`
+- `is_active`, `last_login`, `created_at`, `updated_at`
+
+#### **clients** - Client Database
+- `id` (uuid, PK) - Client identifier
+- `name`, `address`, `city`, `province`, `postal_code`
+- `phone`, `email`, `npwp` (Indonesian Tax ID)
+- `notes`, `is_active`, `created_at`, `updated_at`
+
+#### **categories** - Transaction Categories
+- `id` (uuid, PK) - Category identifier
+- `name`, `type` (income/expense), `description`
+- `is_active`, `order_index`, `created_at`
+
+#### **payment_methods** - Payment Options
+- `id` (uuid, PK) - Payment method identifier
+- `name`, `is_active`
+
+#### **invoices** - Invoice Management
+- `id` (uuid, PK), `invoice_number` (UK)
+- `client_id` (FK), `client_name`, `client_address`, `client_phone`, `client_email`
+- `invoice_date`, `due_date`, `status` (unpaid/paid/overdue/cancelled)
+- `subtotal`, `tax_rate`, `tax_amount`, `shipping_cost`, `discount_amount`, `grand_total`
+- `shipping_method`, `tracking_number`, `shipping_address`, `estimated_arrival`
+- `notes`, `attachment_url`, `created_by` (FK)
+- `created_at`, `updated_at`, `paid_at`
+
+#### **invoice_items** - Invoice Line Items
+- `id` (uuid, PK), `invoice_id` (FK)
+- `description`, `quantity`, `unit`, `unit_price`, `total_price`
+
+#### **income** - Income Transactions
+- `id` (uuid, PK), `date`, `source`
+- `category_id` (FK), `payment_method_id` (FK), `invoice_id` (FK)
+- `amount`, `reference_number`
+- `entry_method` (manual/auto), `status`, `description`
+- `attachment_url`, `created_by` (FK)
+- `created_at`, `updated_at`
+
+#### **income_items** - Income Line Items
+- `id` (uuid, PK), `income_id` (FK)
+- `description`, `quantity`, `unit`, `unit_price`, `total_price`
+
+#### **expense** - Expense Transactions
+- `id` (uuid, PK), `date`, `expense_type`
+- `category_id` (FK), `payment_method_id` (FK)
+- `amount`, `reference_number`, `status`, `description`
+- `attachment_url`, `created_by` (FK)
+- `created_at`, `updated_at`
+
+#### **expense_items** - Expense Line Items
+- `id` (uuid, PK), `expense_id` (FK)
+- `description`, `quantity`, `unit`, `unit_price`, `total_price`
+
+#### **audit_logs** - Audit Trail
+- `id` (uuid, PK), `user_id` (FK)
+- `action` (create/update/delete/view/export/login/logout)
+- `entity_type`, `entity_id`
+- `old_values` (jsonb), `new_values` (jsonb)
+- `ip_address`, `user_agent`, `created_at`
+
+#### **company_profile** - Company Settings
+- `id` (uuid, PK), `company_name`, `address`, `phone`, `email`
+- `npwp`, `logo_url`, `website`
+- `bank_name`, `bank_account`, `bank_account_name`
+- `tax_rate`, `created_at`, `updated_at`
+
+#### **couriers** - Shipping Methods
+- `id` (uuid, PK), `code` (UK), `name`, `type`
+- `estimated_days`, `is_active`
+
+</details>
 
 ---
 
