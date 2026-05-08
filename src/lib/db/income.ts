@@ -50,3 +50,18 @@ export async function deleteIncome(id: string) {
   const { error } = await supabase.from('income').delete().eq('id', id);
   return { error };
 }
+
+export async function updateIncome(
+  id: string,
+  payload: Partial<Omit<Income, 'id' | 'created_at' | 'categories' | 'payment_methods'>>
+) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('income')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .single();
+
+  return { data, error };
+}

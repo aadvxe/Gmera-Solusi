@@ -14,8 +14,30 @@ export async function getCategories(type?: 'income' | 'expense'): Promise<Catego
 
 export async function deleteCategory(id: string) {
   const supabase = createClient();
+  
+  // Fetch category data first to log its name
+  const { data: catData } = await supabase.from('categories').select('name').eq('id', id).single();
+  
   const { error } = await supabase.from('categories').delete().eq('id', id);
+  if (!error) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) await createAuditLog(user.id, 'delete', 'Category Order', id, catData, null);
+  }
   return { error };
+}
+
+export async function createCategory(payload: Omit<Category, 'id' | 'created_at'>) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('categories')
+    .insert([payload])
+    .select()
+    .single();
+  if (!error && data) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) await createAuditLog(user.id, 'create', 'Category Order', data.id, null, payload);
+  }
+  return { data, error };
 }
 
 export async function updateCategory(id: string, payload: Partial<Category>) {

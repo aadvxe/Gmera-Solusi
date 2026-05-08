@@ -41,3 +41,18 @@ export async function deleteExpense(id: string) {
   const { error } = await supabase.from('expense').delete().eq('id', id);
   return { error };
 }
+
+export async function updateExpense(
+  id: string,
+  payload: Partial<Omit<Expense, 'id' | 'created_at' | 'categories' | 'payment_methods'>>
+) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('expense')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .single();
+
+  return { data, error };
+}

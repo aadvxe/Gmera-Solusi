@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { DocumentDownloadIcon, StatusUpIcon, ArrowDownIcon, WalletIcon, DocumentIcon, ArrowUpRightIcon, CloseIcon, ChartIcon } from "@astraicons/react/bold";
+import { DocumentDownloadIcon, StatusUpIcon, ArrowDownIcon, WalletIcon, DocumentIcon, ArrowUpRightIcon, CloseIcon, ChartIcon, SettingsIcon, CalenderIcon } from "@astraicons/react/bold";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { ChartWrapper } from "@/components/ui/ChartWrapper";
 import { Modal } from "@/components/ui/Modal";
@@ -514,10 +514,14 @@ export default function DashboardPage() {
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 ${
                   activity.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
                   activity.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
+                  activity.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                  activity.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
                   'bg-[#7983ff]/10 text-[#7983ff]'
                 }`}>
                   {activity.type === 'income' ? <ArrowUpRightIcon className="w-[18px] h-[18px]" /> : 
                    activity.type === 'expense' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> : 
+                   activity.type === 'system' ? <SettingsIcon className="w-[18px] h-[18px]" /> :
+                   activity.type === 'reminder' ? <CalenderIcon className="w-[18px] h-[18px]" /> :
                    <DocumentIcon className="w-[18px] h-[18px]" />}
                 </div>
                 
@@ -560,10 +564,14 @@ export default function DashboardPage() {
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 ${
                     activity.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
                     activity.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
+                    activity.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                    activity.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
                     'bg-[#7983ff]/10 text-[#7983ff]'
                   }`}>
                     {activity.type === 'income' ? <ArrowUpRightIcon className="w-[18px] h-[18px]" /> : 
                      activity.type === 'expense' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> : 
+                     activity.type === 'system' ? <SettingsIcon className="w-[18px] h-[18px]" /> :
+                     activity.type === 'reminder' ? <CalenderIcon className="w-[18px] h-[18px]" /> :
                      <DocumentIcon className="w-[18px] h-[18px]" />}
                   </div>
                   <div className="flex-1 pb-1">

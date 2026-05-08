@@ -18,6 +18,8 @@ import {
 import { SearchIcon, Menu2Icon } from "@astraicons/react/linear";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { 
   Table, 
   TableBody, 
@@ -36,6 +38,7 @@ import {
   deleteUser,
   deleteCategory,
   updateCategoryOrder,
+  createCategory,
   CompanyProfile,
   UserProfile,
   Category,
@@ -64,6 +67,15 @@ export default function PengaturanPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+
+  const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  
+  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
@@ -97,44 +109,105 @@ export default function PengaturanPage() {
     if (!company) return;
 
     const formData = new FormData(e.currentTarget);
-    const payload = {
-      company_name: formData.get("company_name") as string,
-      email: formData.get("email") as string,
-      phone: formData.get("phone") as string,
-      address: formData.get("address") as string,
-      website: formData.get("website") as string,
-    };
+    const payload: any = {};
+    
+    // Only include fields that are present in the form
+    formData.forEach((value, key) => {
+      if (value !== null && value !== "") {
+        if (key === 'tax_rate') payload[key] = parseFloat(value as string);
+        else payload[key] = value as string;
+      }
+    });
+
+    if (Object.keys(payload).length === 0) return;
 
     setLoading(true);
     const { error } = await updateCompanyProfile(payload);
     setLoading(false);
 
     if (error) {
-      toast.error("Gagal memperbarui profil: " + (typeof error === 'string' ? error : error.message));
+      toast.error("Gagal memperbarui: " + (typeof error === 'string' ? error : error.message));
     } else {
-      toast.success("Profil perusahaan berhasil diperbarui!");
+      let desc = "Pengaturan sistem berhasil diperbarui";
+      if (payload.tax_rate || payload.npwp) desc = "Pengaturan pajak diperbarui";
+      else if (payload.bank_name || payload.bank_account) desc = "Metode pembayaran diperbarui";
+      else desc = "Profil perusahaan berhasil diperbarui";
+
+      toast.warning("Pengaturan Sistem", {
+        description: desc
+      });
+      
+      window.dispatchEvent(new Event('refreshNotifications'));
       loadData();
     }
   };
 
-  const handleDeleteUser = async (id: string) => {
-    if (confirm("Apakah Anda yakin ingin menonaktifkan pengguna ini?")) {
-      setLoading(true);
-      const { error } = await deleteUser(id);
-      if (error) toast.error("Gagal menonaktifkan pengguna");
-      else { toast.success("Pengguna dinonaktifkan"); loadData(); }
-      setLoading(false);
-    }
+  const handleDeleteUserClick = (id: string) => {
+    setUserToDelete(id);
+    setIsDeleteUserModalOpen(true);
   };
 
-  const handleDeleteCategory = async (id: string) => {
-    if (confirm("Apakah Anda yakin ingin menghapus kategori ini?")) {
-      setLoading(true);
-      const { error } = await deleteCategory(id);
-      if (error) toast.error("Gagal menghapus kategori");
-      else { toast.success("Kategori berhasil dihapus"); loadData(); }
-      setLoading(false);
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setLoading(true);
+    const { error } = await deleteUser(userToDelete);
+    if (error) toast.error("Gagal menonaktifkan pengguna");
+    else { toast.success("Pengguna dinonaktifkan"); loadData(); }
+    setIsDeleteUserModalOpen(false);
+    setUserToDelete(null);
+    setLoading(false);
+  };
+
+  const handleDeleteCategoryClick = (id: string) => {
+    setCategoryToDelete(id);
+    setIsDeleteCategoryModalOpen(true);
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    setLoading(true);
+    const { error } = await deleteCategory(categoryToDelete);
+    if (error) {
+      toast.error("Gagal menghapus kategori");
+    } else {
+      toast.warning("Pengaturan Sistem", {
+        description: "Kategori berhasil dihapus"
+      });
+      window.dispatchEvent(new Event('refreshNotifications'));
+      loadData();
     }
+    setIsDeleteCategoryModalOpen(false);
+    setCategoryToDelete(null);
+    setLoading(false);
+  };
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    
+    setLoading(true);
+    const type = activeCatTab === "pendapatan" ? "income" : "expense";
+    const maxOrder = Math.max(0, ...categories.filter(c => c.type === type).map(c => c.order_index || 0));
+    
+    const { error } = await createCategory({
+      name: newCategoryName.trim(),
+      type: type,
+      order_index: maxOrder + 1,
+      is_active: true
+    });
+    
+    if (error) {
+      toast.error("Gagal menambahkan kategori: " + error.message);
+    } else {
+      toast.warning("Pengaturan Sistem", {
+        description: `Kategori '${newCategoryName.trim()}' berhasil ditambahkan`
+      });
+      window.dispatchEvent(new Event('refreshNotifications'));
+      setNewCategoryName("");
+      setIsAddCategoryModalOpen(false);
+      loadData();
+    }
+    setLoading(false);
   };
 
   const handleSort = async () => {
@@ -311,7 +384,7 @@ export default function PengaturanPage() {
                           <button onClick={() => alert("Fitur edit pengguna sedang dikembangkan.")} className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
                             <EditIcon className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDeleteUser(user.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
+                          <button onClick={() => handleDeleteUserClick(user.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
                             <TrashIcon className="w-4 h-4" />
                           </button>
                         </div>
@@ -332,7 +405,7 @@ export default function PengaturanPage() {
                 <h2 className="text-xl font-bold text-[#151D48]">Kategori Transaksi</h2>
                 <p className="text-sm text-gray-500 mt-1">Klasifikasi untuk mempermudah pencatatan dan laporan.</p>
               </div>
-              <Button className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white flex items-center gap-2">
+              <Button onClick={() => setIsAddCategoryModalOpen(true)} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white flex items-center gap-2">
                 <PlusIcon className="w-4 h-4" /> Kategori Baru
               </Button>
             </div>
@@ -382,7 +455,7 @@ export default function PengaturanPage() {
                           <button onClick={() => alert("Fitur edit kategori sedang dikembangkan.")} className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
                             <EditIcon className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDeleteCategory(cat.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
+                          <button onClick={() => handleDeleteCategoryClick(cat.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
                             <TrashIcon className="w-4 h-4" />
                           </button>
                         </div>
@@ -520,6 +593,68 @@ export default function PengaturanPage() {
       <div className="flex-1 p-6 md:p-8 overflow-y-auto">
         {renderContent()}
       </div>
+
+      {/* Modals */}
+      <ConfirmModal
+        isOpen={isDeleteUserModalOpen}
+        onClose={() => setIsDeleteUserModalOpen(false)}
+        onConfirm={confirmDeleteUser}
+        title="Nonaktifkan Pengguna"
+        description="Apakah Anda yakin ingin menonaktifkan pengguna ini?"
+        confirmText="Nonaktifkan"
+        isDanger={true}
+        isLoading={loading}
+      />
+
+      <ConfirmModal
+        isOpen={isDeleteCategoryModalOpen}
+        onClose={() => setIsDeleteCategoryModalOpen(false)}
+        onConfirm={confirmDeleteCategory}
+        title="Hapus Kategori"
+        description="Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Hapus"
+        isDanger={true}
+        isLoading={loading}
+      />
+
+      <Modal isOpen={isAddCategoryModalOpen} onClose={() => setIsAddCategoryModalOpen(false)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div>
+              <h2 className="text-xl font-bold text-[#151D48]">Tambah Kategori Baru</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Kategori {activeCatTab === "pendapatan" ? "Pendapatan" : "Pengeluaran"}
+              </p>
+            </div>
+            <button 
+              onClick={() => setIsAddCategoryModalOpen(false)}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <CloseCircleIcon className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-6">
+            <form id="category-form" onSubmit={handleCreateCategory}>
+              <label className="block text-sm font-medium text-[#151D48] mb-1.5">Nama Kategori <span className="text-red-500">*</span></label>
+              <Input 
+                type="text" 
+                required 
+                placeholder="Contoh: ATK, Konsumsi, dll." 
+                className="bg-[#F9FAFB] border-gray-200" 
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                autoFocus
+              />
+            </form>
+          </div>
+          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+            <Button variant="outline" onClick={() => setIsAddCategoryModalOpen(false)} disabled={loading}>Batal</Button>
+            <Button type="submit" form="category-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
+              {loading ? "Menyimpan..." : "Simpan Kategori"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

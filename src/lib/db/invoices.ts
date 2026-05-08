@@ -57,6 +57,32 @@ export async function createInvoiceWithItems(
   return { data: invData, error: itemsError };
 }
 
+export async function updateInvoiceWithItems(
+  id: string,
+  invoice: Partial<Omit<Invoice, 'id' | 'created_at'>>,
+  items: Omit<InvoiceItem, 'id' | 'invoice_id'>[]
+) {
+  const supabase = createClient();
+
+  const { data: invData, error: invError } = await supabase
+    .from('invoices')
+    .update(invoice)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (invError) return { error: invError };
+
+  // Delete old items
+  await supabase.from('invoice_items').delete().eq('invoice_id', id);
+
+  // Insert new items
+  const itemsWithInvId = items.map(item => ({ ...item, invoice_id: id }));
+  const { error: itemsError } = await supabase.from('invoice_items').insert(itemsWithInvId);
+
+  return { data: invData, error: itemsError };
+}
+
 export const INVOICE_STATUS_LABEL: Record<string, string> = {
   unpaid: 'Belum Bayar',
   paid: 'Lunas',
@@ -70,3 +96,9 @@ export const INVOICE_STATUS_COLOR: Record<string, string> = {
   overdue: 'bg-danger/10 text-danger border-danger/20',
   cancelled: 'bg-border text-text-muted border-border',
 };
+
+export async function deleteInvoice(id: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from('invoices').delete().eq('id', id);
+  return { error };
+}

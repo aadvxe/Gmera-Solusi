@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BarsIcon, PlusIcon, DocumentDownloadIcon, MoreHorizontalIcon, EyeIcon, EmailSentIcon, TrashIcon, CheckCircleIcon, CloseIcon, CalculatorIcon, TruckIcon, Document1Icon, ChevronDownIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CustomSelect } from "@/components/ui/CustomSelect";
@@ -16,7 +17,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/Table";
-import { getInvoices, getClients, createInvoiceWithItems, Invoice, Client } from "@/lib/db";
+import { getInvoices, getClients, createInvoiceWithItems, deleteInvoice, Invoice, Client } from "@/lib/db";
 
 interface InvoiceItemForm {
   id: number;
@@ -32,6 +33,8 @@ export default function EInvoicePage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clientId, setClientId] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -139,6 +142,27 @@ export default function EInvoicePage() {
     }
   };
 
+  const handleDeleteClick = (id: string) => {
+    setInvoiceToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!invoiceToDelete) return;
+    
+    setLoading(true);
+    const { error } = await deleteInvoice(invoiceToDelete);
+    setLoading(false);
+    
+    if (error) {
+      alert("Gagal menghapus invoice: " + error.message);
+    } else {
+      setIsDeleteModalOpen(false);
+      setInvoiceToDelete(null);
+      loadData();
+    }
+  };
+
   return (
     <>
       <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col h-full min-h-[500px]">
@@ -235,7 +259,7 @@ export default function EInvoicePage() {
                         <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Download PDF">
                           <DocumentDownloadIcon className="w-4 h-4" />
                         </button>
-                        <button className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
+                        <button onClick={() => handleDeleteClick(row.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
                           <TrashIcon className="w-4 h-4" />
                         </button>
                       </div>
@@ -404,6 +428,17 @@ export default function EInvoicePage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Hapus Invoice"
+        description="Apakah Anda yakin ingin menghapus invoice ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Hapus"
+        isDanger={true}
+        isLoading={loading}
+      />
     </>
   );
 }

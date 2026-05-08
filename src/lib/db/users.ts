@@ -52,6 +52,12 @@ export async function updateUserRole(id: string, role: string) {
     .eq('id', id)
     .select()
     .single();
+    
+  if (!error && data) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) await createAuditLog(user.id, 'update', 'Category Order', null, null, { role, system_type: 'user_role', target_user_id: id });
+  }
+  
   return { data, error };
 }
 
@@ -59,6 +65,10 @@ export async function deleteUser(id: string) {
   const supabase = createClient();
   // Soft-delete: preserve audit trail by setting is_active = false
   const { error } = await supabase.from('users').update({ is_active: false }).eq('id', id);
+  if (!error) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) await createAuditLog(user.id, 'delete', 'Category Order', null, null, { is_active: false, system_type: 'user_status', target_user_id: id });
+  }
   return { error };
 }
 
@@ -86,6 +96,18 @@ export async function updateCompanyProfile(payload: Partial<CompanyProfile>) {
     .eq('id', company.id)
     .select()
     .single();
+
+  if (!error && data) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      if ('tax_rate' in payload && Object.keys(payload).length === 1) {
+        await createAuditLog(user.id, 'update', 'Category Order', null, null, { ...payload, system_type: 'tax_rate' });
+      } else {
+        const isPayment = 'bank_name' in payload || 'bank_account' in payload;
+        await createAuditLog(user.id, 'update', 'Category Order', null, null, { ...payload, system_type: isPayment ? 'payment_method' : 'company_profile' });
+      }
+    }
+  }
 
   return { data, error };
 }

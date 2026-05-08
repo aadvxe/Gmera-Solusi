@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { BarsIcon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, EmailIcon, CallIcon, CloseIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { 
@@ -23,6 +24,8 @@ export default function KlienPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [currentClientId, setCurrentClientId] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -88,11 +91,24 @@ export default function KlienPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Apakah Anda yakin ingin menghapus klien ini?")) {
-      const { error } = await deleteClient(id);
-      if (error) alert("Gagal menghapus klien: " + error.message);
-      else loadData();
+  const handleDeleteClick = (id: string) => {
+    setClientToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!clientToDelete) return;
+
+    setLoading(true);
+    const { error } = await deleteClient(clientToDelete);
+    setLoading(false);
+
+    if (error) {
+      alert("Gagal menghapus klien: " + error.message);
+    } else {
+      setIsDeleteModalOpen(false);
+      setClientToDelete(null);
+      loadData();
     }
   };
 
@@ -231,7 +247,7 @@ export default function KlienPage() {
                           <EditIcon className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(row.id)}
+                          onClick={() => handleDeleteClick(row.id)}
                           className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" 
                           title="Hapus"
                         >
@@ -387,6 +403,17 @@ export default function KlienPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Hapus Klien"
+        description="Apakah Anda yakin ingin menghapus klien ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Hapus"
+        isDanger={true}
+        isLoading={loading}
+      />
     </>
   );
 }

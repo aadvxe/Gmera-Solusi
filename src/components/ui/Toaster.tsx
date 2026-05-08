@@ -9,6 +9,10 @@ export function Toaster() {
       <style dangerouslySetInnerHTML={{ __html: `
         [data-sonner-toast] {
           transition: transform 0.4s, opacity 0.4s, height 0.4s, box-shadow 0.4s;
+          font-family: var(--font-poppins), sans-serif !important;
+        }
+        [data-sonner-toaster] {
+          z-index: 9500 !important;
         }
         [data-sonner-toaster][data-x-position="right"] {
           right: 8px !important;

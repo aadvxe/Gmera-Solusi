@@ -171,11 +171,12 @@ export async function getTopProducts(limit = 3) {
 export async function getRecentActivities(limit = 5) {
   const supabase = createClient();
 
-  const [incomes, expenses, invoices, audits] = await Promise.all([
+  const [incomes, expenses, invoices, audits, reminders] = await Promise.all([
     supabase.from('income').select('id, date, source, amount').order('created_at', { ascending: false }).limit(limit),
     supabase.from('expense').select('id, date, expense_type, amount').order('created_at', { ascending: false }).limit(limit),
     supabase.from('invoices').select('id, invoice_date, invoice_number, client_name, status').order('created_at', { ascending: false }).limit(limit),
-    supabase.from('audit_logs').select('id, created_at, entity_type, action').eq('entity_type', 'Category Order').order('created_at', { ascending: false }).limit(limit),
+    supabase.from('audit_logs').select('id, created_at, entity_type, action, new_values, old_values').eq('entity_type', 'Category Order').order('created_at', { ascending: false }).limit(limit),
+    supabase.from('invoices').select('id, invoice_number, client_name, due_date').eq('status', 'overdue').order('due_date', { ascending: false }).limit(limit),
   ]);
 
   console.log('[DEBUG] getRecentActivities audits:', { error: audits.error, data: audits.data });
@@ -195,15 +196,66 @@ export async function getRecentActivities(limit = 5) {
   });
 
   (audits.data || []).forEach(aud => {
+    let desc = `Sistem diperbarui: ${aud.action} ${aud.entity_type}`;
+    if (aud.entity_type === 'Category Order') {
+      let val = aud.new_values;
+      if (typeof val === 'string') {
+        try { val = JSON.parse(val); } catch(e) {}
+      }
+      
+      // Extract properties for detection
+      const sysType = val?.system_type;
+      const hasTax = val && ('tax_rate' in val || 'npwp' in val);
+      const hasBank = val && ('bank_name' in val || 'bank_account' in val || 'bank_account_name' in val);
+      const hasUserRole = val && ('role' in val);
+      const hasUserStatus = val && ('is_active' in val && sysType === 'user_status');
+
+      // 1. Prioritize specific system types from new_values
+      if (sysType === 'company_profile' || (val && 'company_name' in val)) {
+        desc = 'Profil perusahaan berhasil diperbarui';
+      } else if (sysType === 'tax_rate' || hasTax) {
+        desc = 'Pengaturan pajak diperbarui';
+      } else if (sysType === 'payment_method' || hasBank) {
+        desc = 'Metode pembayaran diperbarui';
+      } else if (sysType === 'user_role' || hasUserRole) {
+        desc = 'Hak akses (role) pengguna diperbarui';
+      } else if (sysType === 'user_status' || hasUserStatus) {
+        desc = 'Status/akun pengguna berhasil dinonaktifkan';
+      } 
+      // 2. Fallback to Category Logic
+      else if (aud.action === 'create') {
+        const name = val?.name;
+        desc = name ? `Kategori '${name}' berhasil ditambahkan` : 'Kategori baru berhasil ditambahkan';
+      }
+      else if (aud.action === 'delete') {
+        let oldVal = aud.old_values;
+        if (typeof oldVal === 'string') try { oldVal = JSON.parse(oldVal); } catch(e) {}
+        const name = oldVal?.name;
+        desc = name ? `Kategori '${name}' berhasil dihapus` : 'Kategori berhasil dihapus';
+      }
+      else if (aud.action === 'update') {
+        desc = 'Urutan kategori diperbarui';
+      }
+    }
+
     activities.push({ 
       id: `aud-${aud.id}`, 
       type: 'system', 
       title: 'Konfigurasi Sistem', 
-      desc: aud.action === 'update' && aud.entity_type === 'Category Order' 
-            ? 'Urutan kategori diperbarui' 
-            : `Sistem diperbarui: ${aud.action} ${aud.entity_type}`,
+      desc,
       amount: null, 
       date: new Date(aud.created_at) 
+    });
+  });
+
+  (reminders.data || []).forEach(rem => {
+    activities.push({ 
+      id: `rem-${rem.id}`, 
+      type: 'reminder', 
+      title: 'Pengingat Jatuh Tempo', 
+      desc: `Invoice ${rem.invoice_number} (${rem.client_name}) melewati batas waktu`, 
+      amount: null, 
+      date: new Date(rem.due_date) 
     });
   });
 

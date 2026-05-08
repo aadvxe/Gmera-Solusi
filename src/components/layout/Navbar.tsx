@@ -3,15 +3,19 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { NotificationIcon, ChevronDownIcon, Profile1Icon, SettingsIcon, Logout2Icon, StatusUpIcon, ArrowDownIcon, DocumentIcon } from "@astraicons/react/bold";
+import { NotificationIcon, ChevronDownIcon, Profile1Icon, SettingsIcon, Logout2Icon, StatusUpIcon, ArrowDownIcon, DocumentIcon, PricingAlertIcon, CalenderIcon, CloseIcon as CloseCircleIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { useAuthStore } from "@/store/authStore";
 import { getRecentActivities } from "@/lib/db";
+import { createClient } from "@/utils/supabase/client";
+import { Modal } from "@/components/ui/Modal";
 
 export function Navbar() {
   const [greeting, setGreeting] = useState("Selamat Pagi");
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSeeAllOpen, setIsSeeAllOpen] = useState(false);
+  const [allNotifications, setAllNotifications] = useState<any[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -27,28 +31,38 @@ export function Navbar() {
   const roleLabel = getRoleLabel();
   const initials = getInitials();
   
+  const isAdmin = role === 'super_admin';
   const hasPrivilege = role === 'super_admin' || role === 'finance_manager';
 
   const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
-      const activities = await getRecentActivities(10); // Fetch a bit more to account for filtering
-      const lastCleared = localStorage.getItem('last_cleared_notifications');
-      
-      let filtered = activities;
-      
-      if (lastCleared) {
-        const clearedTime = new Date(lastCleared).getTime();
-        filtered = filtered.filter(a => new Date(a.date).getTime() > clearedTime);
+      try {
+        const activities = await getRecentActivities(30);
+        
+        // Sync cleared time
+        const localCleared = localStorage.getItem('last_cleared_notifications');
+        const remoteCleared = user?.user_metadata?.last_notifications_cleared_at;
+        const lastCleared = remoteCleared || localCleared;
+        
+        let filtered = activities;
+        if (!isAdmin) {
+          filtered = filtered.filter(a => a.type !== 'system');
+        }
+        
+        setAllNotifications(filtered);
+        
+        if (lastCleared) {
+          const clearedTime = new Date(lastCleared).getTime();
+          const newOnly = filtered.filter(a => new Date(a.date).getTime() > clearedTime);
+          setNotifications(newOnly.slice(0, 5));
+        } else {
+          setNotifications(filtered.slice(0, 5));
+        }
+      } catch (error) {
+        console.error("fetchNotifications error:", error);
       }
-      
-      // Filter based on role (super_admin or finance_manager can see system logs)
-      if (!hasPrivilege) {
-        filtered = filtered.filter(a => a.type !== 'system');
-      }
-
-      setNotifications(filtered.slice(0, 5)); // Keep only top 5 after filtering
     };
 
     fetchNotifications();
@@ -56,12 +70,54 @@ export function Navbar() {
     const handleRefresh = () => fetchNotifications();
     window.addEventListener('refreshNotifications', handleRefresh);
     
-    return () => window.removeEventListener('refreshNotifications', handleRefresh);
-  }, [hasPrivilege, role]);
+    // Subscribe to real-time changes in relevant tables
+    const supabase = createClient();
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'income' },
+        () => fetchNotifications()
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'expense' },
+        () => fetchNotifications()
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'invoices' },
+        () => fetchNotifications()
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'audit_logs' },
+        () => fetchNotifications()
+      )
+      .subscribe();
+    
+    return () => {
+      window.removeEventListener('refreshNotifications', handleRefresh);
+      supabase.removeChannel(channel);
+    };
+  }, [hasPrivilege, role, user?.user_metadata?.last_notifications_cleared_at]);
 
-  const clearNotifications = () => {
+  const clearNotifications = async () => {
+    const now = new Date().toISOString();
+    
+    // Update local state for immediate feedback
     setNotifications([]);
-    localStorage.setItem('last_cleared_notifications', new Date().toISOString());
+    localStorage.setItem('last_cleared_notifications', now);
+    
+    // Sync to Supabase user_metadata for cross-device persistence
+    const supabase = createClient();
+    const { data: { user: updatedUser }, error } = await supabase.auth.updateUser({
+      data: { last_notifications_cleared_at: now }
+    });
+    
+    if (!error && updatedUser) {
+      setUser(updatedUser); // Update global auth store
+    }
   };
 
   useEffect(() => {
@@ -88,6 +144,7 @@ export function Navbar() {
   };
 
   return (
+    <>
     <header className="sticky top-0 z-40 bg-white h-20 px-6 flex items-center justify-between shrink-0">
 
       {/* Left Spacer / Empty Title */}
@@ -138,12 +195,14 @@ export function Navbar() {
                           n.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
                           n.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
                           n.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                          n.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
                           'bg-[#5C67F2]/10 text-[#5C67F2]'
                         }`}>
                           {n.type === 'income' && <StatusUpIcon className="w-5 h-5" />}
                           {n.type === 'expense' && <ArrowDownIcon className="w-5 h-5" />}
                           {n.type === 'invoice' && <DocumentIcon className="w-5 h-5" />}
                           {n.type === 'system' && <SettingsIcon className="w-5 h-5" />}
+                          {n.type === 'reminder' && <CalenderIcon className="w-5 h-5" />}
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-[#151D48] mb-0.5 group-hover:text-[#5C67F2] transition-colors line-clamp-1">{n.title}</p>
@@ -161,7 +220,13 @@ export function Navbar() {
                     </div>
                   )}
                 </div>
-                <div className="p-3 bg-gray-50/80 text-center border-t border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer">
+                <div 
+                  className="p-3 bg-gray-50/80 text-center border-t border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setIsNotifOpen(false);
+                    setIsSeeAllOpen(true);
+                  }}
+                >
                   <button className="text-sm font-semibold text-[#151D48] hover:text-[#5C67F2] transition-colors">Lihat Semua</button>
                 </div>
               </div>
@@ -221,5 +286,75 @@ export function Navbar() {
 
       </div>
     </header>
+
+    {/* See All Notifications Modal */}
+    <Modal isOpen={isSeeAllOpen} onClose={() => setIsSeeAllOpen(false)}>
+      <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
+          <div>
+            <h2 className="text-xl font-bold text-[#151D48]">Semua Notifikasi</h2>
+            <p className="text-sm text-gray-500 mt-1">Riwayat lengkap aktivitas dan transaksi.</p>
+          </div>
+          <button 
+            onClick={() => setIsSeeAllOpen(false)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <CloseCircleIcon className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        
+        <div className="overflow-y-auto flex-1">
+          <div className="p-6 space-y-6">
+            {allNotifications.length > 0 ? (
+              allNotifications.map((n: any, idx, arr) => (
+                <div key={`${n.id}-${idx}`} className="flex gap-4 relative">
+                  {/* Timeline Line */}
+                  {idx !== arr.length - 1 && (
+                    <div className="absolute left-5 top-10 bottom-[-24px] w-0.5 bg-gray-100"></div>
+                  )}
+                  
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 ${
+                    n.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
+                    n.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
+                    n.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                    n.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                    'bg-[#5C67F2]/10 text-[#5C67F2]'
+                  }`}>
+                    {n.type === 'income' ? <StatusUpIcon className="w-[18px] h-[18px]" /> : 
+                     n.type === 'expense' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> : 
+                     n.type === 'system' ? <SettingsIcon className="w-[18px] h-[18px]" /> :
+                     n.type === 'reminder' ? <CalenderIcon className="w-[18px] h-[18px]" /> :
+                     <DocumentIcon className="w-[18px] h-[18px]" />}
+                  </div>
+                  
+                  <div className="flex-1 pb-1">
+                    <div className="flex justify-between items-start mb-1">
+                      <h4 className="font-semibold text-[#151D48] text-sm">{n.title}</h4>
+                      <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                        {new Date(n.date).toLocaleString('id-ID', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-500">{n.desc}</p>
+                    {n.amount && (
+                      <p className="text-sm font-bold text-[#151D48] mt-1">
+                        Rp {new Intl.NumberFormat('id-ID').format(n.amount)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-12 text-center flex flex-col items-center gap-4">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
+                  <NotificationIcon className="w-8 h-8 text-gray-200" />
+                </div>
+                <p className="text-gray-400 font-medium">Tidak ada riwayat notifikasi.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Modal>
+    </>
   );
 }
