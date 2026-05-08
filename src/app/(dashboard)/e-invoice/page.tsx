@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { BarsIcon, PlusIcon, DocumentDownloadIcon, MoreHorizontalIcon, EyeIcon, EmailSentIcon, TrashIcon, CheckCircleIcon, CloseIcon, CalculatorIcon, TruckIcon, Document1Icon, ChevronDownIcon, EditIcon, HelpIcon, Download2Icon } from "@astraicons/react/bold";
+import { Filter1Icon, PlusIcon, DocumentDownloadIcon, MoreHorizontalIcon, EyeIcon, EmailSentIcon, TrashIcon, CheckCircleIcon, CloseIcon, CalculatorIcon, TruckIcon, Document1Icon, ChevronDownIcon, EditIcon, HelpIcon, ArrowDownIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
@@ -181,7 +181,7 @@ export default function EInvoicePage() {
       exportToExcel(invoices, exportColumns, `Invoice_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor Excel Selesai", {
         description: "Daftar invoice berhasil diekspor ke format Excel.",
-        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
       
       if (user) {
@@ -202,7 +202,7 @@ export default function EInvoicePage() {
       exportToPDF(invoices, exportColumns, 'Laporan Invoice', `Laporan_Invoice_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor PDF Selesai", {
         description: "Laporan invoice berhasil diunduh dalam format PDF.",
-        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
 
       if (user) {
@@ -256,7 +256,7 @@ export default function EInvoicePage() {
               />
             </div>
             <Button variant="outline" className="flex items-center gap-2 sm:w-auto w-full">
-              <BarsIcon className="w-4 h-4" /> Filter
+              <Filter1Icon className="w-4 h-4" /> Filter
             </Button>
           </div>
         </div>
@@ -360,9 +360,9 @@ export default function EInvoicePage() {
             </div>
             <button 
               onClick={() => setIsModalOpen(false)}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <CloseIcon className="w-5 h-5" />
+              <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
             

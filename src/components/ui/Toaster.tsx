@@ -1,15 +1,20 @@
 "use client";
 
 import { Toaster as SonnerToaster } from "sonner";
-import { StatusUpIcon, ArrowDownIcon, DocumentIcon, SettingsIcon, CloseCircleIcon } from "@astraicons/react/bold";
+import { StatusUpIcon, ArrowDownIcon, DocumentIcon, SettingsIcon, HelpIcon } from "@astraicons/react/bold";
 
 export function Toaster() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         [data-sonner-toast] {
-          transition: transform 0.4s, opacity 0.4s, height 0.4s, box-shadow 0.4s;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s, height 0.4s, box-shadow 0.4s;
           font-family: var(--font-poppins), sans-serif !important;
+          user-select: none;
+          touch-action: none;
+        }
+        [data-sonner-toast][data-swiping="true"] {
+          transition: none !important;
         }
         [data-sonner-toaster] {
           z-index: 9500 !important;
@@ -48,10 +53,10 @@ export function Toaster() {
         offset={85}
         closeButton
         icons={{
-          success: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#76c893]/10 text-[#76c893]"><StatusUpIcon className="w-5 h-5" /></div>,
-          error: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#f08a5d]/10 text-[#f08a5d]"><ArrowDownIcon className="w-5 h-5" /></div>,
+          success: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#76c893]/10 text-[#76c893]"><ArrowDownIcon className="w-5 h-5" /></div>,
+          error: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
           info: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><DocumentIcon className="w-5 h-5" /></div>,
-          warning: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#94A3B8]/10 text-[#94A3B8]"><SettingsIcon className="w-5 h-5" /></div>,
+          warning: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FF9F43]/10 text-[#FF9F43]"><SettingsIcon className="w-5 h-5" /></div>,
         }}
         toastOptions={{
           unstyled: true,

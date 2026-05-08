@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { BarsIcon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, HelpIcon, Download2Icon } from "@astraicons/react/bold";
+import { Filter1Icon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, HelpIcon, ArrowDownIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Modal } from "@/components/ui/Modal";
@@ -158,7 +158,7 @@ export default function PendapatanPage() {
       exportToExcel(incomes, exportColumns, `Pendapatan_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor Excel Selesai", {
         description: "Data pendapatan berhasil diekspor ke format Excel.",
-        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
       
       if (user) {
@@ -179,7 +179,7 @@ export default function PendapatanPage() {
       exportToPDF(incomes, exportColumns, 'Laporan Pendapatan', `Laporan_Pendapatan_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor PDF Selesai", {
         description: "Laporan pendapatan berhasil diunduh dalam format PDF.",
-        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
 
       if (user) {
@@ -233,7 +233,7 @@ export default function PendapatanPage() {
               />
             </div>
             <Button variant="outline" className="flex items-center gap-2 sm:w-auto w-full">
-              <BarsIcon className="w-4 h-4" /> Filter
+              <Filter1Icon className="w-4 h-4" /> Filter
             </Button>
           </div>
         </div>

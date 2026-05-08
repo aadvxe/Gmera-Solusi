@@ -13,7 +13,8 @@ import {
   EditIcon,
   TrashIcon,
   CheckCircleIcon,
-  CloseCircleIcon
+  CloseCircleIcon,
+  CloseIcon
 } from "@astraicons/react/bold";
 import { SearchIcon, Menu2Icon } from "@astraicons/react/linear";
 import { Button } from "@/components/ui/Button";
@@ -87,6 +88,12 @@ export default function PengaturanPage() {
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<UserProfile | null>(null);
   const [editUserRole, setEditUserRole] = useState("staff");
+
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserRole, setNewUserRole] = useState("staff");
+  const [newUserPassword, setNewUserPassword] = useState("");
 
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
@@ -263,6 +270,38 @@ export default function PengaturanPage() {
       loadData();
     }
     setLoading(false);
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const supabase = createClient();
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newUserEmail,
+        password: newUserPassword,
+        options: {
+          data: {
+            name: newUserName,
+            role: newUserRole,
+          }
+        }
+      });
+
+      if (authError) throw authError;
+      
+      toast.success("Pengguna baru berhasil ditambahkan. Silakan minta pengguna untuk verifikasi email.");
+      setIsAddUserModalOpen(false);
+      setNewUserName("");
+      setNewUserEmail("");
+      setNewUserPassword("");
+      loadData();
+    } catch (error: any) {
+      toast.error("Gagal menambahkan pengguna: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditUserClick = (user: UserProfile) => {
@@ -442,7 +481,10 @@ export default function PengaturanPage() {
                 <h2 className="text-xl font-bold text-[#151D48]">Manajemen Pengguna</h2>
                 <p className="text-sm text-gray-500 mt-1">Kelola akses staf dan manajer keuangan ke dalam sistem.</p>
               </div>
-              <Button className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white flex items-center gap-2">
+              <Button 
+                onClick={() => setIsAddUserModalOpen(true)}
+                className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white flex items-center gap-2"
+              >
                 <PlusIcon className="w-4 h-4" /> Tambah Pengguna
               </Button>
             </div>
@@ -729,9 +771,9 @@ export default function PengaturanPage() {
             </div>
             <button 
               onClick={() => setIsAddCategoryModalOpen(false)}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <CloseCircleIcon className="w-5 h-5" />
+              <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
           <div className="p-6">
@@ -765,9 +807,9 @@ export default function PengaturanPage() {
             </div>
             <button 
               onClick={() => setIsEditCategoryModalOpen(false)}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <CloseCircleIcon className="w-5 h-5" />
+              <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
           <div className="p-6">
@@ -800,9 +842,9 @@ export default function PengaturanPage() {
             </div>
             <button 
               onClick={() => setIsEditUserModalOpen(false)}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <CloseCircleIcon className="w-5 h-5" />
+              <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
           <div className="p-6">
@@ -827,6 +869,76 @@ export default function PengaturanPage() {
             <Button variant="outline" onClick={() => setIsEditUserModalOpen(false)} disabled={loading}>Batal</Button>
             <Button type="submit" form="edit-user-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
               {loading ? "Menyimpan..." : "Simpan Perubahan"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      
+      <Modal isOpen={isAddUserModalOpen} onClose={() => setIsAddUserModalOpen(false)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <div>
+              <h2 className="text-xl font-bold text-[#151D48]">Tambah Pengguna Baru</h2>
+              <p className="text-sm text-gray-500 mt-1">Daftarkan staf atau manajer baru.</p>
+            </div>
+            <button 
+              onClick={() => setIsAddUserModalOpen(false)}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <CloseIcon className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
+          <div className="p-6">
+            <form id="add-user-form" onSubmit={handleCreateUser} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#151D48] mb-1.5">Nama Lengkap <span className="text-red-500">*</span></label>
+                <Input 
+                  required 
+                  className="bg-[#F9FAFB] border-gray-200" 
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                  placeholder="Contoh: Budi Santoso"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#151D48] mb-1.5">Email <span className="text-red-500">*</span></label>
+                <Input 
+                  type="email"
+                  required 
+                  className="bg-[#F9FAFB] border-gray-200" 
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  placeholder="mail@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#151D48] mb-1.5">Password <span className="text-red-500">*</span></label>
+                <Input 
+                  type="password"
+                  required 
+                  className="bg-[#F9FAFB] border-gray-200" 
+                  value={newUserPassword}
+                  onChange={(e) => setNewUserPassword(e.target.value)}
+                  placeholder="Minimal 8 karakter"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#151D48] mb-1.5">Peran Akses <span className="text-red-500">*</span></label>
+                <select 
+                  className="flex h-10 w-full rounded-xl border border-gray-200 bg-[#F9FAFB] px-3 py-2 text-sm text-gray-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+                  value={newUserRole}
+                  onChange={(e) => setNewUserRole(e.target.value)}
+                >
+                  <option value="staff">Staff (Terbatas)</option>
+                  <option value="manager">Manager (Penuh)</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+            <Button variant="outline" onClick={() => setIsAddUserModalOpen(false)} disabled={loading}>Batal</Button>
+            <Button type="submit" form="add-user-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
+              {loading ? "Menambahkan..." : "Tambah Pengguna"}
             </Button>
           </div>
         </div>

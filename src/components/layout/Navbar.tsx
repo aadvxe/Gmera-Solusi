@@ -204,7 +204,7 @@ export function Navbar() {
                           {n.type === 'invoice' && <DocumentIcon className="w-5 h-5" />}
                           {n.type === 'system' && <SettingsIcon className="w-5 h-5" />}
                           {n.type === 'reminder' && <CalenderIcon className="w-5 h-5" />}
-                          {n.type === 'export' && <Download2Icon className="w-5 h-5" />}
+                          {n.type === 'export' && <ArrowDownIcon className="w-5 h-5" />}
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-[#151D48] mb-0.5 group-hover:text-[#5C67F2] transition-colors line-clamp-1">{n.title}</p>
@@ -327,7 +327,7 @@ export function Navbar() {
                      n.type === 'expense' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> : 
                      n.type === 'system' ? <SettingsIcon className="w-[18px] h-[18px]" /> :
                      n.type === 'reminder' ? <CalenderIcon className="w-[18px] h-[18px]" /> :
-                     n.type === 'export' ? <Download2Icon className="w-[18px] h-[18px]" /> :
+                     n.type === 'export' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> :
                      <DocumentIcon className="w-[18px] h-[18px]" />}
                   </div>
                   

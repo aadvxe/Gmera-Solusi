@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeftIcon, DocumentDownloadIcon, EmailIcon, PrinterIcon, CheckCircleIcon, HelpIcon, Download2Icon } from "@astraicons/react/bold";
+import { ArrowLeftIcon, DocumentDownloadIcon, EmailIcon, PrinterIcon, CheckCircleIcon, HelpIcon, ArrowDownIcon } from "@astraicons/react/bold";
 import { Button } from "@/components/ui/Button";
 import { getInvoiceById, getCompanyProfile, CompanyProfile, Invoice } from "@/lib/db";
 import { createAuditLog } from "@/lib/db/users";
@@ -95,7 +95,7 @@ export default function DetailInvoicePage() {
 
       toast("Ekspor PDF Selesai", {
         description: `Invoice ${invoice.invoice_number} berhasil diunduh dalam format PDF.`,
-        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
 
       if (user) {

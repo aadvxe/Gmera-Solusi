@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { DocumentDownloadIcon, Document1Icon, ArrowUpRightIcon, ArrowDownIcon, WalletIcon, StatusUpIcon, CalenderIcon, HelpIcon, Download2Icon } from "@astraicons/react/bold";
+import { DocumentDownloadIcon, Document1Icon, ArrowUpIcon, ArrowDownIcon, WalletIcon, CalenderIcon, HelpIcon, MarginIcon, NegativeMarginIcon } from "@astraicons/react/bold";
 import { Button } from "@/components/ui/Button";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { FinancialChart } from "@/components/dashboard/FinancialChart";
@@ -54,7 +54,7 @@ export default function LaporanPage() {
       exportToExcel(chartData, exportColumns, `Laporan_Keuangan_${periodFrom}_${periodTo}`);
       toast("Ekspor Excel Selesai", {
         description: "Laporan keuangan berhasil diekspor ke format Excel.",
-        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
       
       if (user) {
@@ -75,7 +75,7 @@ export default function LaporanPage() {
       exportToPDF(chartData, exportColumns, 'Laporan Keuangan Bulanan', `Laporan_Keuangan_${periodFrom}_${periodTo}`);
       toast("Ekspor PDF Selesai", {
         description: "Laporan keuangan berhasil diunduh dalam format PDF.",
-        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><Download2Icon className="w-5 h-5" /></div>,
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
 
       if (user) {
@@ -126,7 +126,7 @@ export default function LaporanPage() {
           title="Total Pendapatan" 
           amount={formatCurrency(summary.totalIncome)} 
           period="Periode Terpilih" 
-          icon={ArrowUpRightIcon} 
+          icon={ArrowUpIcon} 
           variant="success" 
         />
         <MetricCard 
@@ -149,7 +149,7 @@ export default function LaporanPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FinancialChart 
           title="Tren Pendapatan"
-          icon={StatusUpIcon}
+          icon={MarginIcon}
           rawData={chartData}
           dataKey="income"
           color="#76c893"
@@ -157,7 +157,7 @@ export default function LaporanPage() {
         />
         <FinancialChart 
           title="Tren Pengeluaran"
-          icon={ArrowDownIcon}
+          icon={NegativeMarginIcon}
           rawData={chartData}
           dataKey="expense"
           color="#f08a5d"

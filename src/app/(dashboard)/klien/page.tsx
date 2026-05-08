@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { BarsIcon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, EmailIcon, CallIcon, CloseIcon } from "@astraicons/react/bold";
+import { Filter1Icon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, EmailIcon, CallIcon, CloseIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
@@ -189,7 +189,7 @@ export default function KlienPage() {
               />
             </div>
             <Button variant="outline" className="flex items-center gap-2 sm:w-auto w-full">
-              <BarsIcon className="w-4 h-4" /> Filter
+              <Filter1Icon className="w-4 h-4" /> Filter
             </Button>
           </div>
         </div>
@@ -301,9 +301,9 @@ export default function KlienPage() {
             </div>
             <button 
               onClick={() => { setIsModalOpen(false); resetForm(); }}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <CloseIcon className="w-5 h-5" />
+              <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
           <div className="p-6 overflow-y-auto">
