@@ -475,7 +475,8 @@ flowchart TD
     Start([User Access System]) --> Auth{Authenticated?}
     Auth -->|No| Login[Login Page]
     Login --> AuthCheck{Valid Credentials?}
-    AuthCheck -->|No| Login
+    AuthCheck -->|No| LoginError[Show Error Toast]
+    LoginError --> Login
     AuthCheck -->|Yes| Dashboard[Dashboard/Beranda]
     Auth -->|Yes| Dashboard
     
@@ -488,56 +489,125 @@ flowchart TD
     Action -->|View Reports| ReportFlow[Financial Reports]
     Action -->|Settings| SettingsFlow[Settings/Profile]
     
+    %% Invoice Flow with Notifications
     InvoiceFlow --> SelectClient[Select/Create Client]
     SelectClient --> AddInvItems[Add Invoice Items]
     AddInvItems --> CalcTax[Calculate Tax & Discount]
-    CalcTax --> SaveInvoice[Save Invoice]
-    SaveInvoice --> InvoiceStatus{Mark as Paid?}
+    CalcTax --> AddShipping[Add Shipping Details]
+    AddShipping --> SaveInvoice[Save Invoice]
+    SaveInvoice --> SaveSuccess1{Save Success?}
+    SaveSuccess1 -->|No| ErrorToast1[Show Error Toast]
+    ErrorToast1 --> InvoiceFlow
+    SaveSuccess1 -->|Yes| InvoiceStatus{Mark as Paid?}
     InvoiceStatus -->|Yes| AutoGenIncome[Auto-Generate Income Record]
     InvoiceStatus -->|No| InvAuditLog[Log Invoice Creation]
     AutoGenIncome --> InvAuditLog
-    InvAuditLog --> Dashboard
+    InvAuditLog --> SuccessToast1[Show Success Toast]
+    SuccessToast1 --> Dashboard
     
+    %% Income Flow with Notifications
     IncomeFlow --> SelectIncCat[Select Category]
-    SelectIncCat --> EnterIncAmount[Enter Amount & Details]
+    SelectIncCat --> SelectPayment1[Select Payment Method]
+    SelectPayment1 --> EnterIncAmount[Enter Amount & Details]
     EnterIncAmount --> AddIncItems[Add Income Items]
     AddIncItems --> SaveIncome[Save Income Record]
-    SaveIncome --> IncAuditLog[Log Income Record]
-    IncAuditLog --> Dashboard
+    SaveIncome --> SaveSuccess2{Save Success?}
+    SaveSuccess2 -->|No| ErrorToast2[Show Error Toast]
+    ErrorToast2 --> IncomeFlow
+    SaveSuccess2 -->|Yes| IncAuditLog[Log Income Record]
+    IncAuditLog --> SuccessToast2[Show Success Toast]
+    SuccessToast2 --> Dashboard
     
+    %% Expense Flow with Notifications
     ExpenseFlow --> SelectExpCat[Select Category]
-    SelectExpCat --> EnterExpAmount[Enter Amount & Details]
+    SelectExpCat --> SelectPayment2[Select Payment Method]
+    SelectPayment2 --> EnterExpAmount[Enter Amount & Details]
     EnterExpAmount --> AddExpItems[Add Expense Items]
     AddExpItems --> SaveExpense[Save Expense Record]
-    SaveExpense --> ExpAuditLog[Log Expense Record]
-    ExpAuditLog --> Dashboard
+    SaveExpense --> SaveSuccess3{Save Success?}
+    SaveSuccess3 -->|No| ErrorToast3[Show Error Toast]
+    ErrorToast3 --> ExpenseFlow
+    SaveSuccess3 -->|Yes| ExpAuditLog[Log Expense Record]
+    ExpAuditLog --> SuccessToast3[Show Success Toast]
+    SuccessToast3 --> Dashboard
     
+    %% Client Management Flow with Notifications
     ClientFlow --> ClientAction{Action}
     ClientAction -->|Create| AddClient[Add New Client]
-    ClientAction -->|View| ViewClient[View Client Details]
+    ClientAction -->|View| ViewClient[View Client Details & History]
     ClientAction -->|Update| UpdateClient[Update Client Info]
+    ClientAction -->|Delete| ConfirmDelete[Confirm Deletion]
+    ConfirmDelete --> DeleteClient[Delete Client]
+    DeleteClient --> DeleteSuccess{Delete Success?}
+    DeleteSuccess -->|No| ErrorToast4[Show Error Toast]
+    ErrorToast4 --> ClientFlow
+    DeleteSuccess -->|Yes| ClientAuditLog2[Log Deletion]
+    ClientAuditLog2 --> SuccessToast5[Show Success Toast]
+    SuccessToast5 --> Dashboard
     AddClient --> SaveClient[Save to Database]
     UpdateClient --> SaveClient
-    SaveClient --> ClientAuditLog[Log Client Changes]
-    ClientAuditLog --> Dashboard
+    SaveClient --> SaveSuccess4{Save Success?}
+    SaveSuccess4 -->|No| ErrorToast5[Show Error Toast]
+    ErrorToast5 --> ClientFlow
+    SaveSuccess4 -->|Yes| ClientAuditLog[Log Client Changes]
+    ClientAuditLog --> SuccessToast4[Show Success Toast]
+    SuccessToast4 --> Dashboard
     ViewClient --> Dashboard
     
+    %% Report Flow with Notifications
     ReportFlow --> SelectPeriod[Select Date Range]
     SelectPeriod --> FetchData[Fetch Financial Data]
     FetchData --> GenerateChart[Generate Charts & Summary]
     GenerateChart --> ExportOption{Export?}
-    ExportOption -->|Yes| ExportReport[Export to PDF/Excel]
+    ExportOption -->|Yes| ShowInfoToast[Show Info Toast: Preparing PDF]
+    ShowInfoToast --> ExportReport[Export to PDF/Excel]
     ExportOption -->|No| DisplayReport[Display Report]
     ExportReport --> Dashboard
     DisplayReport --> Dashboard
     
+    %% Settings Flow with Notifications
     SettingsFlow --> SettingsAction{Settings Type}
     SettingsAction -->|Profile| UpdateProfile[Update User Profile]
     SettingsAction -->|Company| UpdateCompany[Update Company Info]
     SettingsAction -->|Categories| ManageCategories[Manage Categories]
-    UpdateProfile --> Dashboard
-    UpdateCompany --> Dashboard
-    ManageCategories --> Dashboard
+    SettingsAction -->|Users| ManageUsers[Manage Users]
+    SettingsAction -->|Payment Methods| ManagePayments[Manage Payment Methods]
+    SettingsAction -->|Couriers| ManageCouriers[Manage Couriers]
+    UpdateProfile --> SaveSettings1[Save Changes]
+    UpdateCompany --> SaveSettings1
+    ManageCategories --> SaveSettings1
+    ManageUsers --> SaveSettings1
+    ManagePayments --> SaveSettings1
+    ManageCouriers --> SaveSettings1
+    SaveSettings1 --> SaveSuccess5{Save Success?}
+    SaveSuccess5 -->|No| ErrorToast6[Show Error/Warning Toast]
+    ErrorToast6 --> SettingsFlow
+    SaveSuccess5 -->|Yes| SettingsAuditLog[Log Configuration Changes]
+    SettingsAuditLog --> SuccessToast6[Show Success Toast]
+    SuccessToast6 --> Dashboard
+    
+    %% Dashboard Monitoring
+    Dashboard --> CheckOverdue{Has Overdue Invoices?}
+    CheckOverdue -->|Yes| ShowAlert[Display Alert Badge]
+    CheckOverdue -->|No| MonitorKPI[Monitor KPIs]
+    ShowAlert --> MonitorKPI
+    MonitorKPI --> Action
+    
+    style LoginError fill:#fee
+    style ErrorToast1 fill:#fee
+    style ErrorToast2 fill:#fee
+    style ErrorToast3 fill:#fee
+    style ErrorToast4 fill:#fee
+    style ErrorToast5 fill:#fee
+    style ErrorToast6 fill:#fee
+    style SuccessToast1 fill:#efe
+    style SuccessToast2 fill:#efe
+    style SuccessToast3 fill:#efe
+    style SuccessToast4 fill:#efe
+    style SuccessToast5 fill:#efe
+    style SuccessToast6 fill:#efe
+    style ShowInfoToast fill:#eff
+    style ShowAlert fill:#fff4e6
 ```
 
 ---
@@ -545,20 +615,24 @@ flowchart TD
 ## 📊 Data Flow Diagram (DFD)
 
 ```mermaid
-flowchart LR
-    subgraph External["External Entities"]
+flowchart TB
+    subgraph External["🌐 External Entities"]
+        direction LR
         User([User/Staff])
-        Client([Client])
         Admin([Admin])
+        Client([Client])
     end
     
-    subgraph Frontend["Frontend Layer"]
+    subgraph Frontend["💻 Frontend Layer"]
+        direction TB
         UI[Next.js UI Pages]
         Auth[Auth Provider]
-        Store[Zustand State Store]
+        Store[Zustand State]
+        Toast[Toast Notifications]
     end
     
-    subgraph DataAccess["Data Access Layer"]
+    subgraph DataAccess["⚙️ Data Access Layer"]
+        direction TB
         InvoicesMod[Invoices Module]
         IncomeMod[Income Module]
         ExpenseMod[Expense Module]
@@ -566,84 +640,122 @@ flowchart LR
         DashboardMod[Dashboard Module]
         UsersMod[Users Module]
         CategoriesMod[Categories Module]
+        SettingsMod[Settings Module]
     end
     
-    subgraph Database["Database - Supabase PostgreSQL"]
-        UsersTable[(users)]
-        ClientsTable[(clients)]
-        InvoicesTable[(invoices)]
-        InvoiceItemsTable[(invoice_items)]
-        IncomeTable[(income)]
-        IncomeItemsTable[(income_items)]
-        ExpenseTable[(expense)]
-        ExpenseItemsTable[(expense_items)]
-        CategoriesTable[(categories)]
-        PaymentMethodsTable[(payment_methods)]
-        AuditLogsTable[(audit_logs)]
-        CompanyProfileTable[(company_profile)]
-        CouriersTable[(couriers)]
+    subgraph Database["🗄️ Database - Supabase PostgreSQL"]
+        direction TB
+        subgraph CoreTables["Core Tables"]
+            UsersTable[(users)]
+            ClientsTable[(clients)]
+            AuditLogsTable[(audit_logs)]
+        end
+        subgraph TransactionTables["Transaction Tables"]
+            InvoicesTable[(invoices)]
+            InvoiceItemsTable[(invoice_items)]
+            IncomeTable[(income)]
+            IncomeItemsTable[(income_items)]
+            ExpenseTable[(expense)]
+            ExpenseItemsTable[(expense_items)]
+        end
+        subgraph ConfigTables["Configuration Tables"]
+            CategoriesTable[(categories)]
+            PaymentMethodsTable[(payment_methods)]
+            CompanyProfileTable[(company_profile)]
+            CouriersTable[(couriers)]
+        end
     end
     
-    User -->|Login| UI
-    Admin -->|Manage System| UI
-    UI -->|Auth Request| Auth
-    Auth -->|Validate| UsersTable
-    Auth -->|Session State| Store
+    %% Authentication Flow
+    User -->|1. Login Request| UI
+    Admin -->|1. Login Request| UI
+    UI -->|2. Validate| Auth
+    Auth -->|3. Check Credentials| UsersTable
+    UsersTable -->|4. Return User Data| Auth
+    Auth -->|5. Store Session| Store
+    Auth -->|6. Success/Error| Toast
     
-    User -->|Create Invoice| UI
-    UI -->|Invoice Data| InvoicesMod
-    InvoicesMod -->|Insert| InvoicesTable
-    InvoicesMod -->|Insert Items| InvoiceItemsTable
-    InvoicesMod -->|Log Action| AuditLogsTable
-    InvoicesMod -->|Link| ClientsTable
+    %% Invoice Management Flow
+    User -->|Create/Edit Invoice| UI
+    UI -->|Process Invoice| InvoicesMod
+    InvoicesMod -->|Write| InvoicesTable
+    InvoicesMod -->|Write Items| InvoiceItemsTable
+    InvoicesMod -->|Read Client Info| ClientsTable
+    InvoicesMod -->|Select Courier| CouriersTable
+    InvoicesMod -->|Auto-generate Income if Paid| IncomeTable
+    InvoicesMod -->|Log Changes| AuditLogsTable
+    InvoicesMod -->|Notify User| Toast
+    InvoicesTable -.->|Send to| Client
     
+    %% Income Recording Flow
     User -->|Record Income| UI
-    UI -->|Income Data| IncomeMod
-    IncomeMod -->|Insert| IncomeTable
-    IncomeMod -->|Insert Items| IncomeItemsTable
-    IncomeMod -->|Link| CategoriesTable
-    IncomeMod -->|Link| PaymentMethodsTable
-    IncomeMod -->|Link| InvoicesTable
-    IncomeMod -->|Log Action| AuditLogsTable
+    UI -->|Process Income| IncomeMod
+    IncomeMod -->|Write| IncomeTable
+    IncomeMod -->|Write Items| IncomeItemsTable
+    IncomeMod -->|Link Category| CategoriesTable
+    IncomeMod -->|Link Payment| PaymentMethodsTable
+    IncomeMod -->|Link Invoice if exists| InvoicesTable
+    IncomeMod -->|Log Transaction| AuditLogsTable
+    IncomeMod -->|Notify User| Toast
     
+    %% Expense Recording Flow
     User -->|Record Expense| UI
-    UI -->|Expense Data| ExpenseMod
-    ExpenseMod -->|Insert| ExpenseTable
-    ExpenseMod -->|Insert Items| ExpenseItemsTable
-    ExpenseMod -->|Link| CategoriesTable
-    ExpenseMod -->|Link| PaymentMethodsTable
-    ExpenseMod -->|Log Action| AuditLogsTable
+    UI -->|Process Expense| ExpenseMod
+    ExpenseMod -->|Write| ExpenseTable
+    ExpenseMod -->|Write Items| ExpenseItemsTable
+    ExpenseMod -->|Link Category| CategoriesTable
+    ExpenseMod -->|Link Payment| PaymentMethodsTable
+    ExpenseMod -->|Log Transaction| AuditLogsTable
+    ExpenseMod -->|Notify User| Toast
     
-    User -->|Manage Client| UI
-    UI -->|Client Data| ClientsMod
-    ClientsMod -->|CRUD| ClientsTable
-    ClientsMod -->|Log Action| AuditLogsTable
+    %% Client Management Flow
+    User -->|Manage Clients| UI
+    UI -->|Process Client Data| ClientsMod
+    ClientsMod -->|CRUD Operations| ClientsTable
+    ClientsMod -->|Log Changes| AuditLogsTable
+    ClientsMod -->|Notify User| Toast
     
+    %% Dashboard & Reporting Flow
     User -->|View Dashboard| UI
     UI -->|Request Metrics| DashboardMod
-    DashboardMod -->|Query| IncomeTable
-    DashboardMod -->|Query| ExpenseTable
-    DashboardMod -->|Query| InvoicesTable
-    DashboardMod -->|Aggregate| UI
+    DashboardMod -->|Query Income| IncomeTable
+    DashboardMod -->|Query Expense| ExpenseTable
+    DashboardMod -->|Query Invoices| InvoicesTable
+    DashboardMod -->|Aggregate Data| UI
+    UI -->|Display Charts & KPIs| User
     
+    %% User Management Flow
     Admin -->|Manage Users| UI
-    UI -->|User Data| UsersMod
-    UsersMod -->|CRUD| UsersTable
+    UI -->|Process User Data| UsersMod
+    UsersMod -->|CRUD Operations| UsersTable
+    UsersMod -->|Log Changes| AuditLogsTable
+    UsersMod -->|Notify Admin| Toast
     
+    %% Category Management Flow
     Admin -->|Manage Categories| UI
-    UI -->|Category Data| CategoriesMod
-    CategoriesMod -->|CRUD| CategoriesTable
+    UI -->|Process Categories| CategoriesMod
+    CategoriesMod -->|CRUD Operations| CategoriesTable
+    CategoriesMod -->|Notify Admin| Toast
     
-    UI -->|Display| User
-    UI -->|Display| Admin
-    InvoicesTable -.->|Send Invoice| Client
+    %% Settings Management Flow
+    Admin -->|Manage Settings| UI
+    UI -->|Process Settings| SettingsMod
+    SettingsMod -->|Update Profile| CompanyProfileTable
+    SettingsMod -->|Manage Couriers| CouriersTable
+    SettingsMod -->|Manage Payments| PaymentMethodsTable
+    SettingsMod -->|Log Changes| AuditLogsTable
+    SettingsMod -->|Notify Admin| Toast
     
     style User fill:#e1f5ff
-    style Client fill:#e1f5ff
     style Admin fill:#ffe1e1
+    style Client fill:#e1f5ff
+    style Toast fill:#fff9e1
     style Database fill:#e8f5e9
     style Frontend fill:#f5f5f5
     style DataAccess fill:#fff9e1
+    style CoreTables fill:#e3f2fd
+    style TransactionTables fill:#f3e5f5
+    style ConfigTables fill:#e8f5e9
 ```
 
 ---
