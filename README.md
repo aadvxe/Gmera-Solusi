@@ -1,95 +1,183 @@
 # GMera Solusi - Financial Management System & ERP
 
+> **Research Project**: Web-Based Accounting Information System for Income, Expense, and E-Invoice Management in Manufacturing Company
+
 ## 🌟 About This System
 
-This is a **full-stack web-based Financial Management System and Enterprise Resource Planning (ERP) platform** specifically designed to help small and medium-sized businesses (SMBs) modernize their financial operations. The system eliminates the need for spreadsheets and manual bookkeeping by providing a centralized, cloud-based solution for managing all aspects of business finances.
+This is a **web-based Accounting Information System** developed as a comprehensive solution to address financial management challenges faced by **PT GMera Solusi**, a manufacturing company. The system was designed through academic research using a case study approach to transform their financial operations from manual Excel-based processes to an integrated, automated digital platform.
 
-### 🎯 **What This System Does**
+### 📋 **Background & Problem Statement**
 
-This platform serves as the **complete financial backbone** for businesses, providing:
+PT GMera Solusi, like many manufacturing companies, faced significant challenges in their financial operations:
 
-1. **Financial Accounting & Bookkeeping**
-   - Track all income and expenses with detailed categorization
-   - Automatic calculation of tax, discounts, and totals
+1. **Manual Recording Issues**
+   - Financial transactions recorded manually using Microsoft Excel
+   - High risk of data entry errors and duplicate records
+   - Difficulty in data storage, retrieval, and searching
+   - Time-consuming process for updating information and generating financial reports
+   - User dependency - reliance on specific individuals for financial data
+
+2. **Unintegrated Invoice System**
+   - Manual e-invoice creation prone to recording mistakes
+   - No centralized system for invoice management
+   - Difficult to track invoice status and payment history
+   - Challenges in maintaining historical accuracy of client information
+
+3. **Limited Financial Visibility**
+   - Lack of real-time financial information for decision-making
+   - Difficulty in cash flow monitoring and control
+   - No integrated view of income, expenses, and outstanding invoices
+   - Complex process to generate month-over-month performance comparisons
+
+4. **Operational Inefficiency**
+   - Data scattered across multiple Excel files
+   - No standardized workflow for financial processes
+   - Weak internal controls and transparency
+   - Limited audit trail for compliance purposes
+
+### 🎯 **Solution: Integrated Web-Based System**
+
+This system addresses all the problems above by providing a **complete financial management platform** that serves as the backbone for business operations:
+
+### 🎯 **Solution: Integrated Web-Based System**
+
+This system addresses all the problems above by providing a **complete financial management platform** that serves as the backbone for business operations:
+
+1. **Automated Financial Accounting & Bookkeeping**
+   - Digital recording of all income and expenses with detailed categorization
+   - Automatic calculation of tax, discounts, and totals to eliminate manual errors
    - Multi-level item tracking for each transaction
    - Attachment support for receipts and documentation
+   - Centralized database replacing scattered Excel files
 
-2. **Invoice Management & Billing**
-   - Create professional, customizable invoices
+2. **Integrated E-Invoice Management & Billing**
+   - Automated e-invoice creation with professional formatting
    - Automatic invoice numbering system
-   - Track invoice status: unpaid, paid, overdue, cancelled
-   - Automatic income generation when invoices are paid
+   - Real-time invoice status tracking: unpaid, paid, overdue, cancelled
+   - Automatic income generation when invoices are marked as paid
    - Client information snapshot for historical accuracy
    - Shipping integration with tracking numbers
+   - Eliminate manual invoice creation errors
 
-3. **Client Relationship Management (CRM)**
+3. **Comprehensive Client Relationship Management (CRM)**
    - Centralized client database with complete contact information
-   - Transaction history tracking per client
-   - Client-specific invoice analytics
-   - NPWP (Tax ID) management for Indonesian businesses
+   - Complete transaction history tracking per client
+   - Client-specific invoice analytics and reporting
+   - NPWP (Indonesian Tax ID) management for compliance
+   - Easy client data retrieval and updates
 
-4. **Real-Time Financial Dashboard**
+4. **Real-Time Financial Dashboard & Analytics**
    - Live KPI monitoring: total income, expenses, net profit
-   - Unpaid invoice tracking and alerts
-   - Month-over-month performance comparison
+   - Instant access to unpaid invoice tracking and alerts
+   - Month-over-month performance comparison for trend analysis
    - Interactive charts and visualizations (Recharts)
-   - Recent transaction feed
+   - Recent transaction feed for quick oversight
+   - Replace time-consuming manual report generation
 
-5. **Advanced Reporting & Analytics**
+5. **Advanced Reporting & Export Capabilities**
    - Customizable date range reports
    - Income vs Expense analysis
    - Category-based spending insights
-   - Export capabilities (PDF/Excel ready)
-   - Profit & loss statements
+   - Export capabilities (PDF/Excel) for external reporting
+   - Profit & loss statements generation
+   - Support for managerial decision-making
 
-6. **User Management & Security**
-   - Role-based access control (Super Admin, Finance Manager, Accounting Staff, Sales Staff, Viewer)
-   - User activity tracking
+6. **Role-Based User Management & Security**
+   - Multi-level access control (Super Admin, Finance Manager, Accounting Staff, Sales Staff, Viewer)
+   - User activity tracking and monitoring
    - Department-based organization
    - Secure authentication via Supabase Auth
+   - Reduce user dependency through proper access management
 
-7. **Audit Trail & Compliance**
-   - Complete audit log of all financial operations
+7. **Complete Audit Trail & Compliance**
+   - Comprehensive audit log of all financial operations
    - Track who created, modified, or deleted records
    - IP address and user agent logging
    - Before/after value tracking for changes
-   - Compliance-ready for financial audits
+   - Compliance-ready for financial audits and internal control
+   - Enhanced transparency and accountability
 
-8. **Company Settings & Configuration**
-   - Customizable company profile
-   - Tax rate configuration
+8. **Flexible Company Settings & Configuration**
+   - Customizable company profile and branding
+   - Configurable tax rate settings
    - Payment method management
    - Category organization with drag-and-drop ordering
    - Courier/shipping method setup
+   - Adaptable to business process changes
 
-### 👥 **Who This System Is For**
+### 🏭 **Manufacturing Sector Focus**
 
-- **Small to Medium Enterprises (SMEs)** looking to digitize their financial operations
-- **Accounting firms** managing multiple client finances
-- **Startups** needing professional financial management from day one
-- **Business owners** who want real-time visibility into their financial health
-- **Finance teams** requiring collaborative financial management tools
+This system is specifically tailored for **manufacturing companies** that:
+- Handle high transaction volumes daily
+- Require accurate financial recording for operational efficiency
+- Need integrated invoice management for B2B transactions
+- Must maintain strict audit trails for compliance
+- Require real-time financial visibility for production planning
+- Need to eliminate manual Excel-based processes
 
-### 🏆 **Key Benefits**
+### 👥 **Target Users**
 
-- **Eliminates Manual Errors**: Automated calculations and validations
-- **Real-Time Insights**: Instant access to financial metrics and trends
-- **Scalable**: Grows with your business from startup to enterprise
-- **Cloud-Based**: Access from anywhere, anytime
-- **Audit-Ready**: Complete financial trail for compliance
-- **User-Friendly**: Intuitive interface built with modern UX principles
-- **Cost-Effective**: Alternative to expensive enterprise accounting software
+- **Manufacturing Companies** like PT GMera Solusi transitioning from manual to digital financial management
+- **Small to Medium Enterprises (SMEs)** in the manufacturing sector
+- **Finance & Accounting Teams** requiring collaborative tools with proper controls
+- **Business Owners & Management** needing real-time financial visibility
+- **Accounting Firms** managing manufacturing client finances
+
+### 🏆 **Key Benefits & Impact**
+
+Based on the research objectives for PT GMera Solusi:
+
+- ✅ **Eliminates Manual Errors**: Automated calculations and data validations
+- ✅ **Increases Efficiency**: Faster recording, updating, and reporting processes  
+- ✅ **Improves Data Accuracy**: Single source of truth with centralized database
+- ✅ **Enhances Accessibility**: Real-time access from anywhere, anytime
+- ✅ **Strengthens Control**: Complete audit trail and role-based access
+- ✅ **Reduces User Dependency**: Standardized processes and proper documentation
+- ✅ **Supports Decision Making**: Real-time insights and comprehensive analytics
+- ✅ **Ensures Compliance**: Audit-ready with complete transaction history
+- ✅ **Cost-Effective**: Eliminates need for expensive enterprise accounting software
+- ✅ **Scalable**: Grows with the business from startup to enterprise
+
+### 📚 **Research Context**
+
+This system was developed using the **Waterfall methodology** through academic research:
+- **Analysis Phase**: Identified current problems and business requirements at PT GMera Solusi
+- **Design Phase**: Designed integrated workflows for income, expense, and e-invoice management  
+- **Implementation Phase**: Built using modern web technologies (Next.js, Supabase)
+- **Testing Phase**: Validated using Black Box testing methodology
+- **Outcome**: Delivered a functioning system that improves financial management efficiency and accuracy
 
 ### 🛠️ **Technical Architecture**
 
-Built with modern, production-ready technologies:
-- **Frontend**: Next.js 15+ (React 19, App Router)
-- **Database**: Supabase (PostgreSQL with Row-Level Security)
-- **Styling**: Tailwind CSS for responsive design
-- **State Management**: Zustand for efficient client state
-- **Authentication**: Supabase Auth with JWT tokens
-- **Charts**: Recharts for data visualization
-- **Icons**: Astraicons (Premium icon set)
+Built with modern, production-ready technologies following industry best practices:
+
+- **Frontend Framework**: Next.js 15+ with React 19 (App Router architecture)
+- **Database**: Supabase PostgreSQL with Row-Level Security (RLS) for data protection
+- **Styling**: Tailwind CSS for responsive, mobile-friendly design
+- **State Management**: Zustand for efficient client-side state handling
+- **Authentication**: Supabase Auth with JWT tokens for secure user sessions
+- **Data Visualization**: Recharts for interactive financial charts and graphs
+- **UI Components**: Custom components with Astraicons (Premium icon set)
+- **Development Method**: Waterfall methodology (Analysis → Design → Implementation → Testing)
+- **Testing Approach**: Black Box testing for functional validation
+
+### 📖 **Academic Research Reference**
+
+This system is the practical implementation of academic research titled:
+
+**"Perancangan Sistem Informasi Pengelolaan Pendapatan, Pengeluaran, dan E-Invoice Berbasis Website pada Perusahaan Manufaktur"**
+*(Design of Web-Based Information System for Income, Expense, and E-Invoice Management in Manufacturing Company)*
+
+**Research Objectives:**
+1. Understand current income, expense, and e-invoice management conditions at PT GMera Solusi
+2. Design an information system that meets PT GMera Solusi's specific requirements
+3. Implement the system to solve recording problems and improve financial management efficiency
+
+**Key Findings:**
+- Manual Excel-based processes lead to inefficiency and errors in manufacturing financial operations
+- Integrated web-based systems significantly improve recording accuracy and reporting speed
+- Real-time financial visibility enables better managerial decision-making
+- Proper audit trails and role-based access enhance internal control and compliance
 
 ---
 
@@ -180,179 +268,203 @@ The system consists of 13 main database tables with the following relationships:
 
 ```mermaid
 erDiagram
-    users ||--o{ invoices : creates
-    users ||--o{ income : records
-    users ||--o{ expense : records
-    users ||--o{ audit_logs : generates
+    users ||--o{ invoices : "creates"
+    users ||--o{ income : "records"
+    users ||--o{ expense : "records"
+    users ||--o{ audit_logs : "generates"
     
-    clients ||--o{ invoices : has
+    clients ||--o{ invoices : "receives"
     
-    categories ||--o{ income : categorizes
-    categories ||--o{ expense : categorizes
+    categories ||--o{ income : "categorizes"
+    categories ||--o{ expense : "categorizes"
     
-    payment_methods ||--o{ income : uses
-    payment_methods ||--o{ expense : uses
+    payment_methods ||--o{ income : "uses"
+    payment_methods ||--o{ expense : "uses"
     
-    invoices ||--|{ invoice_items : contains
-    invoices ||--o| income : linked
+    invoices ||--|{ invoice_items : "contains"
+    invoices ||--o| income : "linked_to"
     
-    income ||--|{ income_items : contains
-    expense ||--|{ expense_items : contains
+    income ||--|{ income_items : "contains"
+    expense ||--|{ expense_items : "contains"
     
     users {
         uuid id PK
+        varchar name
         varchar email UK
         user_role role
+        varchar phone
+        varchar department
+        varchar avatar_url
+        boolean is_active
+        timestamptz last_login
+        timestamptz created_at
+        timestamptz updated_at
     }
     
     clients {
         uuid id PK
         varchar name
+        text address
+        varchar city
+        varchar province
+        varchar postal_code
+        varchar phone
         varchar email
         varchar npwp
-    }
-    
-    invoices {
-        uuid id PK
-        varchar invoice_number UK
-        uuid client_id FK
-        uuid created_by FK
-        invoice_status status
-        decimal grand_total
-    }
-    
-    invoice_items {
-        uuid id PK
-        uuid invoice_id FK
-        decimal quantity
-        decimal total_price
-    }
-    
-    income {
-        uuid id PK
-        uuid category_id FK
-        uuid payment_method_id FK
-        uuid invoice_id FK
-        decimal amount
-    }
-    
-    income_items {
-        uuid id PK
-        uuid income_id FK
-        decimal total_price
-    }
-    
-    expense {
-        uuid id PK
-        uuid category_id FK
-        uuid payment_method_id FK
-        decimal amount
-    }
-    
-    expense_items {
-        uuid id PK
-        uuid expense_id FK
-        decimal total_price
+        text notes
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
     }
     
     categories {
         uuid id PK
         varchar name
         category_type type
+        varchar description
+        boolean is_active
+        int order_index
+        timestamptz created_at
     }
     
     payment_methods {
         uuid id PK
         varchar name
+        boolean is_active
+    }
+    
+    invoices {
+        uuid id PK
+        varchar invoice_number UK
+        uuid client_id FK
+        varchar client_name
+        text client_address
+        varchar client_phone
+        varchar client_email
+        date invoice_date
+        date due_date
+        invoice_status status
+        decimal subtotal
+        decimal tax_rate
+        decimal tax_amount
+        decimal shipping_cost
+        varchar shipping_method
+        varchar tracking_number
+        text shipping_address
+        date estimated_arrival
+        decimal discount_amount
+        decimal grand_total
+        text notes
+        varchar attachment_url
+        uuid created_by FK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz paid_at
+    }
+    
+    invoice_items {
+        uuid id PK
+        uuid invoice_id FK
+        varchar description
+        decimal quantity
+        varchar unit
+        decimal unit_price
+        decimal total_price
+    }
+    
+    income {
+        uuid id PK
+        date date
+        varchar source
+        uuid category_id FK
+        uuid payment_method_id FK
+        decimal amount
+        varchar reference_number
+        uuid invoice_id FK
+        entry_method entry_method
+        varchar status
+        text description
+        varchar attachment_url
+        uuid created_by FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    income_items {
+        uuid id PK
+        uuid income_id FK
+        varchar description
+        decimal quantity
+        varchar unit
+        decimal unit_price
+        decimal total_price
+    }
+    
+    expense {
+        uuid id PK
+        date date
+        varchar expense_type
+        uuid category_id FK
+        uuid payment_method_id FK
+        decimal amount
+        varchar reference_number
+        varchar status
+        text description
+        varchar attachment_url
+        uuid created_by FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    expense_items {
+        uuid id PK
+        uuid expense_id FK
+        varchar description
+        decimal quantity
+        varchar unit
+        decimal unit_price
+        decimal total_price
     }
     
     audit_logs {
         uuid id PK
         uuid user_id FK
         audit_action action
+        varchar entity_type
+        uuid entity_id
+        jsonb old_values
+        jsonb new_values
+        varchar ip_address
+        varchar user_agent
+        timestamptz created_at
+    }
+    
+    company_profile {
+        uuid id PK
+        varchar company_name
+        text address
+        varchar phone
+        varchar email
+        varchar npwp
+        varchar logo_url
+        varchar website
+        varchar bank_name
+        varchar bank_account
+        varchar bank_account_name
+        decimal tax_rate
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    couriers {
+        uuid id PK
+        varchar code UK
+        varchar name
+        varchar type
+        varchar estimated_days
+        boolean is_active
     }
 ```
-
-### 📋 Complete Table Descriptions
-
-<details>
-<summary><b>Click to view detailed table schemas</b></summary>
-
-#### **users** - User Management
-- `id` (uuid, PK) - User identifier
-- `name`, `email` (UK), `role` (user_role enum)
-- `phone`, `department`, `avatar_url`
-- `is_active`, `last_login`, `created_at`, `updated_at`
-
-#### **clients** - Client Database
-- `id` (uuid, PK) - Client identifier
-- `name`, `address`, `city`, `province`, `postal_code`
-- `phone`, `email`, `npwp` (Indonesian Tax ID)
-- `notes`, `is_active`, `created_at`, `updated_at`
-
-#### **categories** - Transaction Categories
-- `id` (uuid, PK) - Category identifier
-- `name`, `type` (income/expense), `description`
-- `is_active`, `order_index`, `created_at`
-
-#### **payment_methods** - Payment Options
-- `id` (uuid, PK) - Payment method identifier
-- `name`, `is_active`
-
-#### **invoices** - Invoice Management
-- `id` (uuid, PK), `invoice_number` (UK)
-- `client_id` (FK), `client_name`, `client_address`, `client_phone`, `client_email`
-- `invoice_date`, `due_date`, `status` (unpaid/paid/overdue/cancelled)
-- `subtotal`, `tax_rate`, `tax_amount`, `shipping_cost`, `discount_amount`, `grand_total`
-- `shipping_method`, `tracking_number`, `shipping_address`, `estimated_arrival`
-- `notes`, `attachment_url`, `created_by` (FK)
-- `created_at`, `updated_at`, `paid_at`
-
-#### **invoice_items** - Invoice Line Items
-- `id` (uuid, PK), `invoice_id` (FK)
-- `description`, `quantity`, `unit`, `unit_price`, `total_price`
-
-#### **income** - Income Transactions
-- `id` (uuid, PK), `date`, `source`
-- `category_id` (FK), `payment_method_id` (FK), `invoice_id` (FK)
-- `amount`, `reference_number`
-- `entry_method` (manual/auto), `status`, `description`
-- `attachment_url`, `created_by` (FK)
-- `created_at`, `updated_at`
-
-#### **income_items** - Income Line Items
-- `id` (uuid, PK), `income_id` (FK)
-- `description`, `quantity`, `unit`, `unit_price`, `total_price`
-
-#### **expense** - Expense Transactions
-- `id` (uuid, PK), `date`, `expense_type`
-- `category_id` (FK), `payment_method_id` (FK)
-- `amount`, `reference_number`, `status`, `description`
-- `attachment_url`, `created_by` (FK)
-- `created_at`, `updated_at`
-
-#### **expense_items** - Expense Line Items
-- `id` (uuid, PK), `expense_id` (FK)
-- `description`, `quantity`, `unit`, `unit_price`, `total_price`
-
-#### **audit_logs** - Audit Trail
-- `id` (uuid, PK), `user_id` (FK)
-- `action` (create/update/delete/view/export/login/logout)
-- `entity_type`, `entity_id`
-- `old_values` (jsonb), `new_values` (jsonb)
-- `ip_address`, `user_agent`, `created_at`
-
-#### **company_profile** - Company Settings
-- `id` (uuid, PK), `company_name`, `address`, `phone`, `email`
-- `npwp`, `logo_url`, `website`
-- `bank_name`, `bank_account`, `bank_account_name`
-- `tax_rate`, `created_at`, `updated_at`
-
-#### **couriers** - Shipping Methods
-- `id` (uuid, PK), `code` (UK), `name`, `type`
-- `estimated_days`, `is_active`
-
-</details>
 
 ---
 
@@ -575,9 +687,9 @@ flowchart LR
 
 ## 📄 Documentation & Support
 
-- See the `docs/` folder for technical specs, wireframes, and feature ideation.
-- For database details, see `schema/db_dump.sql`.
+- See the `docs/` folder for technical specifications, wireframes, and feature ideation
+- For database details, see `schema/db_dump.sql` (latest schema reference)
+- For research context, refer to the academic paper on web-based accounting information systems for manufacturing
 
 ---
 
-© GMera Solusi. All rights reserved.
