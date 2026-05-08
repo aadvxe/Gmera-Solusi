@@ -39,10 +39,6 @@ PT GMera Solusi, like many manufacturing companies, faced significant challenges
 
 This system addresses all the problems above by providing a **complete financial management platform** that serves as the backbone for business operations:
 
-### 🎯 **Solution: Integrated Web-Based System**
-
-This system addresses all the problems above by providing a **complete financial management platform** that serves as the backbone for business operations:
-
 1. **Automated Financial Accounting & Bookkeeping**
    - Digital recording of all income and expenses with detailed categorization
    - Automatic calculation of tax, discounts, and totals to eliminate manual errors
