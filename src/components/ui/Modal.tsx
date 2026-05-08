@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface ModalProps {
@@ -10,42 +10,68 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, children }: ModalProps) {
-  const mounted = useRef(false);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      setShouldRender(true);
+      setIsClosing(false);
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "";
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        document.body.style.overflow = "";
+      }, 200); // match animation duration
+      return () => clearTimeout(timer);
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
   }, [isOpen]);
 
-  if (!isOpen || typeof window === "undefined") return null;
+  if (!shouldRender || typeof window === "undefined") return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes modal-backdrop-in {
+          from { opacity: 0; backdrop-filter: blur(0px); }
+          to { opacity: 1; backdrop-filter: blur(4px); }
+        }
+        @keyframes modal-backdrop-out {
+          from { opacity: 1; backdrop-filter: blur(4px); }
+          to { opacity: 0; backdrop-filter: blur(0px); }
+        }
+        @keyframes modal-content-in {
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes modal-content-out {
+          from { opacity: 1; transform: scale(1) translateY(0); }
+          to { opacity: 0; transform: scale(0.95) translateY(10px); }
+        }
+        .modal-backdrop-in { animation: modal-backdrop-in 0.2s ease-out forwards; }
+        .modal-backdrop-out { animation: modal-backdrop-out 0.2s ease-in forwards; }
+        .modal-content-in { animation: modal-content-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-content-out { animation: modal-content-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      `}} />
       <div
-        className="animate-in fade-in zoom-in-95 duration-200 w-full flex items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
+        className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm ${
+          isClosing ? "modal-backdrop-out" : "modal-backdrop-in"
+        }`}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
-        {children}
+        <div
+          className={`w-full flex items-center justify-center ${
+            isClosing ? "modal-content-out" : "modal-content-in"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {children}
+        </div>
       </div>
-    </div>,
+    </>,
     document.body
   );
 }

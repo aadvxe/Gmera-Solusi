@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { BarsIcon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { 
@@ -32,15 +33,26 @@ export default function PengeluaranPage() {
     loadData();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus data pengeluaran ini?")) {
-      const { error } = await deleteExpense(id);
-      if (error) {
-        alert("Gagal menghapus data: " + error.message);
-      } else {
-        loadData();
-      }
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (id: string) => {
+    setItemToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    
+    const { error } = await deleteExpense(itemToDelete);
+    if (error) {
+      alert("Gagal menghapus data: " + error.message);
+    } else {
+      loadData();
     }
+    
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
   };
 
   const formatCurrency = (amount: number) => {
@@ -155,7 +167,7 @@ export default function PengeluaranPage() {
                           <EditIcon className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(row.id)}
+                          onClick={() => handleDeleteClick(row.id)}
                           className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" 
                           title="Hapus"
                         >
@@ -182,6 +194,16 @@ export default function PengeluaranPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Hapus Pengeluaran"
+        description="Apakah Anda yakin ingin menghapus data pengeluaran ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Hapus"
+        isDanger={true}
+      />
     </>
   );
 }

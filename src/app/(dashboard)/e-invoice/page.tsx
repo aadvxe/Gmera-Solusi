@@ -57,12 +57,12 @@ export default function EInvoicePage() {
     switch (s) {
       case "paid":
       case "lunas":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#3CD856]/10 text-[#3CD856] flex items-center gap-1 w-max"><CheckCircleIcon className="w-3 h-3" /> Lunas</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#76c893]/10 text-[#76c893] flex items-center gap-1 w-max"><CheckCircleIcon className="w-3 h-3" /> Lunas</span>;
       case "overdue":
       case "jatuh tempo":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FA5A7D]/10 text-[#FA5A7D] w-max block">Jatuh Tempo</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f08a5d]/10 text-[#f08a5d] w-max block">Jatuh T.</span>;
       default:
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#FF947A]/10 text-[#FF947A] w-max block">Belum Bayar</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#ffd166]/10 text-[#ffd166] w-max block">Belum Bayar</span>;
     }
   };
 

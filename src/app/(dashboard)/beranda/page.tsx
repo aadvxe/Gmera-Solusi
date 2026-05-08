@@ -140,9 +140,9 @@ export default function DashboardPage() {
 
       if (data) {
         setInvoiceDonutData([
-          { name: 'Lunas', value: data.paidInvoices, color: '#7983ff' },
-          { name: 'Belum Bayar', value: data.unpaidInvoices, color: '#76c893' },
-          { name: 'Jatuh Tempo', value: data.overdueInvoices, color: '#f08a5d' },
+          { name: 'Lunas', value: data.paidInvoices, color: '#76c893' },
+          { name: 'Belum', value: data.unpaidInvoices, color: '#ffd166' },
+          { name: 'Jatuh T.', value: data.overdueInvoices, color: '#f08a5d' },
         ]);
       }
     };
@@ -428,13 +428,13 @@ export default function DashboardPage() {
           <div className="grid grid-cols-3 gap-2 mt-4 text-xs text-center">
             <div>
               <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
-                <span className="w-2 h-2 rounded-full bg-[#7983ff]"></span> Lunas
+                <span className="w-2 h-2 rounded-full bg-[#76c893]"></span> Lunas
               </div>
               <p className="font-bold text-[#1E293B]">{summary ? summary.paidInvoices : 0}</p>
             </div>
             <div>
               <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
-                <span className="w-2 h-2 rounded-full bg-[#76c893]"></span> Belum
+                <span className="w-2 h-2 rounded-full bg-[#ffd166]"></span> Belum
               </div>
               <p className="font-bold text-[#1E293B]">{summary ? summary.unpaidInvoices : 0}</p>
             </div>
