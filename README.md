@@ -615,147 +615,124 @@ flowchart TD
 ## 📊 Data Flow Diagram (DFD)
 
 ```mermaid
-flowchart TB
-    subgraph External["🌐 External Entities"]
-        direction LR
-        User([User/Staff])
-        Admin([Admin])
-        Client([Client])
+flowchart LR
+    %% External Entities
+    User([User/Staff])
+    Admin([Admin])
+    Client([Client])
+    
+    %% Frontend Layer
+    subgraph Frontend["Frontend Layer"]
+        UI[UI Pages]
+        Auth[Auth]
+        Toast[Notifications]
     end
     
-    subgraph Frontend["💻 Frontend Layer"]
+    %% Data Access Modules
+    subgraph Modules["Data Access Layer"]
         direction TB
-        UI[Next.js UI Pages]
-        Auth[Auth Provider]
-        Store[Zustand State]
-        Toast[Toast Notifications]
+        InvoicesMod[Invoices]
+        IncomeMod[Income]
+        ExpenseMod[Expense]
+        ClientsMod[Clients]
+        DashboardMod[Dashboard]
+        UsersMod[Users]
+        SettingsMod[Settings]
     end
     
-    subgraph DataAccess["⚙️ Data Access Layer"]
+    %% Database Tables
+    subgraph DB["Database"]
         direction TB
-        InvoicesMod[Invoices Module]
-        IncomeMod[Income Module]
-        ExpenseMod[Expense Module]
-        ClientsMod[Clients Module]
-        DashboardMod[Dashboard Module]
-        UsersMod[Users Module]
-        CategoriesMod[Categories Module]
-        SettingsMod[Settings Module]
+        UsersDB[(users)]
+        ClientsDB[(clients)]
+        InvoicesDB[(invoices)]
+        InvoiceItemsDB[(invoice_items)]
+        IncomeDB[(income)]
+        IncomeItemsDB[(income_items)]
+        ExpenseDB[(expense)]
+        ExpenseItemsDB[(expense_items)]
+        CategoriesDB[(categories)]
+        PaymentDB[(payment_methods)]
+        AuditDB[(audit_logs)]
+        CompanyDB[(company_profile)]
+        CouriersDB[(couriers)]
     end
     
-    subgraph Database["🗄️ Database - Supabase PostgreSQL"]
-        direction TB
-        subgraph CoreTables["Core Tables"]
-            UsersTable[(users)]
-            ClientsTable[(clients)]
-            AuditLogsTable[(audit_logs)]
-        end
-        subgraph TransactionTables["Transaction Tables"]
-            InvoicesTable[(invoices)]
-            InvoiceItemsTable[(invoice_items)]
-            IncomeTable[(income)]
-            IncomeItemsTable[(income_items)]
-            ExpenseTable[(expense)]
-            ExpenseItemsTable[(expense_items)]
-        end
-        subgraph ConfigTables["Configuration Tables"]
-            CategoriesTable[(categories)]
-            PaymentMethodsTable[(payment_methods)]
-            CompanyProfileTable[(company_profile)]
-            CouriersTable[(couriers)]
-        end
-    end
-    
-    %% Authentication Flow
-    User -->|1. Login Request| UI
-    Admin -->|1. Login Request| UI
-    UI -->|2. Validate| Auth
-    Auth -->|3. Check Credentials| UsersTable
-    UsersTable -->|4. Return User Data| Auth
-    Auth -->|5. Store Session| Store
-    Auth -->|6. Success/Error| Toast
-    
-    %% Invoice Management Flow
-    User -->|Create/Edit Invoice| UI
-    UI -->|Process Invoice| InvoicesMod
-    InvoicesMod -->|Write| InvoicesTable
-    InvoicesMod -->|Write Items| InvoiceItemsTable
-    InvoicesMod -->|Read Client Info| ClientsTable
-    InvoicesMod -->|Select Courier| CouriersTable
-    InvoicesMod -->|Auto-generate Income if Paid| IncomeTable
-    InvoicesMod -->|Log Changes| AuditLogsTable
-    InvoicesMod -->|Notify User| Toast
-    InvoicesTable -.->|Send to| Client
-    
-    %% Income Recording Flow
+    %% User Interactions
+    User -->|Login| UI
+    Admin -->|Login| UI
+    User -->|Create Invoice| UI
     User -->|Record Income| UI
-    UI -->|Process Income| IncomeMod
-    IncomeMod -->|Write| IncomeTable
-    IncomeMod -->|Write Items| IncomeItemsTable
-    IncomeMod -->|Link Category| CategoriesTable
-    IncomeMod -->|Link Payment| PaymentMethodsTable
-    IncomeMod -->|Link Invoice if exists| InvoicesTable
-    IncomeMod -->|Log Transaction| AuditLogsTable
-    IncomeMod -->|Notify User| Toast
-    
-    %% Expense Recording Flow
     User -->|Record Expense| UI
-    UI -->|Process Expense| ExpenseMod
-    ExpenseMod -->|Write| ExpenseTable
-    ExpenseMod -->|Write Items| ExpenseItemsTable
-    ExpenseMod -->|Link Category| CategoriesTable
-    ExpenseMod -->|Link Payment| PaymentMethodsTable
-    ExpenseMod -->|Log Transaction| AuditLogsTable
-    ExpenseMod -->|Notify User| Toast
-    
-    %% Client Management Flow
     User -->|Manage Clients| UI
-    UI -->|Process Client Data| ClientsMod
-    ClientsMod -->|CRUD Operations| ClientsTable
-    ClientsMod -->|Log Changes| AuditLogsTable
-    ClientsMod -->|Notify User| Toast
-    
-    %% Dashboard & Reporting Flow
     User -->|View Dashboard| UI
-    UI -->|Request Metrics| DashboardMod
-    DashboardMod -->|Query Income| IncomeTable
-    DashboardMod -->|Query Expense| ExpenseTable
-    DashboardMod -->|Query Invoices| InvoicesTable
-    DashboardMod -->|Aggregate Data| UI
-    UI -->|Display Charts & KPIs| User
+    Admin -->|Manage System| UI
     
-    %% User Management Flow
-    Admin -->|Manage Users| UI
-    UI -->|Process User Data| UsersMod
-    UsersMod -->|CRUD Operations| UsersTable
-    UsersMod -->|Log Changes| AuditLogsTable
-    UsersMod -->|Notify Admin| Toast
+    %% Frontend to Auth
+    UI --> Auth
+    UI --> Toast
+    Auth --> UsersDB
     
-    %% Category Management Flow
-    Admin -->|Manage Categories| UI
-    UI -->|Process Categories| CategoriesMod
-    CategoriesMod -->|CRUD Operations| CategoriesTable
-    CategoriesMod -->|Notify Admin| Toast
+    %% Frontend to Modules
+    UI --> InvoicesMod
+    UI --> IncomeMod
+    UI --> ExpenseMod
+    UI --> ClientsMod
+    UI --> DashboardMod
+    UI --> UsersMod
+    UI --> SettingsMod
     
-    %% Settings Management Flow
-    Admin -->|Manage Settings| UI
-    UI -->|Process Settings| SettingsMod
-    SettingsMod -->|Update Profile| CompanyProfileTable
-    SettingsMod -->|Manage Couriers| CouriersTable
-    SettingsMod -->|Manage Payments| PaymentMethodsTable
-    SettingsMod -->|Log Changes| AuditLogsTable
-    SettingsMod -->|Notify Admin| Toast
+    %% Invoice Module Connections
+    InvoicesMod --> InvoicesDB
+    InvoicesMod --> InvoiceItemsDB
+    InvoicesMod --> ClientsDB
+    InvoicesMod --> CouriersDB
+    InvoicesMod --> IncomeDB
+    InvoicesMod --> AuditDB
+    
+    %% Income Module Connections
+    IncomeMod --> IncomeDB
+    IncomeMod --> IncomeItemsDB
+    IncomeMod --> CategoriesDB
+    IncomeMod --> PaymentDB
+    IncomeMod --> AuditDB
+    
+    %% Expense Module Connections
+    ExpenseMod --> ExpenseDB
+    ExpenseMod --> ExpenseItemsDB
+    ExpenseMod --> CategoriesDB
+    ExpenseMod --> PaymentDB
+    ExpenseMod --> AuditDB
+    
+    %% Client Module Connections
+    ClientsMod --> ClientsDB
+    ClientsMod --> AuditDB
+    
+    %% Dashboard Module Connections
+    DashboardMod --> IncomeDB
+    DashboardMod --> ExpenseDB
+    DashboardMod --> InvoicesDB
+    
+    %% User Module Connections
+    UsersMod --> UsersDB
+    UsersMod --> AuditDB
+    
+    %% Settings Module Connections
+    SettingsMod --> CompanyDB
+    SettingsMod --> CouriersDB
+    SettingsMod --> PaymentDB
+    SettingsMod --> CategoriesDB
+    SettingsMod --> AuditDB
+    
+    %% Output
+    InvoicesDB -.->|Send Invoice| Client
     
     style User fill:#e1f5ff
     style Admin fill:#ffe1e1
     style Client fill:#e1f5ff
-    style Toast fill:#fff9e1
-    style Database fill:#e8f5e9
     style Frontend fill:#f5f5f5
-    style DataAccess fill:#fff9e1
-    style CoreTables fill:#e3f2fd
-    style TransactionTables fill:#f3e5f5
-    style ConfigTables fill:#e8f5e9
+    style Modules fill:#fff9e1
+    style DB fill:#e8f5e9
 ```
 
 ---
