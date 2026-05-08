@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/Input";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { getCategories, getPaymentMethods, createExpense, Category, PaymentMethod } from "@/lib/db";
+import { uploadFile } from "@/lib/storage";
+import { toast } from "sonner";
 
 export default function TambahPengeluaranPage() {
   const router = useRouter();
@@ -28,6 +30,7 @@ export default function TambahPengeluaranPage() {
   const [amount, setAmount] = useState(0);
   const [notes, setNotes] = useState("");
   const [refNumber, setRefNumber] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +66,16 @@ export default function TambahPengeluaranPage() {
     
     setLoading(true);
     try {
+      let attachmentUrl = null;
+      if (attachment) {
+        const { url, error } = await uploadFile(attachment, 'uploads');
+        if (error) {
+          toast.error("Gagal mengunggah file. Pastikan bucket 'uploads' sudah ada di Supabase.");
+        } else {
+          attachmentUrl = url;
+        }
+      }
+
       await createExpense({
         date,
         expense_type: vendor,
@@ -72,6 +85,7 @@ export default function TambahPengeluaranPage() {
         reference_number: refNumber || null,
         status: status === "paid" ? "Paid" : "Pending",
         description: notes || null,
+        attachment_url: attachmentUrl,
         created_by: null
       });
       
@@ -204,12 +218,26 @@ export default function TambahPengeluaranPage() {
                   <CloudUploadIcon className="mx-auto h-12 w-12 text-text-muted group-hover:text-primary transition-colors" />
                   <div className="flex text-sm text-text-secondary justify-center">
                     <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
-                      <span>Unggah file</span>
-                      <input id="file-upload" name="file-upload" type="file" className="sr-only" />
+                      <span>{attachment ? "Ganti file" : "Unggah file"}</span>
+                      <input 
+                        id="file-upload" 
+                        name="file-upload" 
+                        type="file" 
+                        className="sr-only" 
+                        onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            setAttachment(e.target.files[0]);
+                          }
+                        }}
+                      />
                     </label>
-                    <p className="pl-1">atau tarik dan lepas ke sini</p>
+                    {!attachment && <p className="pl-1">atau tarik dan lepas ke sini</p>}
                   </div>
-                  <p className="text-xs text-text-muted">Fitur ini belum aktif, ini hanya tampilan UI</p>
+                  {attachment ? (
+                    <p className="text-sm font-medium text-text-primary mt-2">{attachment.name}</p>
+                  ) : (
+                    <p className="text-xs text-text-muted">PNG, JPG, PDF hingga 5MB</p>
+                  )}
                 </div>
               </div>
             </div>

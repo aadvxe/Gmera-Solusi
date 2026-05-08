@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
+import { uploadFile } from "@/lib/storage";
+import { toast } from "sonner";
 
 interface InvoiceItem {
   id: number;
@@ -48,6 +50,8 @@ export default function EditInvoicePage() {
   const [applyTax, setApplyTax] = useState(true);
   
   const [status, setStatus] = useState("unpaid");
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [existingAttachmentUrl, setExistingAttachmentUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,6 +73,8 @@ export default function EditInvoicePage() {
           setTrackingNumber(invoiceData.tracking_number || "");
           setEstimatedArrival(invoiceData.estimated_arrival || "");
           setNotes(invoiceData.notes || "");
+          setExistingAttachmentUrl(invoiceData.attachment_url || null);
+          setStatus(invoiceData.status || "unpaid");
           setShippingCost(invoiceData.shipping_cost || 0);
           setShippingAddress(invoiceData.shipping_address || "");
           setDiscountAmount(invoiceData.discount_amount || 0);
@@ -146,6 +152,16 @@ export default function EditInvoicePage() {
 
     setSaving(true);
     try {
+      let attachmentUrl = existingAttachmentUrl;
+      if (attachment) {
+        const { url, error } = await uploadFile(attachment, 'uploads');
+        if (!error && url) {
+          attachmentUrl = url;
+        } else {
+          toast.error("Gagal mengunggah lampiran");
+        }
+      }
+
       const invoiceData = {
         invoice_number: invoiceNumber,
         client_id: selectedClient?.id || null,
@@ -167,6 +183,7 @@ export default function EditInvoicePage() {
         discount_amount: discountAmount,
         grand_total: grandTotal,
         notes: notes || null,
+        attachment_url: attachmentUrl,
       };
 
       const itemsData = items.map(item => ({
@@ -435,6 +452,41 @@ export default function EditInvoicePage() {
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                 ></textarea>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Lampiran Bukti (Opsional)</label>
+                {existingAttachmentUrl && !attachment && (
+                  <div className="mb-2 p-3 bg-surface rounded-xl border border-border flex justify-between items-center">
+                    <span className="text-sm text-text-secondary truncate max-w-[200px]">Lampiran tersimpan</span>
+                    <a href={existingAttachmentUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary font-medium hover:underline">Lihat</a>
+                  </div>
+                )}
+                <div className="flex justify-center px-4 py-4 border-2 border-dashed border-border rounded-xl bg-surface hover:bg-background transition-colors">
+                  <div className="space-y-1 text-center">
+                    <div className="flex text-sm text-text-secondary justify-center">
+                      <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
+                        <span>{attachment ? "Ganti file" : "Unggah file baru"}</span>
+                        <input 
+                          id="file-upload" 
+                          name="file-upload" 
+                          type="file" 
+                          className="sr-only" 
+                          onChange={e => {
+                            if (e.target.files && e.target.files[0]) {
+                              setAttachment(e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    {attachment ? (
+                      <p className="text-xs font-medium text-text-primary mt-1">{attachment.name}</p>
+                    ) : (
+                      <p className="text-[10px] text-text-muted mt-1">PNG, JPG, PDF hingga 5MB</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

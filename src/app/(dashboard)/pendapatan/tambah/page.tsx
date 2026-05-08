@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { getClients, getCategories, getPaymentMethods, createIncome, getInvoicesByClient, Client, Category, PaymentMethod, Invoice } from "@/lib/db";
+import { uploadFile } from "@/lib/storage";
 
 export default function TambahPendapatanPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function TambahPendapatanPage() {
   const [invoiceId, setInvoiceId] = useState("");
   const [clientInvoices, setClientInvoices] = useState<Invoice[]>([]);
   const [addTax, setAddTax] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -103,6 +105,16 @@ export default function TambahPendapatanPage() {
         finalAmount = Math.round(amount * 1.11); // Add 11% PPN
       }
 
+      let attachmentUrl = null;
+      if (attachment) {
+        const { url, error } = await uploadFile(attachment, 'uploads');
+        if (error) {
+          toast.error("Gagal mengunggah file. Pastikan bucket 'uploads' sudah ada di Supabase.");
+        } else {
+          attachmentUrl = url;
+        }
+      }
+
       await createIncome({
         date,
         source: clientId ? clientName : notes.substring(0, 50),
@@ -114,6 +126,7 @@ export default function TambahPendapatanPage() {
         entry_method: 'manual',
         status: 'paid', // Default to paid for direct income
         description: notes || null,
+        attachment_url: attachmentUrl,
         created_by: null // handled by RLS typically
       });
       
@@ -311,12 +324,26 @@ export default function TambahPendapatanPage() {
                   <CloudUploadIcon className="mx-auto h-12 w-12 text-text-muted group-hover:text-primary transition-colors" />
                   <div className="flex text-sm text-text-secondary justify-center">
                     <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
-                      <span>Unggah file</span>
-                      <input id="file-upload" name="file-upload" type="file" className="sr-only" />
+                      <span>{attachment ? "Ganti file" : "Unggah file"}</span>
+                      <input 
+                        id="file-upload" 
+                        name="file-upload" 
+                        type="file" 
+                        className="sr-only" 
+                        onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            setAttachment(e.target.files[0]);
+                          }
+                        }}
+                      />
                     </label>
-                    <p className="pl-1">atau tarik dan lepas ke sini</p>
+                    {!attachment && <p className="pl-1">atau tarik dan lepas ke sini</p>}
                   </div>
-                  <p className="text-xs text-text-muted">Fitur ini belum aktif, ini hanya tampilan UI</p>
+                  {attachment ? (
+                    <p className="text-sm font-medium text-text-primary mt-2">{attachment.name}</p>
+                  ) : (
+                    <p className="text-xs text-text-muted">PNG, JPG, PDF hingga 5MB</p>
+                  )}
                 </div>
               </div>
             </div>

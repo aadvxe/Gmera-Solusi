@@ -47,6 +47,7 @@ import {
 } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { uploadFile } from "@/lib/storage";
 
 type TabId = "profil" | "pengguna" | "kategori" | "pajak" | "pembayaran";
 
@@ -62,6 +63,7 @@ export default function PengaturanPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabId>("profil");
   const [activeCatTab, setActiveCatTab] = useState<"pendapatan"|"pengeluaran">("pendapatan");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<CompanyProfile | null>(null);
@@ -117,20 +119,34 @@ export default function PengaturanPage() {
     e.preventDefault();
     if (!company) return;
 
+    setLoading(true);
+
+    let newLogoUrl = company.logo_url;
+    if (logoFile) {
+      const { url, error } = await uploadFile(logoFile, 'uploads');
+      if (!error && url) {
+        newLogoUrl = url;
+      } else {
+        toast.error("Gagal mengunggah logo");
+      }
+    }
+
     const formData = new FormData(e.currentTarget);
-    const payload: any = {};
+    const payload: any = { logo_url: newLogoUrl };
     
     // Only include fields that are present in the form
     formData.forEach((value, key) => {
-      if (value !== null && value !== "") {
+      if (value !== null && value !== "" && key !== 'logo-upload') {
         if (key === 'tax_rate') payload[key] = parseFloat(value as string);
         else payload[key] = value as string;
       }
     });
 
-    if (Object.keys(payload).length === 0) return;
+    if (Object.keys(payload).length === 0) {
+      setLoading(false);
+      return;
+    }
 
-    setLoading(true);
     const { error } = await updateCompanyProfile(payload);
     setLoading(false);
 
@@ -146,6 +162,7 @@ export default function PengaturanPage() {
         description: desc
       });
       
+      setLogoFile(null);
       window.dispatchEvent(new Event('refreshNotifications'));
       loadData();
     }
@@ -330,13 +347,34 @@ export default function PengaturanPage() {
             </div>
 
             <div className="flex items-start gap-6 border-b border-gray-100 pb-6">
-              <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 shrink-0">
-                <Building2Icon className="w-6 h-6 mb-2" />
-                <span className="text-[10px] font-medium">Logo Perusahaan</span>
+              <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 shrink-0 overflow-hidden relative group">
+                {(logoFile || company?.logo_url) ? (
+                  <img src={logoFile ? URL.createObjectURL(logoFile) : company?.logo_url!} alt="Company Logo" className="w-full h-full object-contain bg-white" />
+                ) : (
+                  <>
+                    <Building2Icon className="w-6 h-6 mb-2" />
+                    <span className="text-[10px] font-medium text-center">Logo<br/>Perusahaan</span>
+                  </>
+                )}
+                <label className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                  <span className="text-[10px] font-medium">Ubah Logo</span>
+                  <input 
+                    type="file" 
+                    name="logo-upload" 
+                    accept="image/*" 
+                    className="sr-only" 
+                    onChange={e => {
+                      if (e.target.files && e.target.files[0]) {
+                        setLogoFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                </label>
               </div>
-              <div className="flex-1 space-y-1">
+              <div className="flex-1 space-y-1 pt-2">
                 <h3 className="font-medium text-[#151D48]">Logo Perusahaan</h3>
-                <p className="text-xs text-gray-500">Logo sudah terpasang di sistem.</p>
+                <p className="text-xs text-gray-500">Logo digunakan pada E-Invoice. Format JPG, PNG (Maks. 2MB)</p>
+                {logoFile && <p className="text-xs text-[#5C67F2] font-medium mt-1">Logo baru siap diunggah</p>}
               </div>
             </div>
 

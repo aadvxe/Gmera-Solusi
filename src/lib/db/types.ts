@@ -55,6 +55,7 @@ export type Invoice = {
   discount_amount: number;
   grand_total: number;
   notes: string | null;
+  attachment_url?: string | null;
   created_by: string | null;
   created_at: string;
   paid_at?: string | null;
@@ -83,6 +84,7 @@ export type Income = {
   entry_method: 'manual' | 'auto';
   status: string;
   description: string | null;
+  attachment_url?: string | null;
   created_by: string | null;
   created_at: string;
   // Joined
@@ -100,6 +102,7 @@ export type Expense = {
   reference_number: string | null;
   status: string;
   description: string | null;
+  attachment_url?: string | null;
   created_by: string | null;
   created_at: string;
   // Joined

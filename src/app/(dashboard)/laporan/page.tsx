@@ -8,6 +8,8 @@ import { FinancialChart } from "@/components/dashboard/FinancialChart";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { getFinancialReport, getReportChartData } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
+import { exportToExcel, exportToPDF } from "@/lib/export";
+import { toast } from "sonner";
 
 export default function LaporanPage() {
   const [periodFrom, setPeriodFrom] = useState("2026-01-01");
@@ -36,6 +38,31 @@ export default function LaporanPage() {
 
   const handleApply = () => {
     loadData();
+  };
+
+  const handleExportExcel = () => {
+    const columns = [
+      { header: 'Periode', key: 'name' },
+      { header: 'Pendapatan', key: 'income', isCurrency: true },
+      { header: 'Pengeluaran', key: 'expense', isCurrency: true }
+    ];
+    exportToExcel(chartData, columns, `Laporan_Keuangan_${periodFrom}_${periodTo}`);
+  };
+
+  const handleExportPDF = () => {
+    toast.info("Sedang menyiapkan PDF...");
+    try {
+      const columns = [
+        { header: 'Periode', key: 'name' },
+        { header: 'Pendapatan', key: 'income', isCurrency: true },
+        { header: 'Pengeluaran', key: 'expense', isCurrency: true }
+      ];
+      exportToPDF(chartData, columns, 'Laporan Keuangan Bulanan', `Laporan_Keuangan_${periodFrom}_${periodTo}`);
+      toast.success("PDF berhasil diunduh");
+    } catch (error) {
+      console.error("PDF Export Error:", error);
+      toast.error("Gagal mengekspor PDF");
+    }
   };
 
   return (
@@ -124,10 +151,10 @@ export default function LaporanPage() {
           </p>
         </div>
         <div className="flex gap-3 pt-2">
-          <Button variant="danger" className="flex items-center gap-2">
+          <Button variant="danger" className="flex items-center gap-2" onClick={handleExportPDF}>
             <Document1Icon className="w-[18px] h-[18px]" /> Export PDF
           </Button>
-          <Button className="bg-success hover:bg-success/90 text-white flex items-center gap-2 border-none">
+          <Button className="bg-success hover:bg-success/90 text-white flex items-center gap-2 border-none" onClick={handleExportExcel}>
             <DocumentDownloadIcon className="w-[18px] h-[18px]" /> Export Excel
           </Button>
         </div>

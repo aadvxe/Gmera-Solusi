@@ -21,6 +21,8 @@ import {
 import { getIncome, deleteIncome, updateIncome, getCategories, getClients, Income, Category, Client } from "@/lib/db";
 import { toast } from "sonner";
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
+import { uploadFile } from "@/lib/storage";
+import { exportToExcel, exportToPDF } from "@/lib/export";
 
 export default function PendapatanPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -78,8 +80,10 @@ export default function PendapatanPage() {
     amount: 0,
     category_id: "",
     status: "",
-    reference_number: ""
+    reference_number: "",
+    attachment_url: "" as string | null
   });
+  const [editAttachment, setEditAttachment] = useState<File | null>(null);
 
   const handleView = (income: Income) => {
     setSelectedIncome(income);
@@ -94,8 +98,10 @@ export default function PendapatanPage() {
       amount: income.amount || 0,
       category_id: income.category_id || "",
       status: income.status || "",
-      reference_number: income.reference_number || ""
+      reference_number: income.reference_number || "",
+      attachment_url: income.attachment_url || null
     });
+    setEditAttachment(null);
     setIsEditModalOpen(true);
   };
 
@@ -104,13 +110,23 @@ export default function PendapatanPage() {
     if (!selectedIncome) return;
     
     setLoading(true);
+    let newAttachmentUrl = editFormData.attachment_url;
+      
+    if (editAttachment) {
+      const { url, error } = await uploadFile(editAttachment, 'uploads');
+      if (!error && url) {
+        newAttachmentUrl = url;
+      }
+    }
+
     const { error } = await updateIncome(selectedIncome.id, {
       date: editFormData.date,
       source: editFormData.source,
       amount: editFormData.amount,
       category_id: editFormData.category_id || null,
       status: editFormData.status,
-      reference_number: editFormData.reference_number
+      reference_number: editFormData.reference_number,
+      attachment_url: newAttachmentUrl
     });
     setLoading(false);
 
@@ -120,11 +136,41 @@ export default function PendapatanPage() {
       toast.success("Pendapatan berhasil diperbarui");
       setIsEditModalOpen(false);
       setSelectedIncome(null);
+      setEditAttachment(null);
       loadData();
     }
   };
 
+  const handleExportExcel = () => {
+    const columns = [
+      { header: 'Tanggal', key: 'date' },
+      { header: 'No. Referensi', key: 'reference_number' },
+      { header: 'Klien / Sumber', key: 'source' },
+      { header: 'Kategori', key: 'categories.name' },
+      { header: 'Jumlah', key: 'amount', isCurrency: true },
+      { header: 'Status', key: 'status' }
+    ];
+    exportToExcel(incomes, columns, `Data_Pendapatan_${new Date().getTime()}`);
+  };
 
+  const handleExportPDF = () => {
+    toast.info("Sedang menyiapkan PDF...");
+    try {
+      const columns = [
+        { header: 'Tanggal', key: 'date' },
+        { header: 'No. Referensi', key: 'reference_number' },
+        { header: 'Klien / Sumber', key: 'source' },
+        { header: 'Kategori', key: 'categories.name' },
+        { header: 'Jumlah', key: 'amount', isCurrency: true },
+        { header: 'Status', key: 'status' }
+      ];
+      exportToPDF(incomes, columns, 'Laporan Pendapatan', `Laporan_Pendapatan_${new Date().getTime()}`);
+      toast.success("PDF berhasil diunduh");
+    } catch (error) {
+      console.error("PDF Export Error:", error);
+      toast.error("Gagal mengekspor PDF");
+    }
+  };
 
   return (
     <>
@@ -137,8 +183,11 @@ export default function PendapatanPage() {
               <p className="text-sm text-gray-500 mt-1">Kelola seluruh catatan pemasukan perusahaan</p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button variant="outline" className="flex items-center gap-2">
-                <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">Ekspor</span>
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleExportExcel}>
+                <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">Excel</span>
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleExportPDF}>
+                <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
               </Button>
               <Link href="/pendapatan/tambah">
                 <Button 
@@ -311,6 +360,23 @@ export default function PendapatanPage() {
                 <span className="text-gray-500 font-medium">Total Jumlah</span>
                 <span className="text-xl font-bold text-[#3CD856]">+{formatCurrency(selectedIncome.amount)}</span>
               </div>
+              {selectedIncome.attachment_url && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <span className="block text-gray-500 text-sm mb-2">Lampiran Bukti</span>
+                  <a href={selectedIncome.attachment_url} target="_blank" rel="noopener noreferrer" className="inline-flex flex-col items-center justify-center p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors w-full">
+                    {selectedIncome.attachment_url.toLowerCase().match(/\.(jpeg|jpg|gif|png)$/) ? (
+                      <img src={selectedIncome.attachment_url} alt="Lampiran" className="max-h-40 object-contain mb-2 rounded" />
+                    ) : (
+                      <div className="w-12 h-12 bg-[#5C67F2]/10 text-[#5C67F2] rounded-full flex items-center justify-center mb-2">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-[#5C67F2]">Lihat File Asli</span>
+                  </a>
+                </div>
+              )}
             </div>
           )}
           <div className="p-6 bg-gray-50 flex justify-end">
@@ -388,6 +454,37 @@ export default function PendapatanPage() {
                 value={editFormData.category_id}
                 onChange={val => setEditFormData({...editFormData, category_id: val})}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#151D48] mb-1.5">Lampiran Bukti (Opsional)</label>
+              {editFormData.attachment_url && !editAttachment && (
+                <div className="mb-2 p-3 bg-gray-50 rounded-xl border border-gray-200 flex justify-between items-center">
+                  <span className="text-sm text-gray-600 truncate max-w-[200px]">Lampiran tersimpan</span>
+                  <a href={editFormData.attachment_url} target="_blank" rel="noopener noreferrer" className="text-sm text-[#5C67F2] font-medium hover:underline">Lihat</a>
+                </div>
+              )}
+              <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
+                <div className="space-y-1 text-center">
+                  <div className="flex text-sm text-gray-600 justify-center">
+                    <label htmlFor="edit-file-upload" className="relative cursor-pointer rounded-md font-medium text-[#5C67F2] hover:text-[#4a55c2] focus-within:outline-none">
+                      <span>{editAttachment ? "Ganti file" : "Unggah file baru"}</span>
+                      <input 
+                        id="edit-file-upload" 
+                        name="edit-file-upload" 
+                        type="file" 
+                        className="sr-only" 
+                        onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            setEditAttachment(e.target.files[0]);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {editAttachment && <p className="text-sm font-medium text-gray-800 mt-2">{editAttachment.name}</p>}
+                </div>
+              </div>
             </div>
 
             <div className="pt-4 flex justify-end gap-3 border-t border-gray-100 mt-6">

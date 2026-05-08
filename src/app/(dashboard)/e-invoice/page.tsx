@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/Table";
 import { getInvoices, deleteInvoice, getClients, Invoice, Client } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
+import { exportToExcel, exportToPDF } from "@/lib/export";
+import { toast } from "sonner";
 
 interface InvoiceItemForm {
   id: number;
@@ -162,6 +164,37 @@ export default function EInvoicePage() {
     }
   };
 
+  const handleExportExcel = () => {
+    const columns = [
+      { header: 'No. Invoice', key: 'invoice_number' },
+      { header: 'Klien', key: 'clients.name' },
+      { header: 'Tgl. Terbit', key: 'invoice_date' },
+      { header: 'Jatuh Tempo', key: 'due_date' },
+      { header: 'Total', key: 'grand_total', isCurrency: true },
+      { header: 'Status', key: 'status' }
+    ];
+    exportToExcel(invoices, columns, `Data_Invoice_${new Date().getTime()}`);
+  };
+
+  const handleExportPDF = () => {
+    toast.info("Sedang menyiapkan PDF...");
+    try {
+      const columns = [
+        { header: 'No. Invoice', key: 'invoice_number' },
+        { header: 'Klien', key: 'clients.name' },
+        { header: 'Tgl. Terbit', key: 'invoice_date' },
+        { header: 'Jatuh Tempo', key: 'due_date' },
+        { header: 'Total', key: 'grand_total', isCurrency: true },
+        { header: 'Status', key: 'status' }
+      ];
+      exportToPDF(invoices, columns, 'Laporan Invoice', `Laporan_Invoice_${new Date().getTime()}`);
+      toast.success("PDF berhasil diunduh");
+    } catch (error) {
+      console.error("PDF Export Error:", error);
+      toast.error("Gagal mengekspor PDF");
+    }
+  };
+
   return (
     <>
       <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col h-full min-h-[500px]">
@@ -173,8 +206,11 @@ export default function EInvoicePage() {
               <p className="text-sm text-gray-500 mt-1">Kelola pembuatan dan penagihan faktur ke klien</p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button variant="outline" className="flex items-center gap-2">
-                <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">Ekspor</span>
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleExportExcel}>
+                <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">Excel</span>
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleExportPDF}>
+                <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
               </Button>
               <Link href="/e-invoice/buat" className="w-full sm:w-auto">
                 <Button 
