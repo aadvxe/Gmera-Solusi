@@ -117,6 +117,7 @@ export default function PengaturanPage() {
 
   const handleUpdateCompany = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
     if (!company) return;
 
     setLoading(true);
@@ -127,11 +128,14 @@ export default function PengaturanPage() {
       if (!error && url) {
         newLogoUrl = url;
       } else {
-        toast.error("Gagal mengunggah logo");
+        console.error("Upload error:", error);
+        toast.error("Gagal mengunggah logo. Pastikan bucket 'uploads' sudah dibuat di Supabase Storage.");
+        setLoading(false);
+        return;
       }
     }
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(form);
     const payload: any = { logo_url: newLogoUrl };
     
     // Only include fields that are present in the form

@@ -141,30 +141,23 @@ export default function PendapatanPage() {
     }
   };
 
+  const exportColumns = [
+    { header: 'Tanggal', key: 'date', isDate: true, width: 14 },
+    { header: 'No. Referensi', key: 'reference_number', width: 16 },
+    { header: 'Klien / Sumber', key: 'source', width: 24 },
+    { header: 'Kategori', key: 'categories.name', width: 18 },
+    { header: 'Jumlah (Rp)', key: 'amount', isCurrency: true, width: 22 },
+    { header: 'Status', key: 'status', width: 12 }
+  ];
+
   const handleExportExcel = () => {
-    const columns = [
-      { header: 'Tanggal', key: 'date' },
-      { header: 'No. Referensi', key: 'reference_number' },
-      { header: 'Klien / Sumber', key: 'source' },
-      { header: 'Kategori', key: 'categories.name' },
-      { header: 'Jumlah', key: 'amount', isCurrency: true },
-      { header: 'Status', key: 'status' }
-    ];
-    exportToExcel(incomes, columns, `Data_Pendapatan_${new Date().getTime()}`);
+    exportToExcel(incomes, exportColumns, `Pendapatan_${new Date().toISOString().slice(0,10)}`);
   };
 
   const handleExportPDF = () => {
     toast.info("Sedang menyiapkan PDF...");
     try {
-      const columns = [
-        { header: 'Tanggal', key: 'date' },
-        { header: 'No. Referensi', key: 'reference_number' },
-        { header: 'Klien / Sumber', key: 'source' },
-        { header: 'Kategori', key: 'categories.name' },
-        { header: 'Jumlah', key: 'amount', isCurrency: true },
-        { header: 'Status', key: 'status' }
-      ];
-      exportToPDF(incomes, columns, 'Laporan Pendapatan', `Laporan_Pendapatan_${new Date().getTime()}`);
+      exportToPDF(incomes, exportColumns, 'Laporan Pendapatan', `Laporan_Pendapatan_${new Date().toISOString().slice(0,10)}`);
       toast.success("PDF berhasil diunduh");
     } catch (error) {
       console.error("PDF Export Error:", error);

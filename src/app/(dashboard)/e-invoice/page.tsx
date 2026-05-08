@@ -164,30 +164,23 @@ export default function EInvoicePage() {
     }
   };
 
+  const exportColumns = [
+    { header: 'No. Invoice', key: 'invoice_number', width: 18 },
+    { header: 'Klien', key: 'clients.name', width: 24 },
+    { header: 'Tgl. Terbit', key: 'invoice_date', isDate: true, width: 14 },
+    { header: 'Jatuh Tempo', key: 'due_date', isDate: true, width: 14 },
+    { header: 'Total (Rp)', key: 'grand_total', isCurrency: true, width: 22 },
+    { header: 'Status', key: 'status', width: 12 }
+  ];
+
   const handleExportExcel = () => {
-    const columns = [
-      { header: 'No. Invoice', key: 'invoice_number' },
-      { header: 'Klien', key: 'clients.name' },
-      { header: 'Tgl. Terbit', key: 'invoice_date' },
-      { header: 'Jatuh Tempo', key: 'due_date' },
-      { header: 'Total', key: 'grand_total', isCurrency: true },
-      { header: 'Status', key: 'status' }
-    ];
-    exportToExcel(invoices, columns, `Data_Invoice_${new Date().getTime()}`);
+    exportToExcel(invoices, exportColumns, `Invoice_${new Date().toISOString().slice(0,10)}`);
   };
 
   const handleExportPDF = () => {
     toast.info("Sedang menyiapkan PDF...");
     try {
-      const columns = [
-        { header: 'No. Invoice', key: 'invoice_number' },
-        { header: 'Klien', key: 'clients.name' },
-        { header: 'Tgl. Terbit', key: 'invoice_date' },
-        { header: 'Jatuh Tempo', key: 'due_date' },
-        { header: 'Total', key: 'grand_total', isCurrency: true },
-        { header: 'Status', key: 'status' }
-      ];
-      exportToPDF(invoices, columns, 'Laporan Invoice', `Laporan_Invoice_${new Date().getTime()}`);
+      exportToPDF(invoices, exportColumns, 'Laporan Invoice', `Laporan_Invoice_${new Date().toISOString().slice(0,10)}`);
       toast.success("PDF berhasil diunduh");
     } catch (error) {
       console.error("PDF Export Error:", error);

@@ -40,24 +40,20 @@ export default function LaporanPage() {
     loadData();
   };
 
+  const exportColumns = [
+    { header: 'Periode', key: 'name', width: 20 },
+    { header: 'Pendapatan (Rp)', key: 'income', isCurrency: true, width: 24 },
+    { header: 'Pengeluaran (Rp)', key: 'expense', isCurrency: true, width: 24 }
+  ];
+
   const handleExportExcel = () => {
-    const columns = [
-      { header: 'Periode', key: 'name' },
-      { header: 'Pendapatan', key: 'income', isCurrency: true },
-      { header: 'Pengeluaran', key: 'expense', isCurrency: true }
-    ];
-    exportToExcel(chartData, columns, `Laporan_Keuangan_${periodFrom}_${periodTo}`);
+    exportToExcel(chartData, exportColumns, `Laporan_Keuangan_${periodFrom}_${periodTo}`);
   };
 
   const handleExportPDF = () => {
     toast.info("Sedang menyiapkan PDF...");
     try {
-      const columns = [
-        { header: 'Periode', key: 'name' },
-        { header: 'Pendapatan', key: 'income', isCurrency: true },
-        { header: 'Pengeluaran', key: 'expense', isCurrency: true }
-      ];
-      exportToPDF(chartData, columns, 'Laporan Keuangan Bulanan', `Laporan_Keuangan_${periodFrom}_${periodTo}`);
+      exportToPDF(chartData, exportColumns, 'Laporan Keuangan Bulanan', `Laporan_Keuangan_${periodFrom}_${periodTo}`);
       toast.success("PDF berhasil diunduh");
     } catch (error) {
       console.error("PDF Export Error:", error);

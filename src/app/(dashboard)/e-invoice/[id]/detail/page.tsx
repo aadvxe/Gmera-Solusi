@@ -9,6 +9,11 @@ import { getInvoiceById, getCompanyProfile, CompanyProfile, Invoice } from "@/li
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 
+/** Accounting number: 1.234.567,00 */
+function fmtNum(v: number): string {
+  return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+}
+
 export default function DetailInvoicePage() {
   const params = useParams();
   const invoiceId = params.id as string;
@@ -43,35 +48,52 @@ export default function DetailInvoicePage() {
     if (invoiceId) fetchData();
   }, [invoiceId]);
 
-
-
   const handlePrint = () => {
     window.print();
   };
 
+  // ── Download PDF using html2pdf — captures the same HTML as print ────────
   const handleDownloadPDF = async () => {
+    if (!invoice) return;
     const element = document.getElementById("invoice-document");
     if (!element) return;
-    
+
     toast.info("Sedang membuat PDF...");
-    
+
     try {
-      // Use dynamic import to avoid SSR issues
       const html2pdf = (await import("html2pdf.js")).default;
-      
+
+      // Temporarily strip border/shadow for a clean capture
+      const origClass = element.className;
+      element.className = element.className
+        .replace('border border-gray-200', '')
+        .replace('shadow-sm', '');
+
       const opt = {
-        margin:       [6, 8, 6, 8],   // top, right, bottom, left (mm)
-        filename:     `Invoice_${invoice?.invoice_number || 'Download'}.pdf`,
+        margin:       0,
+        filename:     `Invoice_${invoice.invoice_number}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
-        jsPDF:        { unit: 'mm', format: 'a5', orientation: 'landscape' }
+        html2canvas:  {
+          scale: 2,
+          useCORS: true,
+          scrollY: 0,
+          // Force html2canvas to render at a width matching A5 landscape proportions
+          // A5 landscape = 210mm wide. At 96dpi that's ~794px.
+          // We use a slightly smaller value so padding fits comfortably.
+          windowWidth: 760,
+        },
+        jsPDF: { unit: 'mm', format: 'a5', orientation: 'landscape' },
       };
-      
+
       await html2pdf().set(opt).from(element).save();
+
+      // Restore original classes
+      element.className = origClass;
+
       toast.success("PDF berhasil diunduh");
     } catch (error) {
       console.error("html2pdf error:", error);
-      toast.error("Gagal membuat PDF. Silakan gunakan fitur Cetak (Print to PDF).");
+      toast.error("Gagal membuat PDF. Coba gunakan tombol Cetak.");
     }
   };
 
@@ -91,8 +113,8 @@ export default function DetailInvoicePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-20">
-      {/* Header Actions - Hidden when printing */}
+    <div className="max-w-4xl mx-auto space-y-6 pb-20 print:pb-0 print:space-y-0 print:max-w-none print:block">
+      {/* Header Actions — hidden when printing */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
         <div className="flex items-center gap-4">
           <Link href="/e-invoice">
@@ -130,125 +152,135 @@ export default function DetailInvoicePage() {
         </div>
       </div>
 
-      {/* Invoice Document */}
-      <div id="invoice-document" className="bg-white border border-gray-200 shadow-sm p-6 print:border-none print:shadow-none print:p-0">
-        
+      {/* ═══════════════════════════════════════════════════════════════════
+           Invoice Document — This is what BOTH print and PDF capture render.
+           It must be borderless/clean so the PDF doesn't get extra whitespace.
+          ═══════════════════════════════════════════════════════════════════ */}
+      <div
+        id="invoice-document"
+        className="bg-white border border-gray-200 shadow-sm p-6 md:p-8 print:border-none print:shadow-none print:p-6"
+      >
         {/* Invoice Header */}
-        <div className="flex justify-between items-start border-b border-gray-100 pb-4 mb-4 gap-4">
-          <div className="flex flex-col gap-2">
-            {company?.logo_url && (
-              <img src={company.logo_url} alt="Company Logo" className="h-10 w-auto object-contain" />
+        <div className="flex justify-between items-start border-b border-gray-100 pb-5 mb-5 gap-6">
+          <div className="flex flex-row items-center gap-4">
+            {company?.logo_url ? (
+              <img src={company.logo_url} alt="Logo" className="h-20 w-auto object-contain max-w-[160px]" />
+            ) : (
+              <div className="w-20 h-20 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 shrink-0">
+                <span className="text-[10px] text-gray-300 font-bold text-center">NO<br/>LOGO</span>
+              </div>
             )}
-            <div>
-              <h2 className="text-base font-bold text-[#151D48]">{company?.company_name || 'PT GMera Solusi'}</h2>
-              <p className="text-xs text-gray-500 max-w-xs">{company?.address || 'Jl. Teknologi No. 123, Jakarta'}</p>
-              {company?.npwp && <p className="text-xs text-gray-500">NPWP: {company.npwp}</p>}
-              <p className="text-xs text-gray-500">{company?.phone || '021-12345678'} • {company?.email || 'finance@gmera.com'}</p>
+            <div className="flex flex-col justify-center">
+              <h2 className="text-xl font-bold text-[#151D48] leading-tight">{company?.company_name || 'PT GMera Solusi'}</h2>
+              <p className="text-xs text-gray-500 max-w-xs mt-1 leading-relaxed">{company?.address || 'Jl. Teknologi No. 123, Jakarta'}</p>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                {company?.npwp && <p className="text-[11px] text-gray-500 font-medium">NPWP: {company.npwp}</p>}
+                <p className="text-[11px] text-gray-500">{company?.phone || '021-12345678'} • {company?.email || 'finance@gmera.com'}</p>
+              </div>
             </div>
           </div>
           <div className="text-right shrink-0">
-            <h1 className="text-3xl font-bold text-[#5C67F2] uppercase tracking-wider">INVOICE</h1>
-            <p className="text-sm font-semibold text-[#151D48]">{invoice.invoice_number}</p>
-            <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-gray-600 text-right">
-              <span className="font-medium text-gray-400">Terbit:</span>
-              <span>{new Date(invoice.invoice_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-              <span className="font-medium text-gray-400">Jatuh Tempo:</span>
-              <span className={invoice.status === 'overdue' ? 'text-[#FA5A7D] font-bold' : ''}>
-                {new Date(invoice.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </span>
+            <h1 className="text-2xl font-bold text-[#5C67F2] uppercase tracking-wider">INVOICE</h1>
+            <p className="text-sm font-semibold text-[#151D48] mt-0.5">{invoice.invoice_number}</p>
+            <div className="mt-1.5 text-[11px] text-gray-600 space-y-0.5 text-right">
+              <p><span className="text-gray-400">Terbit:</span> {new Date(invoice.invoice_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <p>
+                <span className="text-gray-400">Jatuh Tempo:</span>{' '}
+                <span className={invoice.status === 'overdue' ? 'text-[#FA5A7D] font-bold' : ''}>
+                  {new Date(invoice.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Billed To + Totals side by side */}
-        <div className="flex justify-between gap-6 mb-4">
-          <div>
-            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">DITAGIHKAN KEPADA:</h3>
-            <h4 className="text-sm font-bold text-[#151D48]">{invoice.client_name}</h4>
-            {invoice.client_address && <p className="text-xs text-gray-600 max-w-xs">{invoice.client_address}</p>}
-            {(invoice.client_phone || invoice.client_email) && (
-              <p className="text-xs text-gray-600">{[invoice.client_phone, invoice.client_email].filter(Boolean).join(' • ')}</p>
-            )}
-          </div>
+        {/* Billed To */}
+        <div className="mb-4">
+          <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">DITAGIHKAN KEPADA:</h3>
+          <h4 className="text-sm font-bold text-[#151D48]">{invoice.client_name}</h4>
+          {invoice.client_address && <p className="text-[11px] text-gray-600 max-w-xs">{invoice.client_address}</p>}
+          {(invoice.client_phone || invoice.client_email) && (
+            <p className="text-[11px] text-gray-600">{[invoice.client_phone, invoice.client_email].filter(Boolean).join(' • ')}</p>
+          )}
         </div>
 
         {/* Invoice Items Table */}
-        <div className="mb-4 overflow-hidden rounded-lg border border-gray-100">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-[#5C67F2] text-white">
-              <tr>
-                <th className="px-3 py-2 font-semibold">Deskripsi Barang/Jasa</th>
-                <th className="px-3 py-2 font-semibold text-center w-16">Qty</th>
-                <th className="px-3 py-2 font-semibold text-right w-32">Harga (Rp)</th>
-                <th className="px-3 py-2 font-semibold text-right w-32">Total (Rp)</th>
+        <div className="mb-4 overflow-hidden rounded-md">
+          <table className="w-full text-[11px] text-left border-collapse">
+            <thead>
+              <tr className="bg-[#5C67F2] text-white">
+                <th className="px-3 py-1.5 font-semibold">Deskripsi Barang / Jasa</th>
+                <th className="px-3 py-1.5 font-semibold text-center w-14">Qty</th>
+                <th className="px-3 py-1.5 font-semibold text-right w-28">Harga Satuan (Rp)</th>
+                <th className="px-3 py-1.5 font-semibold text-right w-28">Total (Rp)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-gray-600">
+            <tbody className="text-gray-700">
               {invoice.invoice_items?.map((item: any, idx: number) => (
-                <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8FAFF]'}>
-                  <td className="px-3 py-2">{item.description}</td>
-                  <td className="px-3 py-2 text-center">{item.quantity} {item.unit}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{formatCurrency(item.unit_price).replace('Rp\u00a0', '')}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-semibold text-[#151D48]">{formatCurrency(item.total_price).replace('Rp\u00a0', '')}</td>
+                <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8F9FF]'} style={{ borderBottom: '1px solid #eee' }}>
+                  <td className="px-3 py-1.5">{item.description}</td>
+                  <td className="px-3 py-1.5 text-center">{item.quantity} {item.unit}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">{fmtNum(item.unit_price)}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums font-semibold text-[#151D48]">{fmtNum(item.total_price)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* Totals & Payment Info */}
-        <div className="flex gap-6">
+        {/* Bottom: Payment info (left) + Totals (right) */}
+        <div className="flex gap-5">
           {/* Payment info */}
-          <div className="flex-1">
-            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">INFORMASI PEMBAYARAN:</h3>
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 text-xs">
+          <div className="flex-1 text-[11px]">
+            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">INFORMASI PEMBAYARAN:</h3>
+            <div className="bg-gray-50 rounded-md p-2.5 border border-gray-100">
               <p className="font-semibold text-[#151D48] mb-0.5">Transfer Bank:</p>
               <p className="text-gray-600">Bank: <span className="font-medium text-[#151D48]">{company?.bank_name || '-'}</span></p>
               <p className="text-gray-600">No. Rekening: <span className="font-medium text-[#151D48]">{company?.bank_account || '-'}</span></p>
               <p className="text-gray-600">Atas Nama: <span className="font-medium text-[#151D48]">{company?.bank_account_name || '-'}</span></p>
             </div>
             {invoice.notes && (
-              <div className="mt-2">
+              <div className="mt-1.5">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">CATATAN:</p>
-                <p className="text-xs text-gray-600 whitespace-pre-wrap">{invoice.notes}</p>
+                <p className="text-[11px] text-gray-600 whitespace-pre-wrap">{invoice.notes}</p>
               </div>
             )}
           </div>
 
-          {/* Grand total */}
-          <div className="w-56 shrink-0">
-            <div className="space-y-1.5 text-xs text-gray-600">
-              <div className="flex justify-between items-center">
+          {/* Grand totals */}
+          <div className="w-52 shrink-0">
+            <div className="space-y-1 text-[11px] text-gray-600">
+              <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="font-medium text-[#151D48]">{formatCurrency(invoice.subtotal)}</span>
+                <span className="font-medium text-[#151D48] tabular-nums">Rp {fmtNum(invoice.subtotal)}</span>
               </div>
               {invoice.discount_amount > 0 && (
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between">
                   <span>Diskon</span>
-                  <span className="font-medium text-[#FA5A7D]">-{formatCurrency(invoice.discount_amount)}</span>
+                  <span className="font-medium text-[#FA5A7D] tabular-nums">- Rp {fmtNum(invoice.discount_amount)}</span>
                 </div>
               )}
               {invoice.tax_amount > 0 && (
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between">
                   <span>Pajak ({invoice.tax_rate}%)</span>
-                  <span className="font-medium text-[#151D48]">{formatCurrency(invoice.tax_amount)}</span>
+                  <span className="font-medium text-[#151D48] tabular-nums">Rp {fmtNum(invoice.tax_amount)}</span>
                 </div>
               )}
               {invoice.shipping_cost > 0 && (
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between">
                   <span>Ongkos Kirim</span>
-                  <span className="font-medium text-[#151D48]">{formatCurrency(invoice.shipping_cost)}</span>
+                  <span className="font-medium text-[#151D48] tabular-nums">Rp {fmtNum(invoice.shipping_cost)}</span>
                 </div>
               )}
-              <div className="pt-2 mt-2 border-t border-gray-200 flex justify-between items-center">
-                <span className="font-bold text-sm text-[#151D48]">TOTAL AKHIR</span>
-                <span className="font-bold text-base text-[#5C67F2]">{formatCurrency(invoice.grand_total)}</span>
+              <div className="pt-1.5 mt-1.5 border-t-2 border-[#5C67F2] flex justify-between items-center">
+                <span className="font-bold text-xs text-[#151D48]">TOTAL AKHIR</span>
+                <span className="font-bold text-sm text-[#5C67F2] tabular-nums">Rp {fmtNum(invoice.grand_total)}</span>
               </div>
             </div>
 
             {invoice.status === 'paid' && (
-              <div className="mt-3 flex items-center justify-center gap-1.5 py-2 bg-[#3CD856]/10 text-[#3CD856] rounded-lg border border-[#3CD856]/20 font-bold uppercase tracking-wider text-xs">
-                <CheckCircleIcon className="w-4 h-4" />
+              <div className="mt-2 flex items-center justify-center gap-1 py-1.5 bg-[#3CD856]/10 text-[#3CD856] rounded-md border border-[#3CD856]/20 font-bold uppercase tracking-wider text-[10px]">
+                <CheckCircleIcon className="w-3.5 h-3.5" />
                 Lunas
               </div>
             )}
@@ -256,22 +288,50 @@ export default function DetailInvoicePage() {
         </div>
 
         {/* Footer */}
-        <div className="pt-3 mt-3 border-t border-gray-100 text-center text-xs text-gray-400">
+        <div className="pt-3 mt-3 border-t border-gray-100 text-center text-[10px] text-gray-400">
           <p>Terima kasih atas kepercayaan Anda kepada {company?.company_name || 'kami'}.</p>
         </div>
-
       </div>
 
-      {/* Print & PDF styles */}
+      {/* Print styles */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
-          body { background-color: white; }
-          nav, aside, header { display: none !important; }
-          main { padding: 0 !important; margin: 0 !important; }
-          @page { size: A5 landscape; margin: 8mm; }
+          html, body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Hide sidebar, navbar and all UI chrome */
+          nav, aside, header, footer,
+          [role="navigation"], [role="complementary"],
+          .print\\:hidden {
+            display: none !important;
+          }
+
+          main {
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+
+          #invoice-document {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 6mm !important;
+            width: 210mm !important;
+            height: 148mm !important;
+            overflow: hidden !important;
+            background: white !important;
+            box-sizing: border-box !important;
+          }
+
+          @page {
+            size: A5 landscape;
+            margin: 0;
+          }
         }
-        /* Ensure html2pdf captures cleanly */
-        #invoice-document { font-family: 'Helvetica Neue', Arial, sans-serif; }
       `}} />
     </div>
   );
