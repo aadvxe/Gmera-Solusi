@@ -8,6 +8,7 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { 
   Table, 
   TableBody, 
@@ -326,7 +327,10 @@ export default function PengeluaranPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#151D48] mb-1.5">Tanggal</label>
-                <Input type="date" value={editFormData.date} onChange={e => setEditFormData({...editFormData, date: e.target.value})} required className="bg-[#F9FAFB]" />
+                <CustomDatePicker 
+                  value={editFormData.date} 
+                  onChange={val => setEditFormData({...editFormData, date: val})} 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#151D48] mb-1.5">No. Referensi</label>
@@ -342,16 +346,14 @@ export default function PengeluaranPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#151D48] mb-1.5">Jumlah</label>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted font-medium text-sm">Rp</div>
-                  <Input 
-                    type="text" 
-                    value={formatRupiah(editFormData.amount)} 
-                    onChange={e => setEditFormData({...editFormData, amount: parseRupiah(e.target.value)})} 
-                    required 
-                    className="bg-[#F9FAFB] text-right pl-10" 
-                  />
-                </div>
+                <Input 
+                  icon={<span className="font-medium text-sm">Rp</span>}
+                  type="text" 
+                  value={formatRupiah(editFormData.amount)} 
+                  onChange={e => setEditFormData({...editFormData, amount: parseRupiah(e.target.value)})} 
+                  required 
+                  className="bg-[#F9FAFB] text-right" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#151D48] mb-1.5">Status</label>

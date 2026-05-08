@@ -7,7 +7,8 @@ import { ArrowLeftIcon, SaveIcon, PlusIcon, TrashIcon, Document1Icon, TruckIcon,
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { getClients, createInvoiceWithItems, Client } from "@/lib/db";
-import { formatRupiah, parseRupiah } from "@/lib/utils";
+import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
+import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 
 interface InvoiceItem {
   id: number;
@@ -166,7 +167,7 @@ export default function BuatInvoicePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Tanggal Terbit</label>
-                <Input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} required />
+                <CustomDatePicker value={invoiceDate} onChange={setInvoiceDate} />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Klien <span className="text-danger">*</span></label>
@@ -244,15 +245,13 @@ export default function BuatInvoicePage() {
                         </select>
                       </td>
                       <td className="px-2 py-3">
-                        <div className="relative">
-                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-xs font-medium">Rp</div>
-                          <Input 
-                            type="text" 
-                            className="text-right pl-10"
-                            value={formatRupiah(item.price)}
-                            onChange={(e) => updateItem(item.id, 'price', parseRupiah(e.target.value))}
-                          />
-                        </div>
+                        <Input 
+                          icon={<span className="text-xs font-medium">Rp</span>}
+                          type="text" 
+                          className="text-right"
+                          value={formatRupiah(item.price)}
+                          onChange={(e) => updateItem(item.id, 'price', parseRupiah(e.target.value))}
+                        />
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-text-primary">
                         {formatCurrency(item.qty * item.price)}
@@ -380,11 +379,11 @@ export default function BuatInvoicePage() {
               
               <div className="flex justify-between items-center text-text-secondary">
                 <span>Ongkos Kirim</span>
-                <div className="w-32 relative">
-                  <div className="absolute left-2 top-1/2 -translate-y-1/2 text-text-muted text-[10px] font-medium">Rp</div>
+                <div className="w-32">
                   <Input 
+                    icon={<span className="text-[10px] font-medium">Rp</span>}
                     type="text" 
-                    className="text-right h-8 pl-8 text-xs"
+                    className="text-right h-8 text-xs"
                     value={formatRupiah(shippingCost)}
                     onChange={(e) => setShippingCost(parseRupiah(e.target.value))}
                   />
@@ -393,11 +392,11 @@ export default function BuatInvoicePage() {
               
               <div className="flex justify-between items-center text-text-secondary">
                 <span>Diskon</span>
-                <div className="w-32 relative">
-                  <div className="absolute left-2 top-1/2 -translate-y-1/2 text-text-muted text-[10px] font-medium">Rp</div>
+                <div className="w-32">
                   <Input 
+                    icon={<span className="text-[10px] font-medium">Rp</span>}
                     type="text" 
-                    className="text-right h-8 pl-8 text-xs"
+                    className="text-right h-8 text-xs"
                     value={formatRupiah(discountAmount)}
                     onChange={(e) => setDiscountAmount(parseRupiah(e.target.value))}
                   />
@@ -413,7 +412,7 @@ export default function BuatInvoicePage() {
             <div className="mt-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Jatuh Tempo Pada <span className="text-danger">*</span></label>
-                <Input type="date" required value={dueDate} onChange={e => setDueDate(e.target.value)} />
+                <CustomDatePicker value={dueDate} onChange={setDueDate} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Catatan untuk Klien</label>

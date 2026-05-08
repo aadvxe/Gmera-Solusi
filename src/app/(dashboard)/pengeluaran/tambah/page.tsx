@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, SaveIcon, CloudUploadIcon } from "@astraicons/react/bold";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { getCategories, getPaymentMethods, createExpense, Category, PaymentMethod } from "@/lib/db";
 
 export default function TambahPengeluaranPage() {
@@ -107,7 +108,7 @@ export default function TambahPengeluaranPage() {
               
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Tanggal Transaksi <span className="text-danger">*</span></label>
-                <Input type="date" required value={date} onChange={e => setDate(e.target.value)} />
+                <CustomDatePicker value={date} onChange={setDate} />
               </div>
 
               <div>
@@ -151,17 +152,15 @@ export default function TambahPengeluaranPage() {
               
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Jumlah <span className="text-danger">*</span></label>
-                <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted font-medium">Rp</div>
-                  <Input 
-                    type="text" 
-                    required 
-                    placeholder="0" 
-                    className="pl-10 font-medium text-lg text-danger text-right"
-                    value={amountDisplay}
-                    onChange={handleAmountChange}
-                  />
-                </div>
+                <Input 
+                  icon={<span className="font-medium">Rp</span>}
+                  type="text" 
+                  required 
+                  placeholder="0" 
+                  className="font-medium text-lg text-danger text-right"
+                  value={amountDisplay}
+                  onChange={handleAmountChange}
+                />
               </div>
 
               <div>
