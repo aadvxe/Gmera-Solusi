@@ -7,6 +7,7 @@ import { ArrowLeftIcon, SaveIcon, CloudUploadIcon } from "@astraicons/react/bold
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { getCategories, getPaymentMethods, createExpense, Category, PaymentMethod } from "@/lib/db";
 
 export default function TambahPengeluaranPage() {
@@ -124,16 +125,12 @@ export default function TambahPengeluaranPage() {
 
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Kategori <span className="text-danger">*</span></label>
-                <select 
-                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
-                  required
+                <CustomSelect 
+                  placeholder="Pilih Kategori"
+                  options={categories.map(c => ({ value: c.id, label: c.name }))}
                   value={categoryId}
-                  onChange={e => setCategoryId(e.target.value)}
-                >
-                  {categories.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                  onChange={setCategoryId}
+                />
               </div>
 
               <div>
@@ -177,15 +174,12 @@ export default function TambahPengeluaranPage() {
 
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Metode Pembayaran</label>
-                <select 
-                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                <CustomSelect 
+                  placeholder="Pilih Metode Pembayaran"
+                  options={paymentMethods.map(p => ({ value: p.id, label: p.name }))}
                   value={paymentMethodId}
-                  onChange={e => setPaymentMethodId(e.target.value)}
-                >
-                  {paymentMethods.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                  onChange={setPaymentMethodId}
+                />
               </div>
             </div>
           </div>

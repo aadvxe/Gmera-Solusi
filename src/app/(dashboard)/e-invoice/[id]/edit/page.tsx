@@ -10,6 +10,7 @@ import { getClients, getInvoiceById, updateInvoiceWithItems, Client } from "@/li
 import { toast } from "sonner";
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 interface InvoiceItem {
   id: number;
@@ -231,17 +232,12 @@ export default function EditInvoicePage() {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Klien <span className="text-danger">*</span></label>
-                <select 
-                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+                <CustomSelect 
+                  placeholder="Pilih Klien"
+                  options={clients.map(c => ({ value: c.id, label: c.name }))}
                   value={clientId}
-                  onChange={e => setClientId(e.target.value)}
-                  required
-                >
-                  <option value="">-- Pilih Klien --</option>
-                  {clients.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                  onChange={setClientId}
+                />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Alamat Penagihan</label>
@@ -292,17 +288,20 @@ export default function EditInvoicePage() {
                         />
                       </td>
                       <td className="px-2 py-3">
-                        <select 
-                          className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+                        <CustomSelect 
+                          placeholder="Satuan"
+                          options={[
+                            { value: "Pcs", label: "Pcs" },
+                            { value: "Unit", label: "Unit" },
+                            { value: "Set", label: "Set" },
+                            { value: "Box", label: "Box" },
+                            { value: "Jasa", label: "Jasa" },
+                            { value: "Hari", label: "Hari" },
+                            { value: "Bulan", label: "Bulan" }
+                          ]}
                           value={item.unit}
-                          onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
-                        >
-                          <option value="Pcs">Pcs</option>
-                          <option value="Unit">Unit</option>
-                          <option value="Box">Box</option>
-                          <option value="Jam">Jam</option>
-                          <option value="Paket">Paket</option>
-                        </select>
+                          onChange={val => updateItem(item.id, 'unit', val)}
+                        />
                       </td>
                       <td className="px-2 py-3">
                         <Input 
@@ -415,16 +414,18 @@ export default function EditInvoicePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Status</label>
-                <select 
-                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+                <CustomSelect 
+                  placeholder="Pilih Status"
+                  options={[
+                    { value: "Draft", label: "Draft" },
+                    { value: "Sent", label: "Terkirim" },
+                    { value: "Paid", label: "Lunas" },
+                    { value: "Overdue", label: "Terlambat" },
+                    { value: "Cancelled", label: "Dibatalkan" }
+                  ]}
                   value={status}
-                  onChange={e => setStatus(e.target.value)}
-                >
-                  <option value="unpaid">Belum Bayar (Unpaid)</option>
-                  <option value="paid">Lunas (Paid)</option>
-                  <option value="overdue">Jatuh Tempo (Overdue)</option>
-                  <option value="cancelled">Dibatalkan (Cancelled)</option>
-                </select>
+                  onChange={setStatus}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Catatan untuk Klien</label>

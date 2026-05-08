@@ -9,6 +9,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { 
   Table, 
   TableBody, 
@@ -342,18 +343,15 @@ export default function PendapatanPage() {
             
             <div>
               <label className="block text-sm font-medium text-[#151D48] mb-1.5">Klien / Sumber</label>
-              <select 
-                className="flex h-10 w-full rounded-xl border border-gray-200 bg-[#F9FAFB] px-3 py-2 text-sm text-gray-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+              <CustomSelect 
+                placeholder="Pilih Klien"
+                options={[
+                  ...clients.map(c => ({ value: c.name, label: c.name })),
+                  { value: "Lainnya", label: "Lainnya" }
+                ]}
                 value={editFormData.source}
-                onChange={e => setEditFormData({...editFormData, source: e.target.value})}
-                required
-              >
-                <option value="">-- Pilih Klien --</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
-                ))}
-                <option value="Lainnya">Lainnya</option>
-              </select>
+                onChange={val => setEditFormData({...editFormData, source: val})}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -370,29 +368,26 @@ export default function PendapatanPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#151D48] mb-1.5">Status</label>
-                <select 
-                  className="flex h-10 w-full rounded-xl border border-gray-200 bg-[#F9FAFB] px-3 py-2 text-sm text-gray-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+                <CustomSelect 
+                  placeholder="Pilih Status"
+                  options={[
+                    { value: "Paid", label: "Lunas" },
+                    { value: "Pending", label: "Pending" }
+                  ]}
                   value={editFormData.status}
-                  onChange={e => setEditFormData({...editFormData, status: e.target.value})}
-                >
-                  <option value="paid">Lunas</option>
-                  <option value="pending">Pending</option>
-                </select>
+                  onChange={val => setEditFormData({...editFormData, status: val})}
+                />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-[#151D48] mb-1.5">Kategori</label>
-              <select 
-                className="flex h-10 w-full rounded-xl border border-gray-200 bg-[#F9FAFB] px-3 py-2 text-sm text-gray-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20"
+              <CustomSelect 
+                placeholder="Pilih Kategori"
+                options={categories.map(c => ({ value: c.id, label: c.name }))}
                 value={editFormData.category_id}
-                onChange={e => setEditFormData({...editFormData, category_id: e.target.value})}
-              >
-                <option value="">-- Tanpa Kategori --</option>
-                {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+                onChange={val => setEditFormData({...editFormData, category_id: val})}
+              />
             </div>
 
             <div className="pt-4 flex justify-end gap-3 border-t border-gray-100 mt-6">
