@@ -45,8 +45,9 @@ export default function TambahPengeluaranPage() {
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, "");
     if (val) {
-      setAmountDisplay(new Intl.NumberFormat('id-ID').format(parseInt(val, 10)));
-      setAmount(parseInt(val, 10));
+      const num = parseInt(val, 10);
+      setAmountDisplay(new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num));
+      setAmount(num);
     } else {
       setAmountDisplay("");
       setAmount(0);
@@ -149,14 +150,14 @@ export default function TambahPengeluaranPage() {
               <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2">Detail Pembayaran</h3>
               
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Jumlah (Rp) <span className="text-danger">*</span></label>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Jumlah <span className="text-danger">*</span></label>
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted font-medium">Rp</div>
                   <Input 
                     type="text" 
                     required 
                     placeholder="0" 
-                    className="pl-10 font-medium text-lg text-danger"
+                    className="pl-10 font-medium text-lg text-danger text-right"
                     value={amountDisplay}
                     onChange={handleAmountChange}
                   />

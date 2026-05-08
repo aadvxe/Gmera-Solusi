@@ -7,6 +7,7 @@ import { MetricCard } from "@/components/dashboard/MetricCard";
 import { FinancialChart } from "@/components/dashboard/FinancialChart";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { getFinancialReport, getReportChartData } from "@/lib/db";
+import { formatCurrency } from "@/lib/utils";
 
 export default function LaporanPage() {
   const [periodFrom, setPeriodFrom] = useState("2026-01-01");
@@ -31,9 +32,7 @@ export default function LaporanPage() {
     loadData();
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-  };
+
 
   const handleApply = () => {
     loadData();

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/Table";
 import { getClients, insertClient, updateClient, deleteClient, Client, getClientInvoiceStats, getInvoicesByClient, Invoice } from "@/lib/db";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 
 export default function KlienPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -152,9 +153,7 @@ export default function KlienPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-  };
+
 
   return (
     <>

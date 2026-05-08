@@ -17,7 +17,8 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/Table";
-import { getInvoices, getClients, createInvoiceWithItems, deleteInvoice, Invoice, Client } from "@/lib/db";
+import { getInvoices, deleteInvoice, getClients, Invoice, Client } from "@/lib/db";
+import { formatCurrency } from "@/lib/utils";
 
 interface InvoiceItemForm {
   id: number;
@@ -51,9 +52,7 @@ export default function EInvoicePage() {
     loadData();
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-  };
+
 
   const getStatusBadge = (status: string) => {
     const s = status.toLowerCase();

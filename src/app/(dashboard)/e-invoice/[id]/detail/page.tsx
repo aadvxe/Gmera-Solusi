@@ -7,6 +7,7 @@ import { ArrowLeftIcon, DocumentDownloadIcon, EmailIcon, PrinterIcon, CheckCircl
 import { Button } from "@/components/ui/Button";
 import { getInvoiceById, getCompanyProfile, CompanyProfile, Invoice } from "@/lib/db";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 
 export default function DetailInvoicePage() {
   const params = useParams();
@@ -42,9 +43,7 @@ export default function DetailInvoicePage() {
     if (invoiceId) fetchData();
   }, [invoiceId]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-  };
+
 
   const handlePrint = () => {
     window.print();

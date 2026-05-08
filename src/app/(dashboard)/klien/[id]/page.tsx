@@ -3,6 +3,7 @@
 import React, { useState, use } from "react";
 import Link from "next/link";
 import { ArrowLeftIcon, EditIcon, CallIcon, EmailIcon, DocumentNextIcon, MoneyIcon } from "@astraicons/react/bold";
+import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
 
@@ -30,9 +31,7 @@ const MOCK_INVOICE_HISTORY = [
 
 export default function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-  };
+
 
   return (
     <div className="flex flex-col gap-6">

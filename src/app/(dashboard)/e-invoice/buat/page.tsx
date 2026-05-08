@@ -58,9 +58,7 @@ export default function BuatInvoicePage() {
   const taxAmount = applyTax ? ((subtotal - discountAmount) * taxRate) / 100 : 0;
   const grandTotal = subtotal - discountAmount + taxAmount + shippingCost;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-  };
+
 
   const addItem = () => {
     setItems([...items, { id: Date.now(), name: "", qty: 1, unit: "Pcs", price: 0 }]);
@@ -209,7 +207,7 @@ export default function BuatInvoicePage() {
                     <th className="px-4 py-3 w-4/12">Deskripsi Barang/Jasa</th>
                     <th className="px-4 py-3 w-2/12">Qty</th>
                     <th className="px-4 py-3 w-2/12">Satuan</th>
-                    <th className="px-4 py-3 w-3/12">Harga Satuan (Rp)</th>
+                    <th className="px-4 py-3 w-3/12">Harga Satuan</th>
                     <th className="px-4 py-3 w-2/12 text-right">Total</th>
                     <th className="px-2 py-3 w-12"></th>
                   </tr>
@@ -246,11 +244,15 @@ export default function BuatInvoicePage() {
                         </select>
                       </td>
                       <td className="px-2 py-3">
-                        <Input 
-                          type="text" 
-                          value={formatRupiah(item.price)}
-                          onChange={(e) => updateItem(item.id, 'price', parseRupiah(e.target.value))}
-                        />
+                        <div className="relative">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-xs font-medium">Rp</div>
+                          <Input 
+                            type="text" 
+                            className="text-right pl-10"
+                            value={formatRupiah(item.price)}
+                            onChange={(e) => updateItem(item.id, 'price', parseRupiah(e.target.value))}
+                          />
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-text-primary">
                         {formatCurrency(item.qty * item.price)}
@@ -378,10 +380,11 @@ export default function BuatInvoicePage() {
               
               <div className="flex justify-between items-center text-text-secondary">
                 <span>Ongkos Kirim</span>
-                <div className="w-32">
+                <div className="w-32 relative">
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2 text-text-muted text-[10px] font-medium">Rp</div>
                   <Input 
                     type="text" 
-                    className="text-right h-8"
+                    className="text-right h-8 pl-8 text-xs"
                     value={formatRupiah(shippingCost)}
                     onChange={(e) => setShippingCost(parseRupiah(e.target.value))}
                   />
@@ -389,11 +392,12 @@ export default function BuatInvoicePage() {
               </div>
               
               <div className="flex justify-between items-center text-text-secondary">
-                <span>Diskon (Rp)</span>
-                <div className="w-32">
+                <span>Diskon</span>
+                <div className="w-32 relative">
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2 text-text-muted text-[10px] font-medium">Rp</div>
                   <Input 
                     type="text" 
-                    className="text-right h-8"
+                    className="text-right h-8 pl-8 text-xs"
                     value={formatRupiah(discountAmount)}
                     onChange={(e) => setDiscountAmount(parseRupiah(e.target.value))}
                   />

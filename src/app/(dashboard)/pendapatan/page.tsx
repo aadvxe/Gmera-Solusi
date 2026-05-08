@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/Table";
 import { getIncome, deleteIncome, updateIncome, getCategories, Income, Category } from "@/lib/db";
 import { toast } from "sonner";
-import { formatRupiah, parseRupiah } from "@/lib/utils";
+import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 
 export default function PendapatanPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -120,9 +120,7 @@ export default function PendapatanPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-  };
+
 
   return (
     <>
@@ -343,14 +341,17 @@ export default function PendapatanPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#151D48] mb-1.5">Jumlah (Rp)</label>
-                <Input 
-                  type="text" 
-                  value={formatRupiah(editFormData.amount)} 
-                  onChange={e => setEditFormData({...editFormData, amount: parseRupiah(e.target.value)})} 
-                  required 
-                  className="bg-[#F9FAFB]" 
-                />
+                <label className="block text-sm font-medium text-[#151D48] mb-1.5">Jumlah</label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted font-medium text-sm">Rp</div>
+                  <Input 
+                    type="text" 
+                    value={formatRupiah(editFormData.amount)} 
+                    onChange={e => setEditFormData({...editFormData, amount: parseRupiah(e.target.value)})} 
+                    required 
+                    className="bg-[#F9FAFB] text-right pl-10" 
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#151D48] mb-1.5">Status</label>
