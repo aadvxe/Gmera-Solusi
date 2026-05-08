@@ -80,3 +80,4 @@ You will also need a [Supabase](https://supabase.com/) project set up.
 - `schema/`: Database migration and seed files.
 - `docs/`: Detailed project documentation and technical specifications.
 
+test commit
