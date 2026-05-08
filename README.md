@@ -159,11 +159,6 @@ Built with modern, production-ready technologies following industry best practic
 
 ### 📖 **Academic Research Reference**
 
-This system is the practical implementation of academic research titled:
-
-**"Perancangan Sistem Informasi Pengelolaan Pendapatan, Pengeluaran, dan E-Invoice Berbasis Website pada Perusahaan Manufaktur"**
-*(Design of Web-Based Information System for Income, Expense, and E-Invoice Management in Manufacturing Company)*
-
 **Research Objectives:**
 1. Understand current income, expense, and e-invoice management conditions at PT GMera Solusi
 2. Design an information system that meets PT GMera Solusi's specific requirements
