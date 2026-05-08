@@ -7,6 +7,7 @@ import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 import { 
   Table, 
   TableBody, 
@@ -42,6 +43,18 @@ export default function KlienPage() {
     setClientInvoices(invoices);
     setLoadingInvoices(false);
   };
+
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [filterCity, setFilterCity] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  const resetFilters = () => {
+    setFilterCity("all");
+    setFilterStatus("all");
+    setIsFilterDropdownOpen(false);
+  };
+
+  const uniqueCities = Array.from(new Set(clients.map(c => c.city).filter(Boolean))).sort();
 
   // Form State
   const [formData, setFormData] = useState({
@@ -188,9 +201,88 @@ export default function KlienPage() {
                 className="bg-[#F9FAFB] border-gray-200"
               />
             </div>
-            <Button variant="outline" className="flex items-center gap-2 sm:w-auto w-full">
-              <Filter1Icon className="w-4 h-4" /> Filter
-            </Button>
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                className={`flex items-center gap-2 sm:w-auto w-full transition-all duration-300 ${
+                  (filterCity !== 'all' || filterStatus !== 'all') 
+                    ? 'bg-[#5C67F2] text-white border-[#5C67F2] shadow-[0_8px_20px_rgba(92,103,242,0.2)]' 
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                <Filter1Icon className="w-4 h-4" /> 
+                Filter
+                {(filterCity !== 'all' || filterStatus !== 'all') && (
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                )}
+              </Button>
+
+              {isFilterDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsFilterDropdownOpen(false)}></div>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 z-50 mt-2">
+                    <div className="w-[calc(100vw-2rem)] sm:w-[500px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-2xl p-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="mb-5">
+                        <h3 className="font-bold text-[#151D48]">Filter Klien</h3>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kota</label>
+                            <CustomSelect 
+                              options={[
+                                { value: "all", label: "Semua Kota" },
+                                ...uniqueCities.map(city => ({ value: city, label: city }))
+                              ]}
+                              value={filterCity}
+                              onChange={setFilterCity}
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status Klien</label>
+                            <CustomSelect 
+                              options={[
+                                { value: "all", label: "Semua Status" },
+                                { value: "active", label: "Aktif" },
+                                { value: "inactive", label: "Nonaktif" },
+                              ]}
+                              value={filterStatus}
+                              onChange={setFilterStatus}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                          <button 
+                            onClick={resetFilters}
+                            className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider"
+                          >
+                            Reset Filter
+                          </button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline"
+                              onClick={() => setIsFilterDropdownOpen(false)}
+                              className="text-xs font-bold uppercase h-9 px-4 rounded-xl"
+                            >
+                              Batal
+                            </Button>
+                            <Button 
+                              onClick={() => setIsFilterDropdownOpen(false)}
+                              className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white font-bold text-xs uppercase h-9 px-6 rounded-xl"
+                            >
+                              Terapkan
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -220,10 +312,14 @@ export default function KlienPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                clients.filter(row => 
-                  row.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                  (row.email || "").toLowerCase().includes(searchTerm.toLowerCase())
-                ).map((row) => (
+                clients.filter(row => {
+                  const matchesSearch = row.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                        (row.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+                  const matchesCity = filterCity === "all" ? true : row.city === filterCity;
+                  const matchesStatus = filterStatus === "all" ? true : (filterStatus === "active" ? row.is_active : !row.is_active);
+                  
+                  return matchesSearch && matchesCity && matchesStatus;
+                }).map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>
                       <div className="font-semibold text-[#151D48]">{row.name}</div>

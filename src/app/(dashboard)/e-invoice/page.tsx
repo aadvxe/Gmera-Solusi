@@ -42,6 +42,16 @@ export default function EInvoicePage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
 
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterClientId, setFilterClientId] = useState("all");
+
+  const resetFilters = () => {
+    setFilterStatus("all");
+    setFilterClientId("all");
+    setIsFilterDropdownOpen(false);
+  };
+
   const loadData = async () => {
     setLoading(true);
     const [invData, clientData] = await Promise.all([
@@ -255,9 +265,89 @@ export default function EInvoicePage() {
                 className="bg-[#F9FAFB] border-gray-200"
               />
             </div>
-            <Button variant="outline" className="flex items-center gap-2 sm:w-auto w-full">
-              <Filter1Icon className="w-4 h-4" /> Filter
-            </Button>
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                className={`flex items-center gap-2 sm:w-auto w-full transition-all duration-300 ${
+                  (filterStatus !== 'all' || filterClientId !== 'all') 
+                    ? 'bg-[#5C67F2] text-white border-[#5C67F2] shadow-[0_8px_20px_rgba(92,103,242,0.2)]' 
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                <Filter1Icon className="w-4 h-4" /> 
+                Filter
+                {(filterStatus !== 'all' || filterClientId !== 'all') && (
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                )}
+              </Button>
+
+              {isFilterDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsFilterDropdownOpen(false)}></div>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 z-50 mt-2">
+                    <div className="w-[calc(100vw-2rem)] sm:w-[500px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-2xl p-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="mb-5">
+                        <h3 className="font-bold text-[#151D48]">Filter Invoice</h3>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status Pembayaran</label>
+                            <CustomSelect 
+                              options={[
+                                { value: "all", label: "Semua Status" },
+                                { value: "unpaid", label: "Belum Bayar" },
+                                { value: "paid", label: "Lunas" },
+                                { value: "overdue", label: "Jatuh Tempo" },
+                              ]}
+                              value={filterStatus}
+                              onChange={setFilterStatus}
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Klien</label>
+                            <CustomSelect 
+                              options={[
+                                { value: "all", label: "Semua Klien" },
+                                ...clients.map(c => ({ value: c.id, label: c.name }))
+                              ]}
+                              value={filterClientId}
+                              onChange={setFilterClientId}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                          <button 
+                            onClick={resetFilters}
+                            className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider"
+                          >
+                            Reset Filter
+                          </button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline"
+                              onClick={() => setIsFilterDropdownOpen(false)}
+                              className="text-xs font-bold uppercase h-9 px-4 rounded-xl"
+                            >
+                              Batal
+                            </Button>
+                            <Button 
+                              onClick={() => setIsFilterDropdownOpen(false)}
+                              className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white font-bold text-xs uppercase h-9 px-6 rounded-xl"
+                            >
+                              Terapkan
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -289,10 +379,14 @@ export default function EInvoicePage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                invoices.filter(row => 
-                  row.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                  row.clients?.name.toLowerCase().includes(searchTerm.toLowerCase())
-                ).map((row) => (
+                invoices.filter(row => {
+                  const matchesSearch = row.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                        row.clients?.name.toLowerCase().includes(searchTerm.toLowerCase());
+                  const matchesStatus = filterStatus === "all" ? true : row.status === filterStatus;
+                  const matchesClient = filterClientId === "all" ? true : row.client_id === filterClientId;
+                  
+                  return matchesSearch && matchesStatus && matchesClient;
+                }).map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-[#5C67F2] cursor-pointer hover:underline">{row.invoice_number}</TableCell>
                     <TableCell className="font-semibold text-[#151D48]">{row.clients?.name}</TableCell>
@@ -506,6 +600,7 @@ export default function EInvoicePage() {
         isDanger={true}
         isLoading={loading}
       />
+
     </>
   );
 }

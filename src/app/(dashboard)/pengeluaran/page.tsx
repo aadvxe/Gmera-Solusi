@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Filter1Icon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, HelpIcon, ArrowDownIcon } from "@astraicons/react/bold";
+import { Filter1Icon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, HelpIcon, ArrowDownIcon, CloseIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Modal } from "@/components/ui/Modal";
@@ -85,6 +85,18 @@ export default function PengeluaranPage() {
     attachment_url: "" as string | null
   });
   const [editAttachment, setEditAttachment] = useState<File | null>(null);
+
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [filterCategoryId, setFilterCategoryId] = useState("all");
+
+  const resetFilters = () => {
+    setFilterFrom("");
+    setFilterTo("");
+    setFilterCategoryId("all");
+    setIsFilterDropdownOpen(false);
+  };
 
   const handleView = (expense: Expense) => {
     setSelectedExpense(expense);
@@ -229,9 +241,84 @@ export default function PengeluaranPage() {
                 className="bg-[#F9FAFB] border-gray-200"
               />
             </div>
-            <Button variant="outline" className="flex items-center gap-2 sm:w-auto w-full">
-              <Filter1Icon className="w-4 h-4" /> Filter
-            </Button>
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                className={`flex items-center gap-2 sm:w-auto w-full transition-all duration-300 ${
+                  (filterFrom || filterTo || filterCategoryId !== 'all') 
+                    ? 'bg-[#5C67F2] text-white border-[#5C67F2] shadow-[0_8px_20px_rgba(92,103,242,0.2)]' 
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                <Filter1Icon className="w-4 h-4" /> 
+                Filter
+                {(filterFrom || filterTo || filterCategoryId !== 'all') && (
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                )}
+              </Button>
+
+              {isFilterDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsFilterDropdownOpen(false)}></div>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 z-50 mt-2">
+                    <div className="w-[calc(100vw-2rem)] sm:w-[550px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-2xl p-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="mb-5">
+                        <h3 className="font-bold text-[#151D48]">Filter Data</h3>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dari Tanggal</label>
+                            <CustomDatePicker value={filterFrom} onChange={setFilterFrom} className="w-full h-10" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Sampai Tanggal</label>
+                            <CustomDatePicker value={filterTo} onChange={setFilterTo} className="w-full h-10" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kategori</label>
+                            <CustomSelect 
+                              options={[
+                                { value: "all", label: "Semua Kategori" },
+                                ...categories.map(c => ({ value: c.id, label: c.name }))
+                              ]}
+                              value={filterCategoryId}
+                              onChange={setFilterCategoryId}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                          <button 
+                            onClick={resetFilters}
+                            className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider"
+                          >
+                            Reset Filter
+                          </button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline"
+                              onClick={() => setIsFilterDropdownOpen(false)}
+                              className="text-xs font-bold uppercase h-9 px-4 rounded-xl"
+                            >
+                              Batal
+                            </Button>
+                            <Button 
+                              onClick={() => setIsFilterDropdownOpen(false)}
+                              className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white font-bold text-xs uppercase h-9 px-6 rounded-xl"
+                            >
+                              Terapkan
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -263,10 +350,15 @@ export default function PengeluaranPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                expenses.filter(row => 
-                  row.expense_type.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                  (row.reference_number || "").toLowerCase().includes(searchTerm.toLowerCase())
-                ).map((row) => (
+                expenses.filter(row => {
+                  const matchesSearch = (row.expense_type || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                        (row.reference_number || "").toLowerCase().includes(searchTerm.toLowerCase());
+                  const matchesDateFrom = filterFrom ? row.date >= filterFrom : true;
+                  const matchesDateTo = filterTo ? row.date <= filterTo : true;
+                  const matchesCategory = filterCategoryId === "all" ? true : row.category_id === filterCategoryId;
+                  
+                  return matchesSearch && matchesDateFrom && matchesDateTo && matchesCategory;
+                }).map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-[#151D48]">{new Date(row.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
                     <TableCell className="text-gray-600">{row.reference_number || '-'}</TableCell>
