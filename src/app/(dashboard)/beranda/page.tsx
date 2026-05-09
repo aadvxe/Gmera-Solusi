@@ -285,7 +285,6 @@ export default function DashboardPage() {
                 ]}
                 value={periodeKas}
                 onChange={setPeriodeKas}
-                className="w-full bg-[#F9FAFB] border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-600"
               />
             </div>
           </div>

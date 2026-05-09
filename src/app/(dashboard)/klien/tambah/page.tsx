@@ -25,7 +25,7 @@ export default function TambahKlienPage() {
   };
 
   return (
-    <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col h-full min-h-[500px]">
+    <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
       <div className="p-6 border-b border-border flex items-center gap-4">
         <Link href="/klien" className="p-2 text-text-secondary hover:bg-background rounded-lg transition-colors">
           <ArrowLeftIcon className="w-5 h-5" />

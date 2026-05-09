@@ -62,7 +62,7 @@ export default function DetailInvoicePage() {
         
         // Small delay to ensure DOM is ready
         setTimeout(() => {
-          handleDownloadPDF();
+          handlePrint();
         }, 500);
       }
     }
@@ -70,59 +70,6 @@ export default function DetailInvoicePage() {
 
   const handlePrint = () => {
     window.print();
-  };
-
-  // ── Download PDF using html2pdf — captures the same HTML as print ────────
-  const handleDownloadPDF = async () => {
-    if (!invoice) return;
-    const element = document.getElementById("invoice-document");
-    if (!element) return;
-
-    toast.info("Sedang membuat PDF...");
-
-    try {
-      const html2pdf = (await import("html2pdf.js")).default;
-
-      // Temporarily strip border/shadow for a clean capture
-      const origClass = element.className;
-      element.className = element.className
-        .replace('border border-gray-200', '')
-        .replace('shadow-sm', '');
-
-      const opt = {
-        margin:       0,
-        filename:     `Invoice_${invoice.invoice_number}.pdf`,
-        image:        { type: "png" as "png", quality: 0.98 },
-        html2canvas:  {
-          scale: 3,
-          useCORS: true,
-          scrollY: 0,
-          windowWidth: 800,
-        },
-        jsPDF: { unit: 'mm', format: 'a5', orientation: "landscape" as "landscape", compress: true },
-      };
-
-      await html2pdf().set(opt).from(element).save();
-
-      // Restore original classes
-      element.className = origClass;
-
-      toast("Ekspor PDF Selesai", {
-        description: `Invoice ${invoice.invoice_number} berhasil diunduh dalam format PDF.`,
-        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
-      });
-
-      if (user) {
-        await createAuditLog(user.id, 'create', 'Export', null, null, { description: `Invoice ${invoice.invoice_number} berhasil diunduh (PDF)` });
-        window.dispatchEvent(new CustomEvent('refreshNotifications'));
-      }
-    } catch (error) {
-      console.error("html2pdf error:", error);
-      toast("Gagal Ekspor PDF", {
-        description: "Terjadi kesalahan saat membuat PDF. Coba gunakan tombol Cetak.",
-        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
-      });
-    }
   };
 
   if (loading) {
@@ -168,9 +115,6 @@ export default function DetailInvoicePage() {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" className="flex-1 sm:flex-none flex items-center justify-center gap-2" onClick={handleDownloadPDF}>
-            <DocumentDownloadIcon className="w-4 h-4" /> PDF
-          </Button>
           <Button onClick={handlePrint} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
             <PrinterIcon className="w-4 h-4" /> Cetak
           </Button>

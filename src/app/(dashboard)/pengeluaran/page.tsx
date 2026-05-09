@@ -206,7 +206,7 @@ export default function PengeluaranPage() {
 
   return (
     <>
-      <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col h-full min-h-[500px]">
+      <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
         {/* Header & Actions */}
         <div className="p-6 border-b border-border">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">

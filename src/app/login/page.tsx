@@ -71,10 +71,10 @@ export default function LoginPage() {
           <div className="mb-6">
 
             <h2 className="text-2xl font-bold text-text-primary tracking-tight">
-              Masuk
+              Selamat datang kembali
             </h2>
             <p className="text-sm text-text-secondary mt-1">
-              Gunakan email dan password anda untuk masuk!
+              Silakan masuk dengan email dan kata sandi Anda.
             </p>
           </div>
 
@@ -98,7 +98,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="mail@simmmple.com"
+                  placeholder="Masukkan email"
                   className="appearance-none block w-full px-4 py-3 border border-border rounded-lg shadow-sm placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all sm:text-sm"
                 />
               </div>
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-text-primary mb-1.5">
-                Password
+                Kata sandi
               </label>
               <div className="mt-1 relative">
                 <input
@@ -117,7 +117,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 8 characters"
+                  placeholder="Masukkan kata sandi"
                   className="appearance-none block w-full px-4 py-3 border border-border rounded-lg shadow-sm placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all sm:text-sm"
                 />
                 <div 
@@ -155,7 +155,7 @@ export default function LoginPage() {
                 disabled={isLoading}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-70"
               >
-                {isLoading ? "Masuk..." : "Masuk"}
+                {isLoading ? "Sedang masuk..." : "Masuk"}
               </button>
             </div>
           </form>
