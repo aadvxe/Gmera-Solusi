@@ -77,7 +77,7 @@ export default function PengeluaranPage() {
 
   const [editFormData, setEditFormData] = useState({
     date: "",
-    vendor: "",
+    expense_type: "",
     amount: 0,
     category_id: "",
     status: "",
@@ -107,7 +107,7 @@ export default function PengeluaranPage() {
     setSelectedExpense(expense);
     setEditFormData({
       date: new Date(expense.date).toISOString().split('T')[0],
-      vendor: expense.vendor || "",
+      expense_type: expense.expense_type || "",
       amount: expense.amount || 0,
       category_id: expense.category_id || "",
       status: expense.status || "",
@@ -134,7 +134,7 @@ export default function PengeluaranPage() {
 
     const { error } = await updateExpense(selectedExpense.id, {
       date: editFormData.date,
-      vendor: editFormData.vendor,
+      expense_type: editFormData.expense_type,
       amount: editFormData.amount,
       category_id: editFormData.category_id || null,
       status: editFormData.status,
@@ -454,7 +454,7 @@ export default function PengeluaranPage() {
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-3">
                 <span className="text-gray-500 text-sm">Vendor / Penerima</span>
-                <span className="font-semibold text-[#151D48]">{selectedExpense.vendor}</span>
+                <span className="font-semibold text-[#151D48]">{selectedExpense.expense_type}</span>
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-3">
                 <span className="text-gray-500 text-sm">Kategori</span>
@@ -521,7 +521,7 @@ export default function PengeluaranPage() {
             
             <div>
               <label className="block text-sm font-medium text-[#151D48] mb-1.5">Vendor / Penerima</label>
-              <Input type="text" value={editFormData.vendor} onChange={e => setEditFormData({...editFormData, vendor: e.target.value})} required className="bg-[#F9FAFB]" />
+              <Input type="text" value={editFormData.expense_type} onChange={e => setEditFormData({...editFormData, expense_type: e.target.value})} required className="bg-[#F9FAFB]" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

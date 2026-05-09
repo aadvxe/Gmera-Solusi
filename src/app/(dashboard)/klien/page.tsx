@@ -54,7 +54,9 @@ export default function KlienPage() {
     setIsFilterDropdownOpen(false);
   };
 
-  const uniqueCities = Array.from(new Set(clients.map(c => c.city).filter(Boolean))).sort();
+  const uniqueCities = Array.from(
+    new Set(clients.map(c => c.city).filter((city): city is string => Boolean(city)))
+  ).sort();
 
   // Form State
   const [formData, setFormData] = useState({

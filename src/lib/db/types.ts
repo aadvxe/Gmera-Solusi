@@ -54,7 +54,9 @@ export type Invoice = {
   tracking_number: string | null;
   discount_amount: number;
   grand_total: number;
+  shipping_address?: string | null;
   notes: string | null;
+  estimated_arrival?: string | null;
   attachment_url?: string | null;
   created_by: string | null;
   created_at: string;

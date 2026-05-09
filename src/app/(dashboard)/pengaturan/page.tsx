@@ -229,6 +229,7 @@ export default function PengaturanPage() {
     const { error } = await createCategory({
       name: newCategoryName.trim(),
       type: type,
+      description: null,
       order_index: maxOrder + 1,
       is_active: true
     });

@@ -18,6 +18,7 @@ import {
   TableRow 
 } from "@/components/ui/Table";
 import { getInvoices, deleteInvoice, getClients, Invoice, Client } from "@/lib/db";
+import { createInvoiceWithItems } from "@/lib/db/invoices";
 import { createAuditLog } from "@/lib/db/users";
 import { useAuthStore } from "@/store/authStore";
 import { formatCurrency } from "@/lib/utils";

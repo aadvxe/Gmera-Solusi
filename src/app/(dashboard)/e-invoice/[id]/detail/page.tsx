@@ -92,14 +92,14 @@ export default function DetailInvoicePage() {
       const opt = {
         margin:       0,
         filename:     `Invoice_${invoice.invoice_number}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
+        image:        { type: "png" as "png", quality: 0.98 },
         html2canvas:  {
           scale: 3,
           useCORS: true,
           scrollY: 0,
           windowWidth: 800,
         },
-        jsPDF: { unit: 'mm', format: 'a5', orientation: 'landscape', compress: true },
+        jsPDF: { unit: 'mm', format: 'a5', orientation: "landscape" as "landscape", compress: true },
       };
 
       await html2pdf().set(opt).from(element).save();

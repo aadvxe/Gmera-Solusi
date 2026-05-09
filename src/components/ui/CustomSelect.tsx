@@ -15,9 +15,17 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  triggerClassName?: string;
 }
 
-export function CustomSelect({ options, value, onChange, placeholder = "Pilih...", className = "" }: CustomSelectProps) {
+export function CustomSelect({
+  options,
+  value,
+  onChange,
+  placeholder = "Pilih...",
+  className = "",
+  triggerClassName = "",
+}: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +46,10 @@ export function CustomSelect({ options, value, onChange, placeholder = "Pilih...
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between h-10 px-3 bg-surface border border-border text-sm text-text-primary rounded-xl focus:ring-2 focus:ring-primary/20 transition-all hover:border-primary/50"
+        className={cn(
+          "w-full flex items-center justify-between h-10 px-3 bg-surface border border-border text-sm text-text-primary rounded-xl focus:ring-2 focus:ring-primary/20 transition-all hover:border-primary/50",
+          triggerClassName
+        )}
       >
         <span className={cn(!selectedOption && "text-text-muted")}>
           {selectedOption ? selectedOption.label : placeholder}
