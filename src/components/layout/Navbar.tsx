@@ -22,6 +22,7 @@ export function Navbar() {
 
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
+  const setRole = useAuthStore((state) => state.setRole);
   const getDisplayName = useAuthStore((state) => state.getDisplayName);
   const getRoleLabel = useAuthStore((state) => state.getRoleLabel);
   const getInitials = useAuthStore((state) => state.getInitials);
@@ -137,9 +138,12 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     document.cookie = "mock_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     setUser(null);
+    setRole(null);
     router.push("/login");
   };
 
