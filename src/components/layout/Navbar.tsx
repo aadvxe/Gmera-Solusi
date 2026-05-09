@@ -16,6 +16,7 @@ export function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSeeAllOpen, setIsSeeAllOpen] = useState(false);
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -147,6 +148,14 @@ export function Navbar() {
     router.push("/login");
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/pencarian?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  };
+
   return (
     <>
     <header className="sticky top-0 z-40 bg-white h-20 px-6 flex items-center justify-between shrink-0">
@@ -157,14 +166,16 @@ export function Navbar() {
 
       {/* Middle Search Bar */}
       <div className="flex-1 max-w-lg mx-8 hidden lg:block">
-        <div className="relative">
+        <form onSubmit={handleSearch} className="relative">
           <SearchIcon className="w-[18px] h-[18px] absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari transaksi atau klien..."
             className="w-full bg-[#F9FAFB] rounded-xl h-12 pl-12 pr-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5C67F2]/20 transition-all"
           />
-        </div>
+        </form>
       </div>
 
       {/* Right Actions */}
