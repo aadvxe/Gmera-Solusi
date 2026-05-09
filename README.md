@@ -39,10 +39,6 @@ PT GMera Solusi, like many manufacturing companies, faced significant challenges
 
 This system addresses all the problems above by providing a **complete financial management platform** that serves as the backbone for business operations:
 
-### 🎯 **Solution: Integrated Web-Based System**
-
-This system addresses all the problems above by providing a **complete financial management platform** that serves as the backbone for business operations:
-
 1. **Automated Financial Accounting & Bookkeeping**
    - Digital recording of all income and expenses with detailed categorization
    - Automatic calculation of tax, discounts, and totals to eliminate manual errors
@@ -162,11 +158,6 @@ Built with modern, production-ready technologies following industry best practic
 - **Testing Approach**: Black Box testing for functional validation
 
 ### 📖 **Academic Research Reference**
-
-This system is the practical implementation of academic research titled:
-
-**"Perancangan Sistem Informasi Pengelolaan Pendapatan, Pengeluaran, dan E-Invoice Berbasis Website pada Perusahaan Manufaktur"**
-*(Design of Web-Based Information System for Income, Expense, and E-Invoice Management in Manufacturing Company)*
 
 **Research Objectives:**
 1. Understand current income, expense, and e-invoice management conditions at PT GMera Solusi
