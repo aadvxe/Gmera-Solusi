@@ -35,3 +35,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 README_OLD_BACKUP.md
+package-lock.json
