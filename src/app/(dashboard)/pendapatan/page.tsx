@@ -81,6 +81,7 @@ export default function PendapatanPage() {
     date: "",
     source: "",
     amount: 0,
+    amountRaw: "",
     category_id: "",
     status: "",
     reference_number: "",
@@ -107,10 +108,12 @@ export default function PendapatanPage() {
 
   const handleEdit = (income: Income) => {
     setSelectedIncome(income);
+    const amt = income.amount || 0;
     setEditFormData({
       date: new Date(income.date).toISOString().split('T')[0],
       source: income.source || "",
-      amount: income.amount || 0,
+      amount: amt,
+      amountRaw: amt > 0 ? formatRupiah(amt, true) : "",
       category_id: income.category_id || "",
       status: income.status || "",
       reference_number: income.reference_number || "",
@@ -541,8 +544,22 @@ export default function PendapatanPage() {
                 <Input 
                   icon={<span className="font-medium text-sm">Rp</span>}
                   type="text" 
-                  value={formatRupiah(editFormData.amount)} 
-                  onChange={e => setEditFormData({...editFormData, amount: parseRupiah(e.target.value)})} 
+                  placeholder="0"
+                  value={editFormData.amountRaw} 
+                  onChange={e => {
+                    const raw = e.target.value;
+                    const parsed = parseRupiah(raw);
+                    setEditFormData({...editFormData, amount: parsed, amountRaw: parsed > 0 ? formatRupiah(parsed, false) : "" });
+                  }}
+                  onBlur={() => {
+                    // On blur, reformat the display value
+                    const formatted = editFormData.amount > 0 ? formatRupiah(editFormData.amount, true) : "";
+                    setEditFormData(prev => ({...prev, amountRaw: formatted}));
+                  }}
+                  onFocus={() => {
+                    const formatted = editFormData.amount > 0 ? formatRupiah(editFormData.amount, false) : "";
+                    setEditFormData(prev => ({...prev, amountRaw: formatted}));
+                  }}
                   required 
                   className="bg-[#F9FAFB] text-right" 
                 />

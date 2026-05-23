@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatRupiah(value: number | string): string {
+export function formatRupiah(value: number | string, includeDecimals: boolean = false): string {
   if (value === undefined || value === null || value === "") return "";
   // If it's a string, strip everything except digits
   const rawValue = typeof value === "string" ? value.replace(/[^0-9]/g, "") : value.toString();
@@ -22,8 +22,9 @@ export function formatRupiah(value: number | string): string {
 
 export function parseRupiah(value: string): number {
   if (!value) return 0;
-  // Strip all non-digit characters (handles thousand separators like dots in id-ID)
-  const digits = value.replace(/[^0-9]/g, "");
+  // Ignore decimals by taking the integer part before the comma
+  const intPart = value.split(',')[0];
+  const digits = intPart.replace(/[^0-9]/g, "");
   if (!digits) return 0;
   return parseInt(digits) || 0;
 }
@@ -32,7 +33,7 @@ export function formatCurrency(amount: number) {
   return new Intl.NumberFormat('id-ID', { 
     style: 'currency', 
     currency: 'IDR', 
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2 
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0 
   }).format(amount);
 }
