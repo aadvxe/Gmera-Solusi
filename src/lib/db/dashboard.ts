@@ -278,3 +278,43 @@ export async function getRecentActivities(limit = 5) {
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, limit);
 }
+
+// ─── ACCOUNTING REPORTS DATA ──────────────────────────────────────────────────
+
+export async function getAccountingReportsData(startDate: string, endDate: string) {
+  const supabase = createClient();
+  
+  const [incomeRes, expenseRes] = await Promise.all([
+    supabase.from('income').select('id, date, source, description, amount, reference_number, categories(name)').gte('date', startDate).lte('date', endDate),
+    supabase.from('expense').select('id, date, expense_type, description, amount, reference_number, categories(name)').gte('date', startDate).lte('date', endDate),
+  ]);
+
+  const incomes = (incomeRes.data || []).map(i => ({
+    id: i.id,
+    date: i.date,
+    type: 'income',
+    title: i.source || 'Pendapatan',
+    description: i.description,
+    reference: i.reference_number,
+    category: (i.categories as any)?.name || 'Lainnya',
+    amount: Number(i.amount)
+  }));
+
+  const expenses = (expenseRes.data || []).map(e => ({
+    id: e.id,
+    date: e.date,
+    type: 'expense',
+    title: e.expense_type || 'Pengeluaran',
+    description: e.description,
+    reference: e.reference_number,
+    category: (e.categories as any)?.name || 'Lainnya',
+    amount: Number(e.amount)
+  }));
+
+  const combined = [...incomes, ...expenses].sort((a, b) => {
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+
+  return combined;
+}
+
