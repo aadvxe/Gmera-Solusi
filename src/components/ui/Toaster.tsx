@@ -22,6 +22,16 @@ export function Toaster() {
         [data-sonner-toaster][data-x-position="right"] {
           right: 8px !important;
         }
+        @media (max-width: 640px) {
+          [data-sonner-toaster] {
+            left: 8px !important;
+            right: 8px !important;
+            width: auto !important;
+          }
+          [data-sonner-toast] {
+            width: 100% !important;
+          }
+        }
         [data-sonner-toast][data-mounted="false"] {
           transform: translate3d(0, var(--y), 0) scale(var(--scale)) !important;
         }
@@ -61,7 +71,7 @@ export function Toaster() {
         toastOptions={{
           unstyled: true,
           classNames: {
-            toast: 'bg-white border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.08)] rounded-[20px] w-[350px] flex items-center gap-4 p-4 relative pointer-events-auto',
+            toast: 'bg-white border border-gray-100 shadow-[0_12px_40px_rgba(0,0,0,0.08)] rounded-[20px] w-[350px] max-w-full flex items-center gap-4 p-4 relative pointer-events-auto',
             content: 'flex flex-col gap-0.5',
             title: 'text-[15px] font-bold text-[#151D48]',
             description: 'text-[13px] font-medium text-gray-500',

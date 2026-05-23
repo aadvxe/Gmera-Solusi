@@ -13,11 +13,11 @@ import {
   ChartIcon,
   GroupIcon,
   SettingsIcon,
-  Logout2Icon,
-  MenuIcon
+  Logout2Icon
 } from "@astraicons/react/bold";
 import { ChevronLeftIcon } from "@astraicons/react/linear";
 import { createClient } from "@/utils/supabase/client";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 const NAV_ITEMS = [
   { icon: HomeIcon, label: "Dashboard", href: "/beranda", roles: ["super_admin", "finance_manager", "accounting_staff", "sales_staff", "viewer"] },
@@ -29,28 +29,46 @@ const NAV_ITEMS = [
 ];
 
 export function Sidebar() {
-  const { isOpen, toggleSidebar } = useSidebar();
+  const { isOpen, toggleSidebar, closeSidebar } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
+  const setRole = useAuthStore((state) => state.setRole);
   const role: string = user?.user_metadata?.role || "viewer";
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
+    document.cookie = "mock_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     setUser(null);
+    setRole(null);
     router.push("/login");
   };
 
   const filteredNavItems = NAV_ITEMS.filter(item => item.roles.includes(role));
+  const closeOnMobile = () => {
+    if (window.innerWidth < 1024) closeSidebar();
+  };
 
   return (
-    <aside 
-      className={`sticky top-0 h-screen bg-white border-r border-border transition-all duration-300 z-50 flex flex-col shrink-0 overflow-x-hidden ${
-        isOpen ? "w-[250px]" : "w-[72px]"
-      }`}
-    >
+    <>
+      {isOpen && (
+        <button
+          type="button"
+          aria-label="Tutup menu"
+          onClick={closeSidebar}
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] lg:hidden"
+        />
+      )}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-[250px] shrink-0 flex-col overflow-x-hidden border-r border-border bg-white transition-all duration-300 lg:sticky lg:top-0 lg:h-screen ${
+          isOpen ? "translate-x-0 lg:w-[250px]" : "-translate-x-full lg:w-[72px] lg:translate-x-0"
+        }`}
+      >
       <div className="h-20 flex items-center px-4 justify-between shrink-0">
         {isOpen && (
           <div className="flex-1 flex justify-center ml-9 transition-all duration-300">
@@ -79,6 +97,7 @@ export function Sidebar() {
             <Link 
               key={item.href} 
               href={item.href}
+              onClick={closeOnMobile}
               className={`flex items-center h-12 px-4 rounded-2xl transition-all relative group ${
                 isOpen ? "justify-start" : "justify-center"
               } ${
@@ -103,6 +122,7 @@ export function Sidebar() {
         {["super_admin", "finance_manager"].includes(role) && (
           <Link 
             href="/pengaturan"
+            onClick={closeOnMobile}
             className={`flex items-center h-12 px-4 rounded-2xl transition-all relative group ${
               isOpen ? "justify-start" : "justify-center"
             } ${
@@ -116,7 +136,7 @@ export function Sidebar() {
           </Link>
         )}
         <button 
-          onClick={handleLogout}
+          onClick={() => setIsLogoutModalOpen(true)}
           className={`w-full flex items-center h-12 px-4 rounded-2xl transition-all text-[#737791] hover:bg-red-50 hover:text-red-500 ${
             isOpen ? "justify-start" : "justify-center"
           }`}
@@ -125,6 +145,18 @@ export function Sidebar() {
           {isOpen && <span className="ml-4 whitespace-nowrap opacity-100 w-auto transition-all duration-300">Keluar</span>}
         </button>
       </div>
-    </aside>
+      </aside>
+      <ConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="Keluar dari Akun"
+        description="Apakah Anda yakin ingin keluar dari akun ini?"
+        confirmText="Keluar"
+        cancelText="Batal"
+        isDanger={true}
+        isLoading={isLoggingOut}
+      />
+    </>
   );
 }

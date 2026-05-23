@@ -260,7 +260,7 @@ export default function EInvoicePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 max-w-md">
+            <div className="flex-1 max-w-md sm:min-w-72">
               <Input 
                 placeholder="Cari nomor invoice atau customer..." 
                 icon={<SearchIcon className="w-[18px] h-[18px]" />}
@@ -438,9 +438,9 @@ export default function EInvoicePage() {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 border-t border-border flex items-center justify-between text-sm text-gray-500">
+        <div className="p-4 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-500">
           <div>Menampilkan {invoices.length} data</div>
-          <div className="flex gap-1">
+          <div className="flex w-full justify-end gap-1 sm:w-auto">
             <Button variant="outline" size="sm" disabled>Seb</Button>
             <Button variant="default" size="sm" className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">1</Button>
             <Button variant="outline" size="sm">2</Button>
@@ -503,7 +503,7 @@ export default function EInvoicePage() {
                     </h3>
                     <div className="space-y-3">
                       {items.map((item, idx) => (
-                        <div key={item.id} className="flex items-start gap-3 p-3 border border-gray-100 rounded-lg bg-[#F9FAFB]">
+                        <div key={item.id} className="flex flex-col gap-3 p-3 border border-gray-100 rounded-lg bg-[#F9FAFB] sm:flex-row sm:items-start">
                           <div className="flex-1">
                             <Input placeholder="Deskripsi Barang/Jasa" value={item.name} onChange={(e) => updateItem(item.id, 'name', e.target.value)} className="bg-white mb-2" />
                             <div className="flex gap-3">
@@ -515,7 +515,7 @@ export default function EInvoicePage() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex flex-col items-end gap-2 shrink-0 w-32 pt-1">
+                          <div className="flex shrink-0 items-center justify-between gap-2 pt-1 sm:w-32 sm:flex-col sm:items-end">
                             <span className="font-bold text-[#151D48] text-sm">{formatCurrency(item.qty * item.price)}</span>
                             <button onClick={() => removeItem(item.id)} disabled={items.length === 1} className="text-gray-400 hover:text-[#FA5A7D] p-1 mt-auto">
                               <TrashIcon className="w-4 h-4" />
@@ -584,7 +584,7 @@ export default function EInvoicePage() {
               </div>
             </div>
             
-            <div className="p-6 border-t border-gray-100 bg-white flex justify-end gap-3 shrink-0">
+            <div className="p-4 sm:p-6 border-t border-gray-100 bg-white flex flex-col-reverse gap-3 shrink-0 sm:flex-row sm:justify-end">
               <Button variant="outline" onClick={() => setIsModalOpen(false)}>
                 Batal
               </Button>

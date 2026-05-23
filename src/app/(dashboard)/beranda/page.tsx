@@ -153,7 +153,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       
       {/* Top Greeting */}
-      <div className="mb-8">
+      <div className="mb-8 pt-2 sm:pt-0">
         <h1 className="text-2xl font-bold text-[#151D48] mb-1">
           {greeting}, {displayName}! 🌤️
         </h1>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {/* Card 1: Pendapatan Bulan Ini */}
             <div className="bg-[#76c893]/10 rounded-xl p-4">
               <div className="w-10 h-10 rounded-full bg-[#76c893] text-white flex items-center justify-center mb-4">

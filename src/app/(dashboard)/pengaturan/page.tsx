@@ -64,6 +64,8 @@ const TABS = [
 export default function PengaturanPage() {
   const router = useRouter();
   const role = useAuthStore(state => state.role);
+  const setUser = useAuthStore(state => state.setUser);
+  const setRole = useAuthStore(state => state.setRole);
   const [activeTab, setActiveTab] = useState<TabId>("profil");
   const [activeCatTab, setActiveCatTab] = useState<"pendapatan"|"pengeluaran">("pendapatan");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -79,6 +81,8 @@ export default function PengaturanPage() {
   
   const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -99,6 +103,23 @@ export default function PengaturanPage() {
 
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
+  const categoryRowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  const [draggingCategoryId, setDraggingCategoryId] = useState<string | null>(null);
+  const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
+  const [dragPreview, setDragPreview] = useState<{
+    name: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation: number;
+    scale: number;
+  } | null>(null);
+  const dragTargetRef = useRef({ x: 0, y: 0 });
+  const dragMotionRef = useRef({ x: 0, y: 0, vx: 0, vy: 0 });
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const dragBaseXRef = useRef(0);
+  const dragAnimationFrame = useRef<number | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -122,6 +143,14 @@ export default function PengaturanPage() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (dragAnimationFrame.current !== null) {
+        cancelAnimationFrame(dragAnimationFrame.current);
+      }
+    };
   }, []);
 
   const handleUpdateCompany = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -337,6 +366,9 @@ export default function PengaturanPage() {
     if (dragItem.current === dragOverItem.current) {
       dragItem.current = null;
       dragOverItem.current = null;
+      setDraggingCategoryId(null);
+      setDragOverCategoryId(null);
+      clearDragPreview();
       return;
     }
 
@@ -359,6 +391,9 @@ export default function PengaturanPage() {
 
     dragItem.current = null;
     dragOverItem.current = null;
+    setDraggingCategoryId(null);
+    setDragOverCategoryId(null);
+    clearDragPreview();
 
     setLoading(true);
     const { error } = await updateCategoryOrder(itemsToUpdate);
@@ -376,9 +411,152 @@ export default function PengaturanPage() {
     setLoading(false);
   };
 
+  const getCategoryIndexAtPoint = (clientY: number, visibleCategories: Category[]) => {
+    let closestIndex = dragItem.current ?? 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    visibleCategories.forEach((cat, idx) => {
+      const row = categoryRowRefs.current[cat.id];
+      if (!row) return;
+
+      const rect = row.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      const distance = Math.abs(clientY - midpoint);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = idx;
+      }
+    });
+
+    return closestIndex;
+  };
+
+  const clearDragPreview = () => {
+    if (dragAnimationFrame.current !== null) {
+      cancelAnimationFrame(dragAnimationFrame.current);
+      dragAnimationFrame.current = null;
+    }
+    setDragPreview(null);
+  };
+
+  const runDragPreviewSpring = () => {
+    if (dragAnimationFrame.current !== null) return;
+
+    const tick = () => {
+      const motion = dragMotionRef.current;
+      const target = dragTargetRef.current;
+      const stiffness = 0.18;
+      const damping = 0.7;
+
+      motion.vx = (motion.vx + (target.x - motion.x) * stiffness) * damping;
+      motion.vy = (motion.vy + (target.y - motion.y) * stiffness) * damping;
+      motion.x += motion.vx;
+      motion.y += motion.vy;
+
+      const rotation = Math.max(-7, Math.min(7, motion.vx * 0.16));
+
+      setDragPreview((preview) =>
+        preview
+          ? {
+              ...preview,
+              x: motion.x,
+              y: motion.y,
+              rotation,
+              scale: 1.03
+            }
+          : null
+      );
+
+      dragAnimationFrame.current = requestAnimationFrame(tick);
+    };
+
+    dragAnimationFrame.current = requestAnimationFrame(tick);
+  };
+
+  const startDragPreview = (name: string, rowRect: DOMRect, pointerX: number, pointerY: number) => {
+    clearDragPreview();
+    dragBaseXRef.current = rowRect.left;
+    dragOffsetRef.current = {
+      x: pointerX - rowRect.left,
+      y: pointerY - rowRect.top,
+    };
+    dragTargetRef.current = { x: rowRect.left, y: rowRect.top };
+    dragMotionRef.current = { x: rowRect.left, y: rowRect.top, vx: 0, vy: 0 };
+    setDragPreview({
+      name,
+      x: rowRect.left,
+      y: rowRect.top,
+      width: rowRect.width,
+      height: rowRect.height,
+      rotation: 0,
+      scale: 1
+    });
+    runDragPreviewSpring();
+  };
+
+  const handleCategoryPointerDown = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    index: number,
+    categoryId: string
+  ) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    event.preventDefault();
+    dragItem.current = index;
+    dragOverItem.current = index;
+    setDraggingCategoryId(categoryId);
+    setDragOverCategoryId(categoryId);
+    const rowRect = categoryRowRefs.current[categoryId]?.getBoundingClientRect();
+    if (rowRect) {
+      startDragPreview(categories.find((cat) => cat.id === categoryId)?.name ?? "", rowRect, event.clientX, event.clientY);
+    }
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleCategoryPointerMove = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    visibleCategories: Category[]
+  ) => {
+    if (dragItem.current === null) return;
+
+    event.preventDefault();
+    const nextIndex = getCategoryIndexAtPoint(event.clientY, visibleCategories);
+    dragOverItem.current = nextIndex;
+    setDragOverCategoryId(visibleCategories[nextIndex]?.id ?? null);
+    dragTargetRef.current = {
+      x: dragBaseXRef.current,
+      y: event.clientY - dragOffsetRef.current.y
+    };
+  };
+
+  const handleCategoryPointerEnd = async (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    await handleSort();
+  };
+
+  const handleCategoryPointerCancel = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    dragItem.current = null;
+    dragOverItem.current = null;
+    setDraggingCategoryId(null);
+    setDragOverCategoryId(null);
+    clearDragPreview();
+  };
+
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
+    document.cookie = "mock_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    setUser(null);
+    setRole(null);
     router.push("/login");
   };
 
@@ -460,7 +638,7 @@ export default function PengaturanPage() {
               <Button 
                 type="button"
                 variant="outline"
-                onClick={handleLogout}
+                onClick={() => setIsLogoutModalOpen(true)}
                 className="text-red-500 border-red-200 hover:bg-red-50"
               >
                 Sign Out
@@ -480,14 +658,14 @@ export default function PengaturanPage() {
         if (role !== "super_admin") return null;
         return (
           <div className="space-y-6 max-w-4xl">
-            <div className="flex justify-between items-center">
-              <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <h2 className="text-xl font-bold text-[#151D48]">Manajemen Pengguna</h2>
                 <p className="text-sm text-gray-500 mt-1">Kelola akses staf dan manajer keuangan ke dalam sistem.</p>
               </div>
               <Button 
                 onClick={() => setIsAddUserModalOpen(true)}
-                className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white flex items-center gap-2"
+                className="w-full bg-[#5C67F2] hover:bg-[#4a55c2] text-white flex items-center gap-2 sm:w-auto"
               >
                 <PlusIcon className="w-4 h-4" /> Tambah Pengguna
               </Button>
@@ -544,23 +722,24 @@ export default function PengaturanPage() {
           </div>
         );
 
-      case "kategori":
+      case "kategori": {
+        const visibleCategories = categories.filter(c => c.type === (activeCatTab === "pendapatan" ? "income" : "expense"));
         return (
           <div className="space-y-6 max-w-3xl">
-            <div className="flex justify-between items-center">
-              <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <h2 className="text-xl font-bold text-[#151D48]">Kategori Transaksi</h2>
                 <p className="text-sm text-gray-500 mt-1">Klasifikasi untuk mempermudah pencatatan dan laporan.</p>
               </div>
-              <Button onClick={() => setIsAddCategoryModalOpen(true)} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white flex items-center gap-2">
+              <Button onClick={() => setIsAddCategoryModalOpen(true)} className="w-full bg-[#5C67F2] hover:bg-[#4a55c2] text-white flex items-center gap-2 sm:w-auto">
                 <PlusIcon className="w-4 h-4" /> Kategori Baru
               </Button>
             </div>
 
-            <div className="flex gap-2 border-b border-gray-100 pb-px">
+            <div className="flex gap-2 overflow-x-auto border-b border-gray-100 pb-px">
               <button 
                 onClick={() => setActiveCatTab("pendapatan")}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                className={`shrink-0 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activeCatTab === "pendapatan" ? "border-[#5C67F2] text-[#5C67F2]" : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -568,7 +747,7 @@ export default function PengaturanPage() {
               </button>
               <button 
                 onClick={() => setActiveCatTab("pengeluaran")}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                className={`shrink-0 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activeCatTab === "pengeluaran" ? "border-[#5C67F2] text-[#5C67F2]" : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -576,24 +755,43 @@ export default function PengaturanPage() {
               </button>
             </div>
 
-            <div className="border border-gray-100 rounded-2xl overflow-hidden">
+            <div className="relative border border-gray-100 rounded-2xl overflow-hidden">
               <Table>
                 <TableBody>
-                  {categories.filter(c => c.type === (activeCatTab === "pendapatan" ? "income" : "expense")).map((cat, idx) => (
+                  {visibleCategories.map((cat, idx) => (
                     <TableRow 
                       key={cat.id}
-                      draggable
+                      ref={(node) => {
+                        categoryRowRefs.current[cat.id] = node;
+                      }}
                       onDragStart={() => (dragItem.current = idx)}
                       onDragEnter={() => (dragOverItem.current = idx)}
                       onDrop={handleSort}
                       onDragOver={(e) => e.preventDefault()}
-                      className="cursor-move"
+                      className={`transition-colors duration-100 ${
+                        draggingCategoryId === cat.id
+                          ? "bg-[#5C67F2]/5 opacity-30"
+                          : dragOverCategoryId === cat.id
+                          ? "bg-[#5C67F2]/10 shadow-[inset_4px_0_0_#5C67F2]"
+                          : ""
+                      }`}
                     >
                       <TableCell className="font-medium text-[#151D48] w-full">
                         <div className="flex items-center gap-3">
-                          <div className="text-gray-400 hover:text-gray-600">
+                          <button
+                            type="button"
+                            onPointerDown={(event) => handleCategoryPointerDown(event, idx, cat.id)}
+                            onPointerMove={(event) => handleCategoryPointerMove(event, visibleCategories)}
+                            onPointerUp={handleCategoryPointerEnd}
+                            onPointerCancel={handleCategoryPointerCancel}
+                            className={`touch-none rounded-md p-1 transition-colors hover:bg-gray-100 active:cursor-grabbing ${
+                              draggingCategoryId === cat.id ? "bg-[#5C67F2]/10 text-[#5C67F2]" : "text-gray-400 hover:text-gray-600"
+                            }`}
+                            aria-label={`Geser urutan ${cat.name}`}
+                            title="Geser urutan"
+                          >
                             <Menu2Icon className="w-4 h-4" />
-                          </div>
+                          </button>
                           <span>{cat.name}</span>
                         </div>
                       </TableCell>
@@ -611,9 +809,32 @@ export default function PengaturanPage() {
                   ))}
                 </TableBody>
               </Table>
+              {dragPreview && (
+                <div
+                  className="pointer-events-none fixed left-0 top-0 z-[10000] flex select-none items-center justify-between gap-3 rounded-xl border border-[#5C67F2]/20 bg-white px-4 text-sm font-semibold text-[#151D48] shadow-[0_22px_55px_rgba(92,103,242,0.32)] ring-4 ring-[#5C67F2]/10 will-change-transform"
+                  style={{
+                    width: dragPreview.width,
+                    minHeight: dragPreview.height,
+                    transform: `translate3d(${dragPreview.x}px, ${dragPreview.y}px, 0) rotate(${dragPreview.rotation}deg) scale(${dragPreview.scale})`,
+                    transformOrigin: "18px 18px",
+                  }}
+                >
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#5C67F2]/10 text-[#5C67F2]">
+                      <Menu2Icon className="h-4 w-4" />
+                    </span>
+                    <span className="truncate">{dragPreview.name}</span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2 text-gray-300">
+                    <EditIcon className="h-4 w-4" />
+                    <TrashIcon className="h-4 w-4" />
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         );
+      }
 
       case "pajak":
         return (
@@ -710,11 +931,11 @@ export default function PengaturanPage() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[calc(100vh-8rem)]">
+    <div className="flex min-h-[calc(100dvh-6rem)] flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm md:h-[calc(100vh-8rem)] md:flex-row">
       {/* Sidebar Navigation */}
-      <div className="w-full md:w-64 bg-gray-50 border-r border-gray-100 shrink-0 p-4 overflow-y-auto">
+      <div className="w-full shrink-0 border-b border-gray-100 bg-gray-50 p-4 md:w-64 md:border-b-0 md:border-r md:overflow-y-auto">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 px-3">Menu Pengaturan</h3>
-        <nav className="space-y-1">
+        <nav className="flex gap-2 overflow-x-auto md:block md:space-y-1">
           {TABS.filter(tab => tab.id !== "pengguna" || role === "super_admin").map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -722,7 +943,7 @@ export default function PengaturanPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabId)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
+                className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all md:w-full ${
                   isActive 
                     ? "bg-[#5C67F2] text-white shadow-md shadow-[#5C67F2]/20" 
                     : "text-gray-600 hover:bg-gray-200/50 hover:text-[#151D48]"
@@ -737,7 +958,7 @@ export default function PengaturanPage() {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 p-6 md:p-8 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
         {renderContent()}
       </div>
 
@@ -764,10 +985,22 @@ export default function PengaturanPage() {
         isLoading={loading}
       />
 
+      <ConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="Keluar dari Akun"
+        description="Apakah Anda yakin ingin keluar dari akun ini?"
+        confirmText="Keluar"
+        cancelText="Batal"
+        isDanger={true}
+        isLoading={isLoggingOut}
+      />
+
       <Modal isOpen={isAddCategoryModalOpen} onClose={() => setIsAddCategoryModalOpen(false)}>
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between p-6 border-b border-gray-100">
-            <div>
+        <div className="flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+          <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-4 sm:p-6">
+            <div className="min-w-0">
               <h2 className="text-xl font-bold text-[#151D48]">Tambah Kategori Baru</h2>
               <p className="text-sm text-gray-500 mt-1">
                 Kategori {activeCatTab === "pendapatan" ? "Pendapatan" : "Pengeluaran"}
@@ -780,7 +1013,7 @@ export default function PengaturanPage() {
               <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
-          <div className="p-6">
+          <div className="overflow-y-auto p-4 sm:p-6">
             <form id="category-form" onSubmit={handleCreateCategory}>
               <label className="block text-sm font-medium text-[#151D48] mb-1.5">Nama Kategori <span className="text-red-500">*</span></label>
               <Input 
@@ -794,7 +1027,7 @@ export default function PengaturanPage() {
               />
             </form>
           </div>
-          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+          <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 p-4 sm:flex-row sm:justify-end sm:p-6">
             <Button variant="outline" onClick={() => setIsAddCategoryModalOpen(false)} disabled={loading}>Batal</Button>
             <Button type="submit" form="category-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
               {loading ? "Menyimpan..." : "Simpan Kategori"}
@@ -804,8 +1037,8 @@ export default function PengaturanPage() {
       </Modal>
 
       <Modal isOpen={isEditCategoryModalOpen} onClose={() => setIsEditCategoryModalOpen(false)}>
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+          <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-4 sm:p-6">
             <div>
               <h2 className="text-xl font-bold text-[#151D48]">Edit Kategori</h2>
             </div>
@@ -816,7 +1049,7 @@ export default function PengaturanPage() {
               <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
-          <div className="p-6">
+          <div className="overflow-y-auto p-4 sm:p-6">
             <form id="edit-category-form" onSubmit={handleUpdateCategory}>
               <label className="block text-sm font-medium text-[#151D48] mb-1.5">Nama Kategori <span className="text-red-500">*</span></label>
               <Input 
@@ -829,7 +1062,7 @@ export default function PengaturanPage() {
               />
             </form>
           </div>
-          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+          <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 p-4 sm:flex-row sm:justify-end sm:p-6">
             <Button variant="outline" onClick={() => setIsEditCategoryModalOpen(false)} disabled={loading}>Batal</Button>
             <Button type="submit" form="edit-category-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
               {loading ? "Menyimpan..." : "Simpan Perubahan"}
@@ -839,8 +1072,8 @@ export default function PengaturanPage() {
       </Modal>
 
       <Modal isOpen={isEditUserModalOpen} onClose={() => setIsEditUserModalOpen(false)}>
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+          <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-4 sm:p-6">
             <div>
               <h2 className="text-xl font-bold text-[#151D48]">Ubah Akses Pengguna</h2>
             </div>
@@ -851,7 +1084,7 @@ export default function PengaturanPage() {
               <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
-          <div className="p-6">
+          <div className="overflow-y-auto p-4 sm:p-6">
             <form id="edit-user-form" onSubmit={handleUpdateUserRole}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-500">Nama Pengguna</label>
@@ -869,7 +1102,7 @@ export default function PengaturanPage() {
               </select>
             </form>
           </div>
-          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+          <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 p-4 sm:flex-row sm:justify-end sm:p-6">
             <Button variant="outline" onClick={() => setIsEditUserModalOpen(false)} disabled={loading}>Batal</Button>
             <Button type="submit" form="edit-user-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
               {loading ? "Menyimpan..." : "Simpan Perubahan"}
@@ -879,9 +1112,9 @@ export default function PengaturanPage() {
       </Modal>
       
       <Modal isOpen={isAddUserModalOpen} onClose={() => setIsAddUserModalOpen(false)}>
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between p-6 border-b border-gray-100">
-            <div>
+        <div className="flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+          <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-4 sm:p-6">
+            <div className="min-w-0">
               <h2 className="text-xl font-bold text-[#151D48]">Tambah Pengguna Baru</h2>
               <p className="text-sm text-gray-500 mt-1">Daftarkan staf atau manajer baru.</p>
             </div>
@@ -892,7 +1125,7 @@ export default function PengaturanPage() {
               <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
-          <div className="p-6">
+          <div className="overflow-y-auto p-4 sm:p-6">
             <form id="add-user-form" onSubmit={handleCreateUser} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#151D48] mb-1.5">Nama Lengkap <span className="text-red-500">*</span></label>
@@ -939,7 +1172,7 @@ export default function PengaturanPage() {
               </div>
             </form>
           </div>
-          <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+          <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50 p-4 sm:flex-row sm:justify-end sm:p-6">
             <Button variant="outline" onClick={() => setIsAddUserModalOpen(false)} disabled={loading}>Batal</Button>
             <Button type="submit" form="add-user-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
               {loading ? "Menambahkan..." : "Tambah Pengguna"}

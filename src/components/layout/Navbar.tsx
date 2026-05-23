@@ -3,23 +3,29 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { NotificationIcon, ChevronDownIcon, Profile1Icon, SettingsIcon, Logout2Icon, StatusUpIcon, ArrowDownIcon, DocumentIcon, PricingAlertIcon, CalenderIcon, DocumentDownloadIcon, Download2Icon, CloseIcon as CloseCircleIcon } from "@astraicons/react/bold";
+import { NotificationIcon, ChevronDownIcon, Profile1Icon, SettingsIcon, Logout2Icon, StatusUpIcon, ArrowDownIcon, DocumentIcon, PricingAlertIcon, CalenderIcon, DocumentDownloadIcon, Download2Icon, CloseIcon as CloseCircleIcon, MenuIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { useAuthStore } from "@/store/authStore";
 import { getRecentActivities } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { useSidebar } from "./SidebarContext";
 
 export function Navbar() {
   const [greeting, setGreeting] = useState("Selamat Pagi");
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSeeAllOpen, setIsSeeAllOpen] = useState(false);
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { toggleSidebar } = useSidebar();
 
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
@@ -140,6 +146,7 @@ export function Navbar() {
   }, []);
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
     document.cookie = "mock_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -153,19 +160,28 @@ export function Navbar() {
     if (searchQuery.trim()) {
       router.push(`/pencarian?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery("");
+      setIsMobileSearchOpen(false);
     }
   };
 
   return (
     <>
-    <header className="sticky top-0 z-40 bg-white h-20 px-6 flex items-center justify-between shrink-0">
+    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-3 bg-white px-4 sm:h-20 sm:px-6">
 
-      {/* Left Spacer / Empty Title */}
-      <div className="hidden md:block">
+      {/* Mobile Menu */}
+      <div className="flex items-center lg:hidden">
+        <button
+          type="button"
+          aria-label="Buka menu"
+          onClick={toggleSidebar}
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200"
+        >
+          <MenuIcon className="h-5 w-5" />
+        </button>
       </div>
 
       {/* Middle Search Bar */}
-      <div className="flex-1 max-w-lg mx-8 hidden lg:block">
+      <div className="mx-8 hidden max-w-lg flex-1 lg:block">
         <form onSubmit={handleSearch} className="relative">
           <SearchIcon className="w-[18px] h-[18px] absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -179,7 +195,23 @@ export function Navbar() {
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-6">
+      <div className="flex min-w-0 items-center gap-3 sm:gap-6">
+
+        {/* Mobile Search */}
+        <button
+          type="button"
+          aria-label="Buka pencarian"
+          onClick={() => {
+            setIsMobileSearchOpen((open) => !open);
+            setIsNotifOpen(false);
+            setIsProfileOpen(false);
+          }}
+          className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors lg:hidden ${
+            isMobileSearchOpen ? "bg-[#5C67F2] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+          }`}
+        >
+          <SearchIcon className="h-5 w-5" />
+        </button>
 
         {/* Notifications (Visible to all, contents filtered by role) */}
         <div className="relative" ref={notifRef}>
@@ -194,7 +226,7 @@ export function Navbar() {
             </button>
 
             {isNotifOpen && (
-              <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
+              <div className="fixed left-4 right-4 top-16 z-50 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] animate-in fade-in zoom-in-95 duration-200 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-80">
                 <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                   <h3 className="font-bold text-[#151D48]">Notifikasi</h3>
                   {notifications.length > 0 && (
@@ -268,7 +300,7 @@ export function Navbar() {
 
           {/* Profile Dropdown */}
           {isProfileOpen && (
-            <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-50">
+            <div className="absolute right-0 z-50 mt-3 w-[calc(100vw-2rem)] max-w-56 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] animate-in fade-in zoom-in-95 duration-200">
               <div className="p-4 border-b border-gray-100 bg-gray-50/50">
                 <p className="text-sm font-bold text-[#151D48]">{displayName}</p>
                 <p className="text-xs font-medium text-gray-500 mt-0.5">{roleLabel}</p>
@@ -289,7 +321,10 @@ export function Navbar() {
                 <li className="my-1 border-t border-gray-100"></li>
                 <li>
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      setIsLogoutModalOpen(true);
+                    }}
                     className="w-full flex items-center gap-3 px-5 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors relative group"
                   >
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -304,10 +339,37 @@ export function Navbar() {
       </div>
     </header>
 
+    {isMobileSearchOpen && (
+      <div className="fixed left-4 right-4 top-16 z-50 sm:top-20 lg:hidden">
+        <form
+          onSubmit={handleSearch}
+          className="flex gap-2 rounded-2xl border border-gray-100 bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+        >
+          <div className="relative min-w-0 flex-1">
+            <SearchIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari transaksi atau customer..."
+              className="h-11 w-full rounded-xl bg-[#F9FAFB] pl-10 pr-3 text-sm text-gray-700 outline-none transition-all focus:ring-2 focus:ring-[#5C67F2]/20"
+              autoFocus
+            />
+          </div>
+          <button
+            type="submit"
+            className="flex h-11 shrink-0 items-center justify-center rounded-xl bg-[#5C67F2] px-4 text-sm font-semibold text-white"
+          >
+            Cari
+          </button>
+        </form>
+      </div>
+    )}
+
     {/* See All Notifications Modal */}
     <Modal isOpen={isSeeAllOpen} onClose={() => setIsSeeAllOpen(false)}>
-      <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
+      <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] w-full max-w-2xl overflow-hidden flex flex-col max-h-[90dvh]">
+        <div className="flex items-start justify-between gap-4 p-4 sm:p-6 border-b border-gray-100 shrink-0">
           <div>
             <h2 className="text-xl font-bold text-[#151D48]">Semua Notifikasi</h2>
             <p className="text-sm text-gray-500 mt-1">Riwayat lengkap aktivitas dan transaksi.</p>
@@ -321,7 +383,7 @@ export function Navbar() {
         </div>
         
         <div className="overflow-y-auto flex-1">
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-6">
             {allNotifications.length > 0 ? (
               allNotifications.map((n: any, idx, arr) => (
                 <div key={`${n.id}-${idx}`} className="flex gap-4 relative">
@@ -347,7 +409,7 @@ export function Navbar() {
                   </div>
                   
                   <div className="flex-1 pb-1">
-                    <div className="flex justify-between items-start mb-1">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-start mb-1">
                       <h4 className="font-semibold text-[#151D48] text-sm">{n.title}</h4>
                       <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
                         {new Date(n.date).toLocaleString('id-ID', { day: 'numeric', month: 'short' })}
@@ -374,6 +436,17 @@ export function Navbar() {
         </div>
       </div>
     </Modal>
+    <ConfirmModal
+      isOpen={isLogoutModalOpen}
+      onClose={() => setIsLogoutModalOpen(false)}
+      onConfirm={handleLogout}
+      title="Keluar dari Akun"
+      description="Apakah Anda yakin ingin keluar dari akun ini?"
+      confirmText="Keluar"
+      cancelText="Batal"
+      isDanger={true}
+      isLoading={isLoggingOut}
+    />
     </>
   );
 }

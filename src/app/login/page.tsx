@@ -65,9 +65,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-surface py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10 border border-border">
+    <div className="flex min-h-dvh flex-col justify-center overflow-y-auto bg-background px-4 py-6 sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto w-full max-w-md">
+        <div className="rounded-2xl border border-border bg-surface px-4 py-6 shadow-xl sm:px-10 sm:py-8">
           <div className="mb-6">
 
             <h2 className="text-2xl font-bold text-text-primary tracking-tight">

@@ -55,7 +55,7 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
         .modal-content-out { animation: modal-content-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       `}} />
       <div
-        className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm ${
+        className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto p-3 sm:p-4 bg-black/50 backdrop-blur-sm ${
           isClosing ? "modal-backdrop-out" : "modal-backdrop-in"
         }`}
         onClick={(e) => {
@@ -63,7 +63,7 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
         }}
       >
         <div
-          className={`w-full flex items-center justify-center ${
+          className={`w-full max-w-full flex items-center justify-center ${
             isClosing ? "modal-content-out" : "modal-content-in"
           }`}
           onClick={(e) => e.stopPropagation()}

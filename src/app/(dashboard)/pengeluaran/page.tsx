@@ -223,7 +223,7 @@ export default function PengeluaranPage() {
                 <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
               </Button>
               {role !== 'viewer' && (
-                <Link href="/pengeluaran/tambah">
+                <Link href="/pengeluaran/tambah" className="w-full sm:w-auto">
                   <Button 
                     className="w-full sm:w-auto flex items-center gap-2 bg-[#FA5A7D] hover:bg-[#e04868] text-white border-transparent"
                   >
@@ -235,7 +235,7 @@ export default function PengeluaranPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 max-w-md">
+            <div className="flex-1 max-w-md sm:min-w-72">
               <Input 
                 placeholder="Cari vendor atau referensi..." 
                 icon={<SearchIcon className="w-[18px] h-[18px]" />}
@@ -418,9 +418,9 @@ export default function PengeluaranPage() {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 border-t border-border flex items-center justify-between text-sm text-gray-500">
+        <div className="p-4 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-500">
           <div>Menampilkan {expenses.length} data</div>
-          <div className="flex gap-1">
+          <div className="flex w-full justify-end gap-1 sm:w-auto">
             <Button variant="outline" size="sm" disabled>Seb</Button>
             <Button variant="default" size="sm" className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">1</Button>
             <Button variant="outline" size="sm">2</Button>
@@ -512,7 +512,7 @@ export default function PengeluaranPage() {
             <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
           </div>
           <form onSubmit={submitEdit} className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#151D48] mb-1.5">Tanggal</label>
                 <CustomDatePicker 
@@ -531,7 +531,7 @@ export default function PengeluaranPage() {
               <Input type="text" value={editFormData.expense_type} onChange={e => setEditFormData({...editFormData, expense_type: e.target.value})} required className="bg-[#F9FAFB]" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[#151D48] mb-1.5">Jumlah</label>
                 <Input 
