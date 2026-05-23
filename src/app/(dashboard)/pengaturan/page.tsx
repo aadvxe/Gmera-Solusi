@@ -49,6 +49,7 @@ import {
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { uploadFile } from "@/lib/storage";
+import { useAuthStore } from "@/store/authStore";
 
 type TabId = "profil" | "pengguna" | "kategori" | "pajak" | "pembayaran";
 
@@ -62,6 +63,7 @@ const TABS = [
 
 export default function PengaturanPage() {
   const router = useRouter();
+  const role = useAuthStore(state => state.role);
   const [activeTab, setActiveTab] = useState<TabId>("profil");
   const [activeCatTab, setActiveCatTab] = useState<"pendapatan"|"pengeluaran">("pendapatan");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -475,6 +477,7 @@ export default function PengaturanPage() {
         );
       
       case "pengguna":
+        if (role !== "super_admin") return null;
         return (
           <div className="space-y-6 max-w-4xl">
             <div className="flex justify-between items-center">
@@ -712,7 +715,7 @@ export default function PengaturanPage() {
       <div className="w-full md:w-64 bg-gray-50 border-r border-gray-100 shrink-0 p-4 overflow-y-auto">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 px-3">Menu Pengaturan</h3>
         <nav className="space-y-1">
-          {TABS.map((tab) => {
+          {TABS.filter(tab => tab.id !== "pengguna" || role === "super_admin").map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (

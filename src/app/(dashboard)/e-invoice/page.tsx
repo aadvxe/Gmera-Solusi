@@ -38,6 +38,7 @@ export default function EInvoicePage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const user = useAuthStore(state => state.user);
+  const role = useAuthStore(state => state.role);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clientId, setClientId] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -246,13 +247,15 @@ export default function EInvoicePage() {
               <Button variant="outline" className="flex items-center gap-2" onClick={handleExportPDF}>
                 <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
               </Button>
-              <Link href="/e-invoice/buat" className="w-full sm:w-auto">
-                <Button 
-                  className="w-full flex items-center gap-2 bg-[#5C67F2] hover:bg-[#4a55c2] text-white"
-                >
-                  <PlusIcon className="w-4 h-4" /> Buat Invoice Baru
-                </Button>
-              </Link>
+              {role !== 'viewer' && (
+                <Link href="/e-invoice/buat" className="w-full sm:w-auto">
+                  <Button 
+                    className="w-full flex items-center gap-2 bg-[#5C67F2] hover:bg-[#4a55c2] text-white"
+                  >
+                    <PlusIcon className="w-4 h-4" /> Buat Invoice Baru
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -408,19 +411,23 @@ export default function EInvoicePage() {
                             <EyeIcon className="w-4 h-4" />
                           </button>
                         </Link>
-                        <Link href={`/e-invoice/${row.id}/edit`}>
-                          <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
-                            <EditIcon className="w-4 h-4" />
-                          </button>
-                        </Link>
+                        {role !== 'viewer' && (
+                          <Link href={`/e-invoice/${row.id}/edit`}>
+                            <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Edit">
+                              <EditIcon className="w-4 h-4" />
+                            </button>
+                          </Link>
+                        )}
                         <Link href={`/e-invoice/${row.id}/detail?download=true`}>
                           <button className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" title="Download PDF">
                             <DocumentDownloadIcon className="w-4 h-4" />
                           </button>
                         </Link>
-                        <button onClick={() => handleDeleteClick(row.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
+                        {role !== 'viewer' && (
+                          <button onClick={() => handleDeleteClick(row.id)} className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" title="Hapus">
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

@@ -31,6 +31,7 @@ export default function PengeluaranPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const user = useAuthStore(state => state.user);
+  const role = useAuthStore(state => state.role);
 
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -221,13 +222,15 @@ export default function PengeluaranPage() {
               <Button variant="outline" className="flex items-center gap-2" onClick={handleExportPDF}>
                 <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
               </Button>
-              <Link href="/pengeluaran/tambah">
-                <Button 
-                  className="w-full sm:w-auto flex items-center gap-2 bg-[#FA5A7D] hover:bg-[#e04868] text-white border-transparent"
-                >
-                  <PlusIcon className="w-4 h-4" /> Tambah Data
-                </Button>
-              </Link>
+              {role !== 'viewer' && (
+                <Link href="/pengeluaran/tambah">
+                  <Button 
+                    className="w-full sm:w-auto flex items-center gap-2 bg-[#FA5A7D] hover:bg-[#e04868] text-white border-transparent"
+                  >
+                    <PlusIcon className="w-4 h-4" /> Tambah Data
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -387,20 +390,24 @@ export default function PengeluaranPage() {
                         >
                           <EyeIcon className="w-4 h-4" />
                         </button>
-                        <button 
-                          onClick={() => handleEdit(row)}
-                          className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" 
-                          title="Edit"
-                        >
-                          <EditIcon className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteClick(row.id)}
-                          className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" 
-                          title="Hapus"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
+                        {role !== 'viewer' && (
+                          <>
+                            <button 
+                              onClick={() => handleEdit(row)}
+                              className="p-1.5 text-gray-400 hover:text-[#5C67F2] hover:bg-[#5C67F2]/10 rounded-md transition-colors" 
+                              title="Edit"
+                            >
+                              <EditIcon className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteClick(row.id)}
+                              className="p-1.5 text-gray-400 hover:text-[#FA5A7D] hover:bg-[#FA5A7D]/10 rounded-md transition-colors" 
+                              title="Hapus"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

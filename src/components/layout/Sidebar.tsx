@@ -25,7 +25,7 @@ const NAV_ITEMS = [
   { icon: DocumentIcon, label: "Pengeluaran", href: "/pengeluaran", roles: ["super_admin", "finance_manager", "accounting_staff", "viewer"] },
   { icon: Document1Icon, label: "E-Invoice", href: "/e-invoice", roles: ["super_admin", "finance_manager", "accounting_staff", "sales_staff", "viewer"] },
   { icon: ChartIcon, label: "Laporan", href: "/laporan", roles: ["super_admin", "finance_manager", "accounting_staff", "viewer"] },
-  { icon: GroupIcon, label: "Customer", href: "/customer", roles: ["super_admin", "finance_manager", "accounting_staff", "sales_staff", "viewer"] },
+  { icon: GroupIcon, label: "Customer", href: "/customer", roles: ["super_admin", "finance_manager", "accounting_staff", "sales_staff"] },
 ];
 
 export function Sidebar() {

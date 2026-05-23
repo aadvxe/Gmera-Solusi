@@ -4,7 +4,7 @@ import { User } from '@supabase/supabase-js';
 // Mock user profile data (used while Supabase is not yet connected)
 export const MOCK_PROFILES: Record<string, { name: string; role: string; roleName: string }> = {
   "1": { name: "Ahmad Fauzi", role: "super_admin", roleName: "Super Admin" },
-  "2": { name: "Sari Dewi", role: "finance_manager", roleName: "Finance Manager" },
+  "2": { name: "Sari Dewi", role: "finance_manager", roleName: "Finance" },
   "3": { name: "Budi Santoso", role: "accounting_staff", roleName: "Accounting Staff" },
   "4": { name: "Rina Melati", role: "sales_staff", roleName: "Sales Staff" },
   "5": { name: "Dani Kurniawan", role: "viewer", roleName: "Viewer" },
@@ -12,7 +12,7 @@ export const MOCK_PROFILES: Record<string, { name: string; role: string; roleNam
 
 export const ROLE_LABELS: Record<string, string> = {
   super_admin: "Super Admin",
-  finance_manager: "Finance Manager",
+  finance_manager: "Finance",
   accounting_staff: "Accounting Staff",
   sales_staff: "Sales Staff",
   viewer: "Viewer",

@@ -8,9 +8,21 @@ import { ArrowLeftIcon } from "@astraicons/react/bold";
 import { toast } from "sonner";
 import Link from "next/link";
 
+import { useAuthStore } from "@/store/authStore";
+
 export default function TambahCustomerPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const role = useAuthStore(state => state.role);
+
+  if (role === 'viewer') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold text-text-primary mb-2">Akses Ditolak</h2>
+        <p className="text-sm text-text-secondary">Anda tidak memiliki hak akses untuk membuka halaman Customer.</p>
+      </div>
+    );
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

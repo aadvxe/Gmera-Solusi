@@ -19,8 +19,20 @@ import {
 import { getClients, insertClient, updateClient, deleteClient, Client, getClientInvoiceStats, getInvoicesByClient, Invoice } from "@/lib/db";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
 
 export default function CustomerPage() {
+  const role = useAuthStore(state => state.role);
+
+  if (role === 'viewer') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold text-text-primary mb-2">Akses Ditolak</h2>
+        <p className="text-sm text-text-secondary">Anda tidak memiliki hak akses untuk membuka halaman Customer.</p>
+      </div>
+    );
+  }
+
   const [searchTerm, setSearchTerm] = useState("");
   const [clients, setClients] = useState<(Client & { stats?: { totalInvoices: number, unpaidAmount: number } })[]>([]);
   const [loading, setLoading] = useState(true);

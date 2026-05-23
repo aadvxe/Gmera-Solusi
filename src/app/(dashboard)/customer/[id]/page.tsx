@@ -6,6 +6,7 @@ import { ArrowLeftIcon, EditIcon, CallIcon, EmailIcon, DocumentNextIcon, MoneyIc
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+import { useAuthStore } from "@/store/authStore";
 
 const MOCK_CLIENT_DETAIL = {
   id: "1", 
@@ -31,7 +32,16 @@ const MOCK_INVOICE_HISTORY = [
 
 export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const role = useAuthStore(state => state.role);
 
+  if (role === 'viewer') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold text-text-primary mb-2">Akses Ditolak</h2>
+        <p className="text-sm text-text-secondary">Anda tidak memiliki hak akses untuk membuka halaman Customer.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
