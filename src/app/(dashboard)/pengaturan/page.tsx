@@ -659,7 +659,7 @@ export default function PengaturanPage() {
           <form onSubmit={handleUpdateCompany} className="space-y-6 max-w-3xl">
             <div>
               <h2 className="text-xl font-bold text-[#151D48]">Metode Pembayaran</h2>
-              <p className="text-sm text-gray-500 mt-1">Daftar rekening bank untuk dilampirkan pada E-Invoice agar klien mudah membayar.</p>
+              <p className="text-sm text-gray-500 mt-1">Daftar rekening bank untuk dilampirkan pada E-Invoice agar customer mudah membayar.</p>
             </div>
 
             <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-sm">

@@ -90,7 +90,7 @@ export default function TambahPendapatanPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || amount <= 0) return alert("Jumlah pendapatan harus lebih dari 0");
-    if (!clientId && !notes) return alert("Pilih Klien atau tambahkan Catatan Sumber");
+    if (!clientId && !notes) return alert("Pilih Customer atau tambahkan Catatan Sumber");
     
     setLoading(true);
     try {
@@ -171,9 +171,9 @@ export default function TambahPendapatanPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Klien / Sumber <span className="text-danger">*</span></label>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Customer / Sumber <span className="text-danger">*</span></label>
                 <CustomSelect 
-                  placeholder="Pilih Klien"
+                  placeholder="Pilih Customer"
                   options={[
                     ...clients.map(c => ({ value: c.id, label: c.name })),
                     { value: "lainnya", label: "Tunai / Lainnya" }

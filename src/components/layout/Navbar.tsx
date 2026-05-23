@@ -172,7 +172,7 @@ export function Navbar() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari transaksi atau klien..."
+            placeholder="Cari transaksi atau customer..."
             className="w-full bg-[#F9FAFB] rounded-xl h-12 pl-12 pr-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5C67F2]/20 transition-all"
           />
         </form>

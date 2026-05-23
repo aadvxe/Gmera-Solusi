@@ -8,7 +8,7 @@ import { ArrowLeftIcon } from "@astraicons/react/bold";
 import { toast } from "sonner";
 import Link from "next/link";
 
-export default function TambahKlienPage() {
+export default function TambahCustomerPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -18,21 +18,21 @@ export default function TambahKlienPage() {
     
     // MOCK SUBMIT
     setTimeout(() => {
-      toast.success("Klien berhasil ditambahkan!");
+      toast.success("Customer berhasil ditambahkan!");
       setIsSubmitting(false);
-      router.push("/klien");
+      router.push("/customer");
     }, 1000);
   };
 
   return (
     <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
       <div className="p-6 border-b border-border flex items-center gap-4">
-        <Link href="/klien" className="p-2 text-text-secondary hover:bg-background rounded-lg transition-colors">
+        <Link href="/customer" className="p-2 text-text-secondary hover:bg-background rounded-lg transition-colors">
           <ArrowLeftIcon className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Tambah Klien Baru</h1>
-          <p className="text-sm text-text-secondary mt-1">Masukkan informasi detail klien untuk keperluan invoice dan penagihan.</p>
+          <h1 className="text-2xl font-bold text-text-primary">Tambah Customer Baru</h1>
+          <p className="text-sm text-text-secondary mt-1">Masukkan informasi detail customer untuk keperluan invoice dan penagihan.</p>
         </div>
       </div>
 
@@ -40,7 +40,7 @@ export default function TambahKlienPage() {
         <form id="client-form" className="space-y-6 max-w-3xl" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-text-primary mb-1.5">Nama Klien / Perusahaan <span className="text-danger">*</span></label>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">Nama Customer / Perusahaan <span className="text-danger">*</span></label>
               <Input type="text" required placeholder="Contoh: PT Bangun Persada" className="bg-background border-border" />
             </div>
             
@@ -59,7 +59,7 @@ export default function TambahKlienPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1.5">Email Klien <span className="text-danger">*</span></label>
+              <label className="block text-sm font-medium text-text-primary mb-1.5">Email Customer <span className="text-danger">*</span></label>
               <Input type="email" required placeholder="email@perusahaan.com" className="bg-background border-border" />
             </div>
             
@@ -91,7 +91,7 @@ export default function TambahKlienPage() {
       </div>
 
       <div className="p-6 border-t border-border bg-background/50 flex justify-end gap-3 shrink-0">
-        <Link href="/klien">
+        <Link href="/customer">
           <Button variant="outline">Batal</Button>
         </Link>
         <Button 
@@ -100,7 +100,7 @@ export default function TambahKlienPage() {
           disabled={isSubmitting}
           className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-70"
         >
-          {isSubmitting ? "Menyimpan..." : "Simpan Klien"}
+          {isSubmitting ? "Menyimpan..." : "Simpan Customer"}
         </Button>
       </div>
     </div>

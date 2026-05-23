@@ -20,7 +20,7 @@ import { getClients, insertClient, updateClient, deleteClient, Client, getClient
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 
-export default function KlienPage() {
+export default function CustomerPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [clients, setClients] = useState<(Client & { stats?: { totalInvoices: number, unpaidAmount: number } })[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,9 +135,9 @@ export default function KlienPage() {
     setLoading(false);
 
     if (error) {
-      toast.error("Gagal menghapus klien: " + error.message);
+      toast.error("Gagal menghapus customer: " + error.message);
     } else {
-      toast.success("Klien berhasil dihapus");
+      toast.success("Customer berhasil dihapus");
       setIsDeleteModalOpen(false);
       setClientToDelete(null);
       loadData();
@@ -152,11 +152,11 @@ export default function KlienPage() {
       if (isEdit && currentClientId) {
         const { error } = await updateClient(currentClientId, formData);
         if (error) throw error;
-        toast.success("Klien berhasil diperbarui");
+        toast.success("Customer berhasil diperbarui");
       } else {
         const { error } = await insertClient(formData);
         if (error) throw error;
-        toast.success("Klien baru berhasil ditambahkan");
+        toast.success("Customer baru berhasil ditambahkan");
       }
       setIsModalOpen(false);
       resetForm();
@@ -177,8 +177,8 @@ export default function KlienPage() {
         <div className="p-6 border-b border-border">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-[#151D48]">Manajemen Klien</h1>
-              <p className="text-sm text-gray-500 mt-1">Kelola data pelanggan dan riwayat penagihan</p>
+              <h1 className="text-2xl font-bold text-[#151D48]">Manajemen Customer</h1>
+              <p className="text-sm text-gray-500 mt-1">Kelola data customer dan riwayat penagihan</p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               <Button variant="outline" className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export default function KlienPage() {
                 onClick={() => { resetForm(); setIsModalOpen(true); }}
                 className="w-full sm:w-auto flex items-center gap-2 bg-[#5C67F2] hover:bg-[#4a55c2] text-white"
               >
-                <PlusIcon className="w-4 h-4" /> Tambah Klien
+                <PlusIcon className="w-4 h-4" /> Tambah Customer
               </Button>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function KlienPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 max-w-md">
               <Input 
-                placeholder="Cari nama klien, email, atau telepon..." 
+                placeholder="Cari nama customer, email, atau telepon..." 
                 icon={<SearchIcon className="w-[18px] h-[18px]" />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -226,7 +226,7 @@ export default function KlienPage() {
                   <div className="absolute top-full left-1/2 -translate-x-1/2 z-50 mt-2">
                     <div className="w-[calc(100vw-2rem)] sm:w-[500px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-2xl p-6 animate-in fade-in slide-in-from-top-2 duration-200">
                       <div className="mb-5">
-                        <h3 className="font-bold text-[#151D48]">Filter Klien</h3>
+                        <h3 className="font-bold text-[#151D48]">Filter Customer</h3>
                       </div>
 
                       <div className="space-y-6">
@@ -243,7 +243,7 @@ export default function KlienPage() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status Klien</label>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status Customer</label>
                             <CustomSelect 
                               options={[
                                 { value: "all", label: "Semua Status" },
@@ -293,7 +293,7 @@ export default function KlienPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama Klien / Perusahaan</TableHead>
+                <TableHead>Nama Customer / Perusahaan</TableHead>
                 <TableHead>Kontak</TableHead>
                 <TableHead className="text-center">Total Invoice</TableHead>
                 <TableHead className="text-right">Piutang Berjalan</TableHead>
@@ -304,13 +304,13 @@ export default function KlienPage() {
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-10 text-gray-500">
-                    Memuat data klien...
+                    Memuat data customer...
                   </TableCell>
                 </TableRow>
               ) : clients.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-10 text-gray-500">
-                    Tidak ada data klien yang ditemukan.
+                    Tidak ada data customer yang ditemukan.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -394,8 +394,8 @@ export default function KlienPage() {
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
           <div className="flex items-center justify-between p-6 border-b border-gray-100">
             <div>
-              <h2 className="text-xl font-bold text-[#151D48]">{isEdit ? "Edit Klien" : "Tambah Klien Baru"}</h2>
-              <p className="text-sm text-gray-500 mt-1">Masukkan informasi detail klien untuk keperluan invoice.</p>
+              <h2 className="text-xl font-bold text-[#151D48]">{isEdit ? "Edit Customer" : "Tambah Customer Baru"}</h2>
+              <p className="text-sm text-gray-500 mt-1">Masukkan informasi detail customer untuk keperluan invoice.</p>
             </div>
             <button 
               onClick={() => { setIsModalOpen(false); resetForm(); }}
@@ -408,7 +408,7 @@ export default function KlienPage() {
             <form id="client-form" className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-[#151D48] mb-1.5">Nama Klien / Perusahaan <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-[#151D48] mb-1.5">Nama Customer / Perusahaan <span className="text-red-500">*</span></label>
                   <Input 
                     type="text" 
                     required 
@@ -443,7 +443,7 @@ export default function KlienPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#151D48] mb-1.5">Email Klien <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-[#151D48] mb-1.5">Email Customer <span className="text-red-500">*</span></label>
                   <Input 
                     type="email" 
                     required 
@@ -513,7 +513,7 @@ export default function KlienPage() {
           <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
             <Button variant="outline" onClick={() => { setIsModalOpen(false); resetForm(); }}>Batal</Button>
             <Button type="submit" form="client-form" disabled={loading} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
-              {loading ? "Menyimpan..." : isEdit ? "Simpan Perubahan" : "Simpan Klien"}
+              {loading ? "Menyimpan..." : isEdit ? "Simpan Perubahan" : "Simpan Customer"}
             </Button>
           </div>
         </div>
@@ -523,19 +523,19 @@ export default function KlienPage() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Hapus Klien"
-        description="Apakah Anda yakin ingin menghapus klien ini? Tindakan ini tidak dapat dibatalkan."
+        title="Hapus Customer"
+        description="Apakah Anda yakin ingin menghapus customer ini? Tindakan ini tidak dapat dibatalkan."
         confirmText="Hapus"
         isDanger={true}
         isLoading={loading}
       />
 
-      {/* Detail Klien Modal */}
+      {/* Detail Customer Modal */}
       <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)}>
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
           <div className="flex items-center justify-between p-6 border-b border-gray-100">
             <div>
-              <h2 className="text-xl font-bold text-[#151D48]">Profil Klien</h2>
+              <h2 className="text-xl font-bold text-[#151D48]">Profil Customer</h2>
               <p className="text-sm text-gray-500 mt-1">Detail informasi dan riwayat invoice.</p>
             </div>
             <button 
@@ -594,7 +594,7 @@ export default function KlienPage() {
                           </TableRow>
                         ) : clientInvoices.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={4} className="text-center py-6 text-gray-500">Belum ada invoice untuk klien ini.</TableCell>
+                            <TableCell colSpan={4} className="text-center py-6 text-gray-500">Belum ada invoice untuk customer ini.</TableCell>
                           </TableRow>
                         ) : (
                           clientInvoices.map((inv) => (

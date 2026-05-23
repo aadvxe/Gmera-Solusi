@@ -14,7 +14,7 @@ const MOCK_CLIENT_DETAIL = {
   address: "Jl. Sudirman No. 12, Jakarta Pusat, DKI Jakarta 10220", 
   phone: "0812-3456-7890", 
   email: "info@majusejahtera.com", 
-  notes: "Klien VIP, berikan respon cepat untuk setiap permintaan quotation.",
+  notes: "Customer VIP, berikan respon cepat untuk setiap permintaan quotation.",
   totalInvoices: 12, 
   totalValue: 150000000,
   paidCount: 8,
@@ -29,7 +29,7 @@ const MOCK_INVOICE_HISTORY = [
   { id: "INV-010", date: "10 Des 2025", total: 25000000, status: "Lunas" },
 ];
 
-export default function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
 
@@ -38,15 +38,15 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/klien" className="p-2 text-text-secondary hover:bg-surface rounded-lg transition-colors border border-border">
+          <Link href="/customer" className="p-2 text-text-secondary hover:bg-surface rounded-lg transition-colors border border-border">
             <ArrowLeftIcon className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-text-primary">Detail Klien</h1>
+            <h1 className="text-2xl font-bold text-text-primary">Detail Customer</h1>
           </div>
         </div>
         <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
-          <EditIcon className="w-4 h-4" /> Edit Profil Klien
+          <EditIcon className="w-4 h-4" /> Edit Profil Customer
         </Button>
       </div>
 

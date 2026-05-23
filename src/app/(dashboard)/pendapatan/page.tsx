@@ -162,7 +162,7 @@ export default function PendapatanPage() {
   const exportColumns = [
     { header: 'Tanggal', key: 'date', isDate: true, width: 14 },
     { header: 'No. Referensi', key: 'reference_number', width: 16 },
-    { header: 'Klien / Sumber', key: 'source', width: 24 },
+    { header: 'Customer / Sumber', key: 'source', width: 24 },
     { header: 'Kategori', key: 'categories.name', width: 18 },
     { header: 'Jumlah (Rp)', key: 'amount', isCurrency: true, width: 22 },
     { header: 'Status', key: 'status', width: 12 }
@@ -240,7 +240,7 @@ export default function PendapatanPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 max-w-md">
               <Input 
-                placeholder="Cari referensi atau klien..." 
+                placeholder="Cari referensi atau customer..." 
                 icon={<SearchIcon className="w-[18px] h-[18px]" />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -335,7 +335,7 @@ export default function PendapatanPage() {
               <TableRow>
                 <TableHead>Tanggal</TableHead>
                 <TableHead>No. Ref</TableHead>
-                <TableHead>Klien / Sumber</TableHead>
+                <TableHead>Customer / Sumber</TableHead>
                 <TableHead>Kategori</TableHead>
                 <TableHead className="text-right">Jumlah</TableHead>
                 <TableHead>Status</TableHead>
@@ -459,7 +459,7 @@ export default function PendapatanPage() {
                 <span className="font-semibold text-[#151D48]">{selectedIncome.reference_number || '-'}</span>
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-3">
-                <span className="text-gray-500 text-sm">Sumber / Klien</span>
+                <span className="text-gray-500 text-sm">Sumber / Customer</span>
                 <span className="font-semibold text-[#151D48]">{selectedIncome.source}</span>
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-3">
@@ -526,9 +526,9 @@ export default function PendapatanPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-[#151D48] mb-1.5">Klien / Sumber</label>
+              <label className="block text-sm font-medium text-[#151D48] mb-1.5">Customer / Sumber</label>
               <CustomSelect 
-                placeholder="Pilih Klien"
+                placeholder="Pilih Customer"
                 options={[
                   ...clients.map(c => ({ value: c.name, label: c.name })),
                   { value: "Lainnya", label: "Lainnya" }

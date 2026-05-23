@@ -111,7 +111,7 @@ function PencarianContent() {
         <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
           <SearchIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-[#151D48] mb-2">Ketik Sesuatu untuk Mencari</h3>
-          <p className="text-gray-500 text-sm">Cari nama klien, deskripsi transaksi, atau nomor invoice.</p>
+          <p className="text-gray-500 text-sm">Cari nama customer, deskripsi transaksi, atau nomor invoice.</p>
         </div>
       )}
 
@@ -129,13 +129,13 @@ function PencarianContent() {
             <div className="w-8 h-8 rounded-lg bg-[#5C67F2]/10 text-[#5C67F2] flex items-center justify-center">
               <Profile1Icon className="w-4 h-4" />
             </div>
-            <h2 className="text-lg font-bold text-[#151D48]">Klien ({results.clients.length})</h2>
+            <h2 className="text-lg font-bold text-[#151D48]">Customer ({results.clients.length})</h2>
           </div>
           <div className="divide-y divide-gray-50">
             {results.clients.map(client => (
               <div 
                 key={client.id} 
-                onClick={() => router.push(`/klien/${client.id}`)}
+                onClick={() => router.push(`/customer/${client.id}`)}
                 className="p-4 hover:bg-gray-50 cursor-pointer transition-colors flex justify-between items-center"
               >
                 <div>

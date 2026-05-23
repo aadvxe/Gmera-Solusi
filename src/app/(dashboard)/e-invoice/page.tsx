@@ -103,7 +103,7 @@ export default function EInvoicePage() {
   };
 
   const handleCreateInvoice = async () => {
-    if (!clientId) return alert("Pilih klien terlebih dahulu");
+    if (!clientId) return alert("Pilih customer terlebih dahulu");
     if (items.some(i => !i.name || i.qty <= 0 || i.price <= 0)) return alert("Lengkapi detail barang/jasa");
 
     setLoading(true);
@@ -180,7 +180,7 @@ export default function EInvoicePage() {
 
   const exportColumns = [
     { header: 'No. Invoice', key: 'invoice_number', width: 18 },
-    { header: 'Klien', key: 'clients.name', width: 24 },
+    { header: 'Customer', key: 'clients.name', width: 24 },
     { header: 'Tgl. Terbit', key: 'invoice_date', isDate: true, width: 14 },
     { header: 'Jatuh Tempo', key: 'due_date', isDate: true, width: 14 },
     { header: 'Total (Rp)', key: 'grand_total', isCurrency: true, width: 22 },
@@ -237,7 +237,7 @@ export default function EInvoicePage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-[#151D48]">E-Invoice</h1>
-              <p className="text-sm text-gray-500 mt-1">Kelola pembuatan dan penagihan faktur ke klien</p>
+              <p className="text-sm text-gray-500 mt-1">Kelola pembuatan dan penagihan faktur ke customer</p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               <Button variant="outline" className="flex items-center gap-2" onClick={handleExportExcel}>
@@ -259,7 +259,7 @@ export default function EInvoicePage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 max-w-md">
               <Input 
-                placeholder="Cari nomor invoice atau klien..." 
+                placeholder="Cari nomor invoice atau customer..." 
                 icon={<SearchIcon className="w-[18px] h-[18px]" />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -308,10 +308,10 @@ export default function EInvoicePage() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Klien</label>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Customer</label>
                             <CustomSelect 
                               options={[
-                                { value: "all", label: "Semua Klien" },
+                                { value: "all", label: "Semua Customer" },
                                 ...clients.map(c => ({ value: c.id, label: c.name }))
                               ]}
                               value={filterClientId}
@@ -358,7 +358,7 @@ export default function EInvoicePage() {
             <TableHeader>
               <TableRow>
                 <TableHead>No. Invoice</TableHead>
-                <TableHead>Klien</TableHead>
+                <TableHead>Customer</TableHead>
                 <TableHead>Tgl. Terbit</TableHead>
                 <TableHead>Jatuh Tempo</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -448,7 +448,7 @@ export default function EInvoicePage() {
           <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
             <div>
               <h2 className="text-xl font-bold text-[#151D48]">Buat Invoice Baru</h2>
-              <p className="text-sm text-gray-500 mt-1">Buat faktur penagihan untuk klien Anda</p>
+              <p className="text-sm text-gray-500 mt-1">Buat faktur penagihan untuk customer Anda</p>
             </div>
             <button 
               onClick={() => setIsModalOpen(false)}
@@ -462,19 +462,19 @@ export default function EInvoicePage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Form Content */}
                 <div className="lg:col-span-2 space-y-6">
-                  {/* Info Klien */}
+                  {/* Info Customer */}
                   <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
                     <h3 className="text-sm font-semibold text-[#151D48] mb-4 flex items-center gap-2">
-                    <Document1Icon className="w-4 h-4 text-[#5C67F2]" /> Informasi Klien
+                    <Document1Icon className="w-4 h-4 text-[#5C67F2]" /> Informasi Customer
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-medium text-gray-500 mb-1.5">Klien <span className="text-red-500">*</span></label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1.5">Customer <span className="text-red-500">*</span></label>
                         <CustomSelect 
                           options={clients.map(c => ({ value: c.id, label: c.name }))}
                           value={clientId}
                           onChange={setClientId}
-                          placeholder="Pilih Klien"
+                          placeholder="Pilih Customer"
                           triggerClassName="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5C67F2]/20"
                         />
                       </div>

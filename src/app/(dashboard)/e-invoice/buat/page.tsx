@@ -89,7 +89,7 @@ export default function BuatInvoicePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientId) return alert("Silakan pilih klien terlebih dahulu.");
+    if (!clientId) return alert("Silakan pilih customer terlebih dahulu.");
     if (!dueDate) return alert("Silakan tentukan tanggal jatuh tempo.");
     if (items.some(i => !i.name || i.price <= 0)) return alert("Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid.");
 
@@ -182,17 +182,17 @@ export default function BuatInvoicePage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Buat Invoice Baru</h1>
-          <p className="text-sm text-text-secondary mt-1">Buat faktur penagihan untuk klien Anda</p>
+          <p className="text-sm text-text-secondary mt-1">Buat faktur penagihan untuk customer Anda</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Form Area */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Section 1: Informasi Klien */}
+          {/* Section 1: Informasi Customer */}
           <div className="bg-surface border border-border rounded-2xl shadow-sm p-6">
             <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
-              <Document1Icon className="w-[18px] h-[18px] text-primary" /> Informasi Invoice & Klien
+              <Document1Icon className="w-[18px] h-[18px] text-primary" /> Informasi Invoice & Customer
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,9 +205,9 @@ export default function BuatInvoicePage() {
                 <CustomDatePicker value={invoiceDate} onChange={setInvoiceDate} />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Klien <span className="text-danger">*</span></label>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Customer <span className="text-danger">*</span></label>
                 <CustomSelect 
-                  placeholder="Pilih Klien"
+                  placeholder="Pilih Customer"
                   options={clients.map(c => ({ value: c.id, label: c.name }))}
                   value={clientId}
                   onChange={setClientId}
@@ -217,7 +217,7 @@ export default function BuatInvoicePage() {
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Alamat Penagihan</label>
                 <textarea 
                   className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[60px] resize-y"
-                  placeholder="Alamat akan terisi otomatis setelah klien dipilih..."
+                  placeholder="Alamat akan terisi otomatis setelah customer dipilih..."
                   value={selectedClient ? `${selectedClient.address || ''}, ${selectedClient.city || ''}, ${selectedClient.province || ''}` : ""}
                   readOnly
                 ></textarea>
@@ -362,7 +362,7 @@ export default function BuatInvoicePage() {
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Alamat Pengiriman (Jika berbeda dengan penagihan)</label>
                 <textarea 
                   className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[60px] resize-y"
-                  placeholder="Masukkan alamat pengiriman jika berbeda dengan alamat klien..."
+                  placeholder="Masukkan alamat pengiriman jika berbeda dengan alamat customer..."
                   value={shippingAddress}
                   onChange={(e) => setShippingAddress(e.target.value)}
                 ></textarea>
@@ -474,7 +474,7 @@ export default function BuatInvoicePage() {
                 <CustomDatePicker value={dueDate} onChange={setDueDate} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Catatan untuk Klien</label>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Catatan untuk Customer</label>
                 <textarea 
                   className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[80px] resize-y text-xs"
                   placeholder="Terima kasih atas bisnis Anda..."

@@ -447,18 +447,18 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Bottom Row: Klien Teratas, Aktivitas Terbaru */}
+      {/* Bottom Row: Customer Teratas, Aktivitas Terbaru */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Klien Teratas */}
+        {/* Customer Teratas */}
         <div className="bg-white rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-[#151D48] mb-6">Klien Teratas</h2>
+          <h2 className="text-lg font-bold text-[#151D48] mb-6">Customer Teratas</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-xs text-gray-400 border-b border-gray-100">
                 <tr>
                   <th className="font-normal text-left pb-3 w-8">#</th>
-                  <th className="font-normal text-left pb-3">Nama Klien</th>
+                  <th className="font-normal text-left pb-3">Nama Customer</th>
                   <th className="font-normal text-left pb-3">Kontribusi</th>
                   <th className="font-normal text-right pb-3">Persentase</th>
                 </tr>
