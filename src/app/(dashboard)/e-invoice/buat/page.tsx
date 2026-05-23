@@ -225,60 +225,6 @@ export default function BuatInvoicePage() {
             </div>
           </div>
 
-          {/* Section: Informasi Pengiriman */}
-          <div className="bg-surface border border-border rounded-2xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
-              <TruckIcon className="w-[18px] h-[18px] text-primary" /> Informasi Pengiriman (Opsional)
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Kurir / Metode Pengiriman</label>
-                <CustomSelect 
-                  placeholder="Pilih Kurir"
-                  options={[
-                    { value: "JNE", label: "JNE" },
-                    { value: "J&T", label: "J&T" },
-                    { value: "SiCepat", label: "SiCepat" },
-                    { value: "Anteraja", label: "Anteraja" },
-                    { value: "GoSend", label: "GoSend" },
-                    { value: "GrabExpress", label: "GrabExpress" },
-                    { value: "Self Pickup", label: "Ambil Sendiri" },
-                    { value: "Lainnya", label: "Lainnya" }
-                  ]}
-                  value={shippingMethod}
-                  onChange={setShippingMethod}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Ongkos Kirim (Rp)</label>
-                <Input 
-                  type="text" 
-                  value={formatRupiah(shippingCost)}
-                  onChange={(e) => setShippingCost(parseRupiah(e.target.value))}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">No. Resi</label>
-                <Input 
-                  type="text" 
-                  placeholder="Contoh: JNE123456789"
-                  value={trackingNumber} 
-                  onChange={e => setTrackingNumber(e.target.value)} 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Alamat Pengiriman (Opsional)</label>
-                <textarea 
-                  className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[40px] resize-y text-xs"
-                  placeholder="Masukkan alamat pengiriman jika berbeda dengan alamat klien..."
-                  value={shippingAddress}
-                  onChange={e => setShippingAddress(e.target.value)}
-                ></textarea>
-              </div>
-            </div>
-          </div>
-
           {/* Section 2: Detail Barang/Jasa */}
           <div className="bg-surface border border-border rounded-2xl shadow-sm p-6 overflow-hidden">
             <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
@@ -365,40 +311,58 @@ export default function BuatInvoicePage() {
             </div>
           </div>
 
-          {/* Section 3: Informasi Pengiriman (Feature Ideation 1.2) */}
+          {/* Section 3: Informasi Pengiriman (Merged & Premium) */}
           <div className="bg-surface border border-border rounded-2xl shadow-sm p-6">
             <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
-              <TruckIcon className="w-[18px] h-[18px] text-primary" /> Informasi Pengiriman
+              <TruckIcon className="w-[18px] h-[18px] text-primary" /> Informasi Pengiriman (Opsional)
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">Metode Pengiriman</label>
-                <select 
-                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Kurir / Metode Pengiriman</label>
+                <CustomSelect 
+                  placeholder="Pilih Kurir"
+                  options={[
+                    { value: "JNE", label: "JNE" },
+                    { value: "J&T", label: "J&T" },
+                    { value: "SiCepat", label: "SiCepat" },
+                    { value: "Anteraja", label: "Anteraja" },
+                    { value: "GoSend", label: "GoSend" },
+                    { value: "GrabExpress", label: "GrabExpress" },
+                    { value: "Self Pickup", label: "Ambil Sendiri" },
+                    { value: "Lainnya", label: "Lainnya" }
+                  ]}
                   value={shippingMethod}
-                  onChange={e => setShippingMethod(e.target.value)}
-                >
-                  <option value="">-- Pilih Kurir --</option>
-                  <option value="jne_reg">JNE Regular</option>
-                  <option value="jne_yes">JNE YES</option>
-                  <option value="gosend">GoSend / GrabExpress</option>
-                  <option value="custom">Kurir Internal / Custom</option>
-                </select>
+                  onChange={setShippingMethod}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">Ongkos Kirim (Rp)</label>
+                <Input 
+                  type="text" 
+                  placeholder="0"
+                  value={formatRupiah(shippingCost)}
+                  onChange={(e) => setShippingCost(parseRupiah(e.target.value))}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">No. Resi / Pelacakan</label>
-                <Input type="text" placeholder="Opsional" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} />
+                <Input 
+                  type="text" 
+                  placeholder="Contoh: JNE123456789" 
+                  value={trackingNumber} 
+                  onChange={e => setTrackingNumber(e.target.value)} 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Estimasi Sampai</label>
-                <Input type="date" value={estimatedArrival} onChange={e => setEstimatedArrival(e.target.value)} />
+                <CustomDatePicker value={estimatedArrival} onChange={setEstimatedArrival} />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Alamat Pengiriman (Jika berbeda dengan penagihan)</label>
                 <textarea 
                   className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[60px] resize-y"
-                  placeholder="Opsional..."
+                  placeholder="Masukkan alamat pengiriman jika berbeda dengan alamat klien..."
                   value={shippingAddress}
                   onChange={(e) => setShippingAddress(e.target.value)}
                 ></textarea>

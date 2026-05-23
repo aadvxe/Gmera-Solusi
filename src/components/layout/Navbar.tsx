@@ -201,7 +201,7 @@ export function Navbar() {
                     <button onClick={clearNotifications} className="text-xs font-semibold text-[#5C67F2] hover:text-[#4a55c2] hover:underline transition-colors">Tandai dibaca</button>
                   )}
                 </div>
-                <div className="max-h-[300px] overflow-y-auto">
+                <div className="max-h-[300px] overflow-y-auto scrollbar-none">
                   {notifications.length > 0 ? (
                     notifications.map((n: any) => (
                       <div key={n.id} className="relative p-4 border-b border-gray-50 hover:bg-[#5C67F2]/5 cursor-pointer transition-colors group flex items-start gap-3">

@@ -11,6 +11,7 @@ import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 import { getClients, getCategories, getPaymentMethods, createIncome, getInvoicesByClient, Client, Category, PaymentMethod, Invoice } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
+import { formatRupiah, parseRupiah } from "@/lib/utils";
 
 export default function TambahPendapatanPage() {
   const router = useRouter();
@@ -80,15 +81,10 @@ export default function TambahPendapatanPage() {
   }, [clientId]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, "");
-    if (val) {
-      const num = parseInt(val, 10);
-      setAmountDisplay(new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num));
-      setAmount(num);
-    } else {
-      setAmountDisplay("");
-      setAmount(0);
-    }
+    const raw = e.target.value;
+    const parsed = parseRupiah(raw);
+    setAmount(parsed);
+    setAmountDisplay(parsed > 0 ? formatRupiah(parsed) : raw === "0" ? "0" : "");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -231,20 +227,20 @@ export default function TambahPendapatanPage() {
                     )}
                   </div>
                   
-                  {isDropdownOpen && clientInvoices.length > 0 && (
-                    <div className="absolute z-[100] w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
-                      <ul className="max-h-60 overflow-auto py-1">
+                   {isDropdownOpen && clientInvoices.length > 0 && (
+                    <div className="absolute z-[100] w-full mt-1 bg-white border border-gray-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
+                      <ul className="max-h-60 overflow-auto p-1.5 space-y-0.5 scrollbar-none">
                         {clientInvoices
                           .filter(inv => inv.invoice_number.toLowerCase().includes(refNumber.toLowerCase()) || refNumber === '')
                           .map(inv => (
                           <li 
                             key={inv.id}
-                            className={`px-4 py-2.5 text-sm cursor-pointer transition-colors select-none flex justify-between items-center ${invoiceId === inv.id ? 'bg-[#5C67F2]/10 text-[#5C67F2] font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
+                            className={`px-3 py-2 text-sm cursor-pointer transition-all select-none rounded-xl flex justify-between items-center ${invoiceId === inv.id ? 'bg-[#5C67F2]/10 text-[#5C67F2] font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
                             onClick={() => {
                               setInvoiceId(inv.id);
                               setRefNumber(inv.invoice_number);
                               setAmount(inv.grand_total);
-                              setAmountDisplay(new Intl.NumberFormat('id-ID').format(inv.grand_total));
+                              setAmountDisplay(formatRupiah(inv.grand_total));
                               setIsDropdownOpen(false);
                             }}
                           >
@@ -253,7 +249,7 @@ export default function TambahPendapatanPage() {
                           </li>
                         ))}
                         {clientInvoices.filter(inv => inv.invoice_number.toLowerCase().includes(refNumber.toLowerCase())).length === 0 && (
-                          <li className="px-4 py-3 text-sm text-gray-500 text-center italic">Tidak ada invoice yang cocok</li>
+                          <li className="px-3 py-2 text-sm text-gray-500 text-center italic">Tidak ada invoice yang cocok</li>
                         )}
                       </ul>
                     </div>

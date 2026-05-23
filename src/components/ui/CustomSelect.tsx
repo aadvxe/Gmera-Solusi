@@ -58,10 +58,10 @@ export function CustomSelect({
       </button>
 
       {isOpen && (
-        <div className="absolute z-[100] mt-2 w-full bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 overflow-hidden">
-          <ul className="max-h-60 overflow-auto py-1">
+        <div className="absolute z-[100] mt-1 w-full bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 overflow-hidden">
+          <ul className="max-h-60 overflow-auto p-1.5 space-y-0.5 scrollbar-none">
             {options.length === 0 ? (
-              <li className="px-4 py-3 text-sm text-gray-500 text-center italic">Tidak ada opsi</li>
+              <li className="px-3 py-2 text-sm text-gray-500 text-center italic">Tidak ada opsi</li>
             ) : (
               options.map((option) => (
                 <li
@@ -71,7 +71,7 @@ export function CustomSelect({
                     setIsOpen(false);
                   }}
                   className={cn(
-                    "px-4 py-2.5 text-sm cursor-pointer transition-colors select-none",
+                    "px-3 py-2 text-sm cursor-pointer transition-all select-none rounded-xl",
                     option.value === value 
                       ? "bg-[#5C67F2]/10 text-[#5C67F2] font-semibold" 
                       : "text-gray-700 hover:bg-gray-50"

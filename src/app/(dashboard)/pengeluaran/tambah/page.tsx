@@ -11,6 +11,7 @@ import { CustomSelect } from "@/components/ui/CustomSelect";
 import { getCategories, getPaymentMethods, createExpense, Category, PaymentMethod } from "@/lib/db";
 import { uploadFile } from "@/lib/storage";
 import { toast } from "sonner";
+import { formatRupiah, parseRupiah } from "@/lib/utils";
 
 export default function TambahPengeluaranPage() {
   const router = useRouter();
@@ -48,15 +49,10 @@ export default function TambahPengeluaranPage() {
   }, []);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, "");
-    if (val) {
-      const num = parseInt(val, 10);
-      setAmountDisplay(new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num));
-      setAmount(num);
-    } else {
-      setAmountDisplay("");
-      setAmount(0);
-    }
+    const raw = e.target.value;
+    const parsed = parseRupiah(raw);
+    setAmount(parsed);
+    setAmountDisplay(parsed > 0 ? formatRupiah(parsed) : raw === "0" ? "0" : "");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -176,14 +172,15 @@ export default function TambahPengeluaranPage() {
 
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Status Pembayaran</label>
-                <select 
-                  className="flex h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                <CustomSelect 
+                  placeholder="Pilih Status"
+                  options={[
+                    { value: "paid", label: "Lunas" },
+                    { value: "pending", label: "Belum Dibayar (Utang)" }
+                  ]}
                   value={status}
-                  onChange={e => setStatus(e.target.value)}
-                >
-                  <option value="paid">Lunas</option>
-                  <option value="pending">Belum Dibayar (Utang)</option>
-                </select>
+                  onChange={setStatus}
+                />
               </div>
 
               <div>
