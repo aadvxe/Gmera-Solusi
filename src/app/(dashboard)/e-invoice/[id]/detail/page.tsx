@@ -296,13 +296,24 @@ export default function DetailInvoicePage() {
           /* Hide sidebar, navbar and all UI chrome */
           nav, aside, header, footer,
           [role="navigation"], [role="complementary"],
-          .print\\:hidden {
+          .print\\:hidden,
+          button[aria-label="Tutup menu"],
+          .fixed.inset-0.bg-black\\/40 {
             display: none !important;
           }
 
           main {
             padding: 0 !important;
             margin: 0 !important;
+            background: transparent !important;
+          }
+
+          /* Reset background and shadow of all ancestor and sibling elements of #invoice-document to avoid gray backgrounds */
+          div:not(#invoice-document):not(#invoice-document *) {
+            background: transparent !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
           }
 
           #invoice-document {
@@ -314,6 +325,14 @@ export default function DetailInvoicePage() {
             overflow: hidden !important;
             background: white !important;
             box-sizing: border-box !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Ensure high-fidelity exact colors for table headers and accents inside the invoice */
+          #invoice-document * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
 
           @page {

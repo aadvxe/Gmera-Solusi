@@ -61,7 +61,7 @@ export function Sidebar() {
           type="button"
           aria-label="Tutup menu"
           onClick={closeSidebar}
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px] lg:hidden print:hidden"
         />
       )}
       <aside
