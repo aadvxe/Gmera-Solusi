@@ -514,11 +514,10 @@ export default function EditInvoicePage() {
                 <CustomSelect 
                   placeholder="Pilih Status"
                   options={[
-                    { value: "Draft", label: "Draft" },
-                    { value: "Sent", label: "Terkirim" },
-                    { value: "Paid", label: "Lunas" },
-                    { value: "Overdue", label: "Terlambat" },
-                    { value: "Cancelled", label: "Dibatalkan" }
+                    { value: "unpaid", label: "Belum Bayar" },
+                    { value: "paid", label: "Lunas" },
+                    { value: "overdue", label: "Jatuh Tempo" },
+                    { value: "cancelled", label: "Dibatalkan" }
                   ]}
                   value={status}
                   onChange={setStatus}

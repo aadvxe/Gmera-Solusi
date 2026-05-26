@@ -80,6 +80,9 @@ export default function EInvoicePage() {
       case "overdue":
       case "jatuh tempo":
         return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f08a5d]/10 text-[#f08a5d] w-max block">Jatuh T.</span>;
+      case "cancelled":
+      case "dibatalkan":
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 w-max block">Dibatalkan</span>;
       default:
         return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#ffd166]/10 text-[#ffd166] w-max block">Belum Bayar</span>;
     }
