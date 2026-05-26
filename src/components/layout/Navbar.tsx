@@ -4,13 +4,13 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { NotificationIcon, ChevronDownIcon, Profile1Icon, SettingsIcon, Logout2Icon, StatusUpIcon, ArrowDownIcon, DocumentIcon, PricingAlertIcon, CalenderIcon, DocumentDownloadIcon, Download2Icon, CloseIcon as CloseCircleIcon, MenuIcon } from "@astraicons/react/bold";
-import { SearchIcon } from "@astraicons/react/linear";
 import { useAuthStore } from "@/store/authStore";
 import { getRecentActivities } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { useSidebar } from "./SidebarContext";
+import { SearchDropdown } from "@/components/ui/SearchDropdown";
 
 export function Navbar() {
   const [greeting, setGreeting] = useState("Selamat Pagi");
@@ -21,7 +21,6 @@ export function Navbar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSeeAllOpen, setIsSeeAllOpen] = useState(false);
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [triggerReappear, setTriggerReappear] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -156,14 +155,7 @@ export function Navbar() {
     router.push("/login");
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/pencarian?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery("");
-      setIsMobileSearchOpen(false);
-    }
-  };
+
 
   return (
     <>
@@ -181,24 +173,15 @@ export function Navbar() {
         </button>
       </div>
 
-      {/* Middle Search Bar */}
+      {/* Middle Search Bar (Desktop) */}
       <div className="mx-8 hidden max-w-lg flex-1 lg:block">
-        <form onSubmit={handleSearch} className="relative">
-          <SearchIcon className="w-[18px] h-[18px] absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari transaksi atau customer..."
-            className="w-full bg-[#F9FAFB] rounded-xl h-12 pl-12 pr-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5C67F2]/20 transition-all"
-          />
-        </form>
+        <SearchDropdown />
       </div>
 
       {/* Right Actions */}
       <div className="flex min-w-0 items-center gap-3 sm:gap-6">
 
-        {/* Mobile Search */}
+        {/* Mobile Search Toggle */}
         <button
           type="button"
           aria-label="Buka pencarian"
@@ -211,7 +194,9 @@ export function Navbar() {
             isMobileSearchOpen ? "bg-[#5C67F2] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
           }`}
         >
-          <SearchIcon className="h-5 w-5" />
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
         </button>
 
         {/* Notifications (Visible to all, contents filtered by role) */}
@@ -358,31 +343,35 @@ export function Navbar() {
       </div>
     </header>
 
+    {/* Mobile Search Overlay */}
     {isMobileSearchOpen && (
-      <div className="fixed left-4 right-4 top-16 z-50 sm:top-20 lg:hidden">
-        <form
-          onSubmit={handleSearch}
-          className="flex gap-2 rounded-2xl border border-gray-100 bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
-        >
-          <div className="relative min-w-0 flex-1">
-            <SearchIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari transaksi atau customer..."
-              className="h-11 w-full rounded-xl bg-[#F9FAFB] pl-10 pr-3 text-sm text-gray-700 outline-none transition-all focus:ring-2 focus:ring-[#5C67F2]/20"
+      <>
+        {/* Blur backdrop */}
+        <div
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+          onClick={() => setIsMobileSearchOpen(false)}
+        />
+        {/* Search panel */}
+        <div className="fixed left-0 right-0 top-0 z-50 lg:hidden">
+          <div className="mx-4 mt-4 rounded-2xl border border-white/30 bg-white/95 backdrop-blur-2xl shadow-[0_16px_48px_rgba(0,0,0,0.18)] p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 flex-1 pl-1">Pencarian</p>
+              <button
+                type="button"
+                onClick={() => setIsMobileSearchOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
+              >
+                <CloseCircleIcon className="w-4 h-4" />
+              </button>
+            </div>
+            <SearchDropdown
+              mobile
               autoFocus
+              onCloseMobile={() => setIsMobileSearchOpen(false)}
             />
           </div>
-          <button
-            type="submit"
-            className="flex h-11 shrink-0 items-center justify-center rounded-xl bg-[#5C67F2] px-4 text-sm font-semibold text-white"
-          >
-            Cari
-          </button>
-        </form>
-      </div>
+        </div>
+      </>
     )}
 
     {/* See All Notifications Modal */}

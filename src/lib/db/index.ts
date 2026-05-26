@@ -12,3 +12,4 @@ export * from './income';
 export * from './expense';
 export * from './users';
 export * from './dashboard';
+export * from './search';
