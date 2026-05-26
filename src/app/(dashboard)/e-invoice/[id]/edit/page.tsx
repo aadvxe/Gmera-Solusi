@@ -7,6 +7,7 @@ import { ArrowLeftIcon, SaveIcon, PlusIcon, TrashIcon, Document1Icon, TruckIcon,
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { getClients, getInvoiceById, updateInvoiceWithItems, Client } from "@/lib/db";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { toast } from "sonner";
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
@@ -20,6 +21,24 @@ interface InvoiceItem {
   qty: number;
   unit: string;
   price: number;
+}
+
+function splitAddress(addressStr: string) {
+  if (!addressStr) return { line1: "", line2: "" };
+  const normalized = addressStr.replace(/\r\n/g, "\n");
+  const lastNewlineIndex = normalized.lastIndexOf("\n");
+  if (lastNewlineIndex !== -1) {
+    const line1 = normalized.substring(0, lastNewlineIndex).trim();
+    const line2 = normalized.substring(lastNewlineIndex + 1).trim();
+    return { line1, line2 };
+  }
+  const lastCommaIndex = normalized.lastIndexOf(",");
+  if (lastCommaIndex === -1) {
+    return { line1: normalized, line2: "" };
+  }
+  const line1 = normalized.substring(0, lastCommaIndex + 1).trim();
+  const line2 = normalized.substring(lastCommaIndex + 1).trim();
+  return { line1, line2 };
 }
 
 export default function EditInvoicePage() {
@@ -53,6 +72,11 @@ export default function EditInvoicePage() {
   const [status, setStatus] = useState("unpaid");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [existingAttachmentUrl, setExistingAttachmentUrl] = useState<string | null>(null);
+  const [warningModal, setWarningModal] = useState<{ isOpen: boolean; title: string; description: string }>({
+    isOpen: false,
+    title: "",
+    description: ""
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,6 +143,20 @@ export default function EditInvoicePage() {
   // Selected Client Data
   const selectedClient = clients.find(c => c.id === clientId);
 
+  const { line1, line2 } = splitAddress(selectedClient?.address || "");
+  const addressLine2Parts = [];
+  if (selectedClient?.city) addressLine2Parts.push(selectedClient.city);
+  if (selectedClient?.province) addressLine2Parts.push(selectedClient.province);
+  if (selectedClient?.postal_code) addressLine2Parts.push(selectedClient.postal_code);
+  const cityProvincePostal = addressLine2Parts.join(", ");
+
+  const selectedClientAddressLine1 = line1;
+  const selectedClientAddressLine2 = line2 
+    ? `${line2} ${cityProvincePostal}`.trim() 
+    : cityProvincePostal;
+
+
+
   // Kalkulasi
   const subtotal = items.reduce((sum, item) => sum + (item.qty * item.price), 0);
   const taxAmount = applyTax ? ((subtotal - discountAmount) * taxRate) / 100 : 0;
@@ -147,9 +185,38 @@ export default function EditInvoicePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientId) return toast.error("Silakan pilih customer terlebih dahulu.");
-    if (!dueDate) return toast.error("Silakan tentukan tanggal jatuh tempo.");
-    if (items.some(i => !i.name || i.price <= 0)) return toast.error("Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid.");
+    if (!clientId) {
+      setWarningModal({
+        isOpen: true,
+        title: "Pilih Customer",
+        description: "Silakan pilih customer terlebih dahulu sebelum menyimpan invoice."
+      });
+      return;
+    }
+    if (!dueDate) {
+      setWarningModal({
+        isOpen: true,
+        title: "Tentukan Jatuh Tempo",
+        description: "Silakan tentukan tanggal jatuh tempo terlebih dahulu sebelum menyimpan invoice."
+      });
+      return;
+    }
+    if (dueDate && invoiceDate && dueDate < invoiceDate) {
+      setWarningModal({
+        isOpen: true,
+        title: "Tanggal Jatuh Tempo Tidak Valid",
+        description: "Tanggal jatuh tempo tidak boleh lebih awal dari tanggal terbit invoice."
+      });
+      return;
+    }
+    if (items.some(i => !i.name || i.price <= 0)) {
+      setWarningModal({
+        isOpen: true,
+        title: "Barang / Jasa Tidak Valid",
+        description: "Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid sebelum menyimpan invoice."
+      });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -279,7 +346,11 @@ export default function EditInvoicePage() {
                 <textarea 
                   className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C67F2]/20 min-h-[60px] resize-y"
                   placeholder="Alamat akan terisi otomatis setelah customer dipilih..."
-                  value={selectedClient ? `${selectedClient.address || ''}, ${selectedClient.city || ''}, ${selectedClient.province || ''}` : ""}
+                  value={
+                    selectedClient 
+                      ? `${selectedClientAddressLine1}\n${selectedClientAddressLine2}` 
+                      : ""
+                  }
                   readOnly
                 ></textarea>
               </div>
@@ -507,7 +578,7 @@ export default function EditInvoicePage() {
             <div className="mt-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Jatuh Tempo Pada <span className="text-danger">*</span></label>
-                <CustomDatePicker value={dueDate} onChange={setDueDate} />
+                <CustomDatePicker value={dueDate} onChange={setDueDate} minDate={invoiceDate} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Status</label>
@@ -577,6 +648,16 @@ export default function EditInvoicePage() {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={warningModal.isOpen}
+        onClose={() => setWarningModal({ ...warningModal, isOpen: false })}
+        onConfirm={() => setWarningModal({ ...warningModal, isOpen: false })}
+        title={warningModal.title}
+        description={warningModal.description}
+        confirmText="OK"
+        cancelText="Tutup"
+        isHelp={true}
+      />
     </form>
   );
 }

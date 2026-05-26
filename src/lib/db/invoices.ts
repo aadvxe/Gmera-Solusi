@@ -1,9 +1,29 @@
 import { createClient } from '@/utils/supabase/client';
 import type { Invoice, InvoiceItem } from './types';
 
+export async function checkAndUpdateOverdueInvoices() {
+  try {
+    const supabase = createClient();
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+    
+    await supabase
+      .from('invoices')
+      .update({ status: 'overdue' })
+      .eq('status', 'unpaid')
+      .lt('due_date', todayStr);
+  } catch (error) {
+    console.error('checkAndUpdateOverdueInvoices error:', error);
+  }
+}
+
 export async function getInvoices(
   status?: Invoice['status']
 ): Promise<(Invoice & { clients: { name: string } | null })[]> {
+  await checkAndUpdateOverdueInvoices();
   const supabase = createClient();
   let query = supabase
     .from('invoices')
@@ -15,11 +35,12 @@ export async function getInvoices(
   return data || [];
 }
 
-export async function getInvoiceById(id: string): Promise<Invoice | null> {
+export async function getInvoiceById(id: string): Promise<any | null> {
+  await checkAndUpdateOverdueInvoices();
   const supabase = createClient();
   const { data, error } = await supabase
     .from('invoices')
-    .select('*, invoice_items(*)')
+    .select('*, invoice_items(*), clients(*)')
     .eq('id', id)
     .single();
   if (error) { console.error('getInvoiceById:', error); return null; }
@@ -27,6 +48,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
 }
 
 export async function getInvoicesByClient(clientId: string): Promise<Invoice[]> {
+  await checkAndUpdateOverdueInvoices();
   const supabase = createClient();
   const { data, error } = await supabase
     .from('invoices')

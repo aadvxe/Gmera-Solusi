@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/client';
 import { getTotalIncome } from './income';
 import { getTotalExpense } from './expense';
-import { getInvoices } from './invoices';
+import { getInvoices, checkAndUpdateOverdueInvoices } from './invoices';
 
 // ─── DASHBOARD SUMMARY ────────────────────────────────────────────────────────
 
@@ -169,6 +169,7 @@ export async function getTopProducts(limit = 3) {
 }
 
 export async function getRecentActivities(limit = 5) {
+  await checkAndUpdateOverdueInvoices();
   const supabase = createClient();
 
   const [incomes, expenses, invoices, audits, reminders] = await Promise.all([
@@ -181,18 +182,18 @@ export async function getRecentActivities(limit = 5) {
 
   console.log('[DEBUG] getRecentActivities audits:', { error: audits.error, data: audits.data });
 
-  const activities: any[] = [];
+  const otherActivities: any[] = [];
 
   (incomes.data || []).forEach(inc => {
-    activities.push({ id: `inc-${inc.id}`, type: 'income', title: 'Pendapatan Diterima', desc: inc.source, amount: inc.amount, date: new Date(inc.created_at || inc.date) });
+    otherActivities.push({ id: `inc-${inc.id}`, type: 'income', title: 'Pendapatan Diterima', desc: inc.source, amount: inc.amount, date: new Date(inc.created_at || inc.date) });
   });
 
   (expenses.data || []).forEach(exp => {
-    activities.push({ id: `exp-${exp.id}`, type: 'expense', title: 'Pengeluaran Dicatat', desc: exp.expense_type, amount: exp.amount, date: new Date(exp.created_at || exp.date) });
+    otherActivities.push({ id: `exp-${exp.id}`, type: 'expense', title: 'Pengeluaran Dicatat', desc: exp.expense_type, amount: exp.amount, date: new Date(exp.created_at || exp.date) });
   });
 
   (invoices.data || []).forEach(inv => {
-    activities.push({ id: `inv-${inv.id}`, type: 'invoice', title: 'Invoice Dibuat', desc: `${inv.invoice_number} - ${inv.client_name}`, amount: null, date: new Date(inv.created_at || inv.invoice_date) });
+    otherActivities.push({ id: `inv-${inv.id}`, type: 'invoice', title: 'Invoice Dibuat', desc: `${inv.invoice_number} - ${inv.client_name}`, amount: null, date: new Date(inv.created_at || inv.invoice_date) });
   });
 
   (audits.data || []).forEach(aud => {
@@ -253,7 +254,7 @@ export async function getRecentActivities(limit = 5) {
       }
     }
 
-    activities.push({ 
+    otherActivities.push({ 
       id: `aud-${aud.id}`, 
       type, 
       title, 
@@ -263,8 +264,9 @@ export async function getRecentActivities(limit = 5) {
     });
   });
 
+  const reminderActivities: any[] = [];
   (reminders.data || []).forEach(rem => {
-    activities.push({ 
+    reminderActivities.push({ 
       id: `rem-${rem.id}`, 
       type: 'reminder', 
       title: 'Pengingat Jatuh Tempo', 
@@ -274,9 +276,12 @@ export async function getRecentActivities(limit = 5) {
     });
   });
 
-  return activities
+  const sortedOthers = otherActivities
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, limit);
+
+  // Return reminders at the very top (highest priority), followed by recent historical logs
+  return [...reminderActivities, ...sortedOthers];
 }
 
 // ─── ACCOUNTING REPORTS DATA ──────────────────────────────────────────────────

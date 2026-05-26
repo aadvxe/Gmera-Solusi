@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Modal } from "./Modal";
-import { CloseCircleIcon, PricingAlertIcon } from "@astraicons/react/bold";
+import { CloseCircleIcon, PricingAlertIcon, HelpIcon } from "@astraicons/react/bold";
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -13,6 +13,7 @@ interface ConfirmModalProps {
   confirmText?: string;
   cancelText?: string;
   isDanger?: boolean;
+  isHelp?: boolean;
   isLoading?: boolean;
 }
 
@@ -25,14 +26,27 @@ export function ConfirmModal({
   confirmText = "Konfirmasi",
   cancelText = "Batal",
   isDanger = false,
+  isHelp = false,
   isLoading = false,
 }: ConfirmModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={isLoading ? () => {} : onClose}>
       <div className="bg-surface rounded-2xl w-full max-w-md p-6 shadow-xl border border-border">
         <div className="flex flex-col items-center text-center">
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isDanger ? 'bg-danger/10 text-danger' : 'bg-warning/10 text-warning'}`}>
-            {isDanger ? <CloseCircleIcon className="w-8 h-8" /> : <PricingAlertIcon className="w-8 h-8" />}
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+            isDanger 
+              ? 'bg-danger/10 text-danger' 
+              : isHelp 
+                ? 'bg-primary/10 text-primary' 
+                : 'bg-warning/10 text-warning'
+          }`}>
+            {isDanger ? (
+              <CloseCircleIcon className="w-8 h-8" />
+            ) : isHelp ? (
+              <HelpIcon className="w-8 h-8" />
+            ) : (
+              <PricingAlertIcon className="w-8 h-8" />
+            )}
           </div>
           <h3 className="text-xl font-bold text-text-primary mb-2">{title}</h3>
           <p className="text-sm text-text-secondary mb-6">{description}</p>

@@ -13,19 +13,38 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
   const [shouldRender, setShouldRender] = useState(isOpen);
   const [isClosing, setIsClosing] = useState(false);
 
+  // Separate effect for absolute cleanup on unmount
   useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isOpen) {
       setShouldRender(true);
       setIsClosing(false);
+      
+      // Calculate scrollbar width to prevent page layout jiggle
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
     } else {
       setIsClosing(true);
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         setShouldRender(false);
         document.body.style.overflow = "";
+        document.body.style.paddingRight = "";
       }, 200); // match animation duration
-      return () => clearTimeout(timer);
     }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [isOpen]);
 
   if (!shouldRender || typeof window === "undefined") return null;

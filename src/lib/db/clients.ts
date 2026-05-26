@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/client';
 import type { Client } from './types';
+import { checkAndUpdateOverdueInvoices } from './invoices';
 
 export async function getClients(): Promise<Client[]> {
   const supabase = createClient();
@@ -24,6 +25,7 @@ export async function getClientById(id: string): Promise<Client | null> {
 }
 
 export async function getClientInvoiceStats(clientId: string) {
+  await checkAndUpdateOverdueInvoices();
   const supabase = createClient();
   const { data, error } = await supabase
     .from('invoices')

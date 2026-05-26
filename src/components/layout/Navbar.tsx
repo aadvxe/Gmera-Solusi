@@ -22,6 +22,7 @@ export function Navbar() {
   const [isSeeAllOpen, setIsSeeAllOpen] = useState(false);
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [triggerReappear, setTriggerReappear] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -49,10 +50,8 @@ export function Navbar() {
       try {
         const activities = await getRecentActivities(30);
         
-        // Sync cleared time
-        const localCleared = localStorage.getItem('last_cleared_notifications');
-        const remoteCleared = user?.user_metadata?.last_notifications_cleared_at;
-        const lastCleared = remoteCleared || localCleared;
+        // Use localStorage as the single source of truth for cleared time
+        const lastCleared = localStorage.getItem('last_cleared_notifications');
         
         let filtered = activities;
         if (!isAdmin) {
@@ -63,7 +62,7 @@ export function Navbar() {
         
         if (lastCleared) {
           const clearedTime = new Date(lastCleared).getTime();
-          const newOnly = filtered.filter(a => new Date(a.date).getTime() > clearedTime);
+          const newOnly = filtered.filter(a => a.type === 'reminder' || new Date(a.date).getTime() > clearedTime);
           setNotifications(newOnly.slice(0, 5));
         } else {
           setNotifications(filtered.slice(0, 5));
@@ -94,7 +93,7 @@ export function Navbar() {
       )
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'invoices' },
+        { event: '*', schema: 'public', table: 'invoices' },
         () => fetchNotifications()
       )
       .on(
@@ -108,24 +107,26 @@ export function Navbar() {
       window.removeEventListener('refreshNotifications', handleRefresh);
       supabase.removeChannel(channel);
     };
-  }, [hasPrivilege, role, user?.user_metadata?.last_notifications_cleared_at]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPrivilege, role]);
 
   const clearNotifications = async () => {
     const now = new Date().toISOString();
-    
-    // Update local state for immediate feedback
-    setNotifications([]);
     localStorage.setItem('last_cleared_notifications', now);
     
-    // Sync to Supabase user_metadata for cross-device persistence
-    const supabase = createClient();
-    const { data: { user: updatedUser }, error } = await supabase.auth.updateUser({
-      data: { last_notifications_cleared_at: now }
-    });
+    // Filter out standard notifications but keep reminders in local state
+    setNotifications(prev => prev.filter(n => n.type === 'reminder'));
     
-    if (!error && updatedUser) {
-      setUser(updatedUser); // Update global auth store
-    }
+    // Trigger scoped bounce animation on remaining reminder items
+    setTriggerReappear(true);
+    setTimeout(() => setTriggerReappear(false), 600);
+    
+    // Fire-and-forget Supabase sync — don't update global store to prevent
+    // cascading re-renders into Sidebar and other components
+    const supabase = createClient();
+    supabase.auth.updateUser({
+      data: { last_notifications_cleared_at: now }
+    }).catch(err => console.error('Failed to sync cleared time:', err));
   };
 
   useEffect(() => {
@@ -226,7 +227,21 @@ export function Navbar() {
             </button>
 
             {isNotifOpen && (
-              <div className="fixed left-4 right-4 top-16 z-50 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] animate-in fade-in zoom-in-95 duration-200 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-80">
+              <div data-notif-panel className="fixed left-4 right-4 top-16 z-50 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] animate-in fade-in zoom-in-95 duration-200 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-80">
+                <style dangerouslySetInnerHTML={{ __html: `
+                  @keyframes _notif-bounce {
+                    0%   { transform: scale(1);    opacity: 1; }
+                    28%  { transform: scale(0.91); opacity: 0.65; }
+                    62%  { transform: scale(1.05); opacity: 1; }
+                    82%  { transform: scale(0.97); }
+                    100% { transform: scale(1);    opacity: 1; }
+                  }
+                  [data-notif-panel] [data-reminder-bounce] {
+                    animation: _notif-bounce 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                    will-change: transform;
+                    isolation: isolate;
+                  }
+                `}} />
                 <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                   <h3 className="font-bold text-[#151D48]">Notifikasi</h3>
                   {notifications.length > 0 && (
@@ -236,7 +251,11 @@ export function Navbar() {
                 <div className="max-h-[300px] overflow-y-auto scrollbar-none">
                   {notifications.length > 0 ? (
                     notifications.map((n: any) => (
-                      <div key={n.id} className="relative p-4 border-b border-gray-50 hover:bg-[#5C67F2]/5 cursor-pointer transition-colors group flex items-start gap-3">
+                      <div 
+                        key={n.id} 
+                        className="relative p-4 border-b border-gray-50 hover:bg-[#5C67F2]/5 cursor-pointer transition-colors group flex items-start gap-3"
+                        {...(triggerReappear && n.type === 'reminder' ? { 'data-reminder-bounce': '' } : {})}
+                      >
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#5C67F2] rounded-r-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${
                           n.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :

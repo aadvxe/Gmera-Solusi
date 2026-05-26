@@ -62,6 +62,7 @@ export type Invoice = {
   created_at: string;
   paid_at?: string | null;
   invoice_items?: InvoiceItem[];
+  clients?: Client | null;
 };
 
 export type InvoiceItem = {

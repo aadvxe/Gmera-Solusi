@@ -8,9 +8,10 @@ interface CustomDatePickerProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  minDate?: string;
 }
 
-export function CustomDatePicker({ value, onChange, className = "" }: CustomDatePickerProps) {
+export function CustomDatePicker({ value, onChange, className = "", minDate }: CustomDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date(value || new Date()));
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,9 +44,10 @@ export function CustomDatePicker({ value, onChange, className = "" }: CustomDate
   }
 
   const handleDateClick = (day: number) => {
-    const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    // Format to YYYY-MM-DD
-    const dateString = newDate.toLocaleDateString("en-CA");
+    const cellYear = currentMonth.getFullYear();
+    const cellMonth = String(currentMonth.getMonth() + 1).padStart(2, '0');
+    const cellDay = String(day).padStart(2, '0');
+    const dateString = `${cellYear}-${cellMonth}-${cellDay}`;
     onChange(dateString);
     setIsOpen(false);
   };
@@ -58,8 +60,16 @@ export function CustomDatePicker({ value, onChange, className = "" }: CustomDate
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
 
-  // Convert "YYYY-MM-DD" back to visual string
-  const displayDate = value ? new Date(value).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "Pilih Tanggal";
+  // Convert "YYYY-MM-DD" back to visual string (DD/MM/YYYY) cleanly without timezone shifting
+  let displayDate = "Pilih Tanggal";
+  if (value) {
+    const parts = value.split('-');
+    if (parts.length === 3) {
+      displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    } else {
+      displayDate = value;
+    }
+  }
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
@@ -96,26 +106,34 @@ export function CustomDatePicker({ value, onChange, className = "" }: CustomDate
 
           <div className="grid grid-cols-7 gap-1">
             {days.map((day, index) => {
-              const isSelected = day && value && 
-                new Date(value).getDate() === day && 
-                new Date(value).getMonth() === currentMonth.getMonth() &&
-                new Date(value).getFullYear() === currentMonth.getFullYear();
+              if (!day) {
+                return <div key={index} className="aspect-square" />;
+              }
+
+              const cellYear = currentMonth.getFullYear();
+              const cellMonth = String(currentMonth.getMonth() + 1).padStart(2, '0');
+              const cellDay = String(day).padStart(2, '0');
+              const dateString = `${cellYear}-${cellMonth}-${cellDay}`;
+
+              const isSelected = value && value === dateString;
+              const isBeforeMin = !!(minDate && dateString < minDate);
 
               return (
                 <div key={index} className="aspect-square flex items-center justify-center">
-                  {day && (
-                    <button
-                      type="button"
-                      onClick={() => handleDateClick(day)}
-                      className={`w-8 h-8 flex items-center justify-center rounded-xl text-sm transition-all ${
-                        isSelected 
-                          ? "bg-[#5C67F2] text-white font-bold shadow-sm" 
+                  <button
+                    type="button"
+                    disabled={isBeforeMin}
+                    onClick={() => handleDateClick(day)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-xl text-sm transition-all ${
+                      isSelected 
+                        ? "bg-[#5C67F2] text-white font-bold shadow-sm" 
+                        : isBeforeMin
+                          ? "text-gray-300 cursor-not-allowed font-medium opacity-50"
                           : "text-[#151D48] hover:bg-[#5C67F2]/10 hover:text-[#5C67F2] font-medium"
-                      }`}
-                    >
-                      {day}
-                    </button>
-                  )}
+                    }`}
+                  >
+                    {day}
+                  </button>
                 </div>
               );
             })}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { getClients, createInvoiceWithItems, Client, getCompanyProfile, CompanyProfile } from "@/lib/db";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
@@ -22,6 +23,63 @@ interface InvoiceItem {
   qty: number;
   unit: string;
   price: number;
+}
+
+function splitAddress(addressStr: string) {
+  if (!addressStr) return { line1: "", line2: "" };
+  const normalized = addressStr.replace(/\r\n/g, "\n");
+  const lastNewlineIndex = normalized.lastIndexOf("\n");
+  if (lastNewlineIndex !== -1) {
+    const line1 = normalized.substring(0, lastNewlineIndex).trim();
+    const line2 = normalized.substring(lastNewlineIndex + 1).trim();
+    return { line1, line2 };
+  }
+  const lastCommaIndex = normalized.lastIndexOf(",");
+  if (lastCommaIndex === -1) {
+    return { line1: normalized, line2: "" };
+  }
+  const line1 = normalized.substring(0, lastCommaIndex + 1).trim();
+  const line2 = normalized.substring(lastCommaIndex + 1).trim();
+  return { line1, line2 };
+}
+
+interface PageData {
+  pageNumber: number;
+  items: any[];
+  isLastPage: boolean;
+}
+
+function getPages(itemsList: any[]): PageData[] {
+  if (!itemsList || itemsList.length === 0) {
+    return [{ pageNumber: 1, items: [], isLastPage: true }];
+  }
+  const pages: PageData[] = [];
+  let remaining = [...itemsList];
+  let pageNum = 1;
+  while (remaining.length > 0) {
+    const isFirst = pageNum === 1;
+    const limitWithSummary = 3;
+    if (remaining.length <= limitWithSummary) {
+      pages.push({
+        pageNumber: pageNum,
+        items: remaining,
+        isLastPage: true
+      });
+      break;
+    }
+    const limitNoSummary = 5;
+    let itemsToTake = limitNoSummary;
+    if (remaining.length - itemsToTake < 1) {
+      itemsToTake = remaining.length - 1;
+    }
+    pages.push({
+      pageNumber: pageNum,
+      items: remaining.splice(0, itemsToTake),
+      isLastPage: false
+    });
+    pageNum++;
+  }
+  return pages;
 }
 
 export default function BuatInvoicePage() {
@@ -53,6 +111,11 @@ export default function BuatInvoicePage() {
   
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [warningModal, setWarningModal] = useState<{ isOpen: boolean; title: string; description: string }>({
+    isOpen: false,
+    title: "",
+    description: ""
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +131,18 @@ export default function BuatInvoicePage() {
 
   // Selected Client Data
   const selectedClient = clients.find(c => c.id === clientId);
+
+  const { line1, line2 } = splitAddress(selectedClient?.address || "");
+  const addressLine2Parts = [];
+  if (selectedClient?.city) addressLine2Parts.push(selectedClient.city);
+  if (selectedClient?.province) addressLine2Parts.push(selectedClient.province);
+  if (selectedClient?.postal_code) addressLine2Parts.push(selectedClient.postal_code);
+  const cityProvincePostal = addressLine2Parts.join(", ");
+
+  const selectedClientAddressLine1 = line1;
+  const selectedClientAddressLine2 = line2 
+    ? `${line2} ${cityProvincePostal}`.trim() 
+    : cityProvincePostal;
 
   // Kalkulasi
   const subtotal = items.reduce((sum, item) => sum + (item.qty * item.price), 0);
@@ -97,9 +172,38 @@ export default function BuatInvoicePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientId) return alert("Silakan pilih customer terlebih dahulu.");
-    if (!dueDate) return alert("Silakan tentukan tanggal jatuh tempo.");
-    if (items.some(i => !i.name || i.price <= 0)) return alert("Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid.");
+    if (!clientId) {
+      setWarningModal({
+        isOpen: true,
+        title: "Pilih Customer",
+        description: "Silakan pilih customer terlebih dahulu sebelum menyimpan invoice."
+      });
+      return;
+    }
+    if (!dueDate) {
+      setWarningModal({
+        isOpen: true,
+        title: "Tentukan Jatuh Tempo",
+        description: "Silakan tentukan tanggal jatuh tempo terlebih dahulu sebelum menyimpan invoice."
+      });
+      return;
+    }
+    if (dueDate && invoiceDate && dueDate < invoiceDate) {
+      setWarningModal({
+        isOpen: true,
+        title: "Tanggal Jatuh Tempo Tidak Valid",
+        description: "Tanggal jatuh tempo tidak boleh lebih awal dari tanggal terbit invoice."
+      });
+      return;
+    }
+    if (items.some(i => !i.name || i.price <= 0)) {
+      setWarningModal({
+        isOpen: true,
+        title: "Barang / Jasa Tidak Valid",
+        description: "Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid sebelum menyimpan invoice."
+      });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -179,6 +283,42 @@ export default function BuatInvoicePage() {
     }
   };
 
+  const handleOpenPreview = () => {
+    if (!clientId) {
+      setWarningModal({
+        isOpen: true,
+        title: "Pilih Customer",
+        description: "Silakan pilih customer terlebih dahulu sebelum melihat pratinjau."
+      });
+      return;
+    }
+    if (!dueDate) {
+      setWarningModal({
+        isOpen: true,
+        title: "Tentukan Jatuh Tempo",
+        description: "Silakan tentukan tanggal jatuh tempo terlebih dahulu sebelum melihat pratinjau."
+      });
+      return;
+    }
+    if (dueDate && invoiceDate && dueDate < invoiceDate) {
+      setWarningModal({
+        isOpen: true,
+        title: "Tanggal Jatuh Tempo Tidak Valid",
+        description: "Tanggal jatuh tempo tidak boleh lebih awal dari tanggal terbit invoice."
+      });
+      return;
+    }
+    if (items.some(i => !i.name || i.price <= 0)) {
+      setWarningModal({
+        isOpen: true,
+        title: "Barang / Jasa Tidak Valid",
+        description: "Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid sebelum melihat pratinjau."
+      });
+      return;
+    }
+    setIsPreviewOpen(true);
+  };
+
   return (
     <form className="max-w-5xl mx-auto space-y-6 pb-20" onSubmit={handleSubmit}>
       {/* Header */}
@@ -226,7 +366,11 @@ export default function BuatInvoicePage() {
                 <textarea 
                   className="flex w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[60px] resize-y"
                   placeholder="Alamat akan terisi otomatis setelah customer dipilih..."
-                  value={selectedClient ? `${selectedClient.address || ''}, ${selectedClient.city || ''}, ${selectedClient.province || ''}` : ""}
+                  value={
+                    selectedClient 
+                      ? `${selectedClientAddressLine1}\n${selectedClientAddressLine2}` 
+                      : ""
+                  }
                   readOnly
                 ></textarea>
               </div>
@@ -479,7 +623,7 @@ export default function BuatInvoicePage() {
             <div className="mt-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Jatuh Tempo Pada <span className="text-danger">*</span></label>
-                <CustomDatePicker value={dueDate} onChange={setDueDate} />
+                <CustomDatePicker value={dueDate} onChange={setDueDate} minDate={invoiceDate} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Catatan untuk Customer</label>
@@ -525,7 +669,7 @@ export default function BuatInvoicePage() {
               <Button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-6 text-base bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
                 <SaveIcon className="w-[18px] h-[18px]" /> {loading ? "Menyimpan..." : "Simpan Invoice"}
               </Button>
-              <Button variant="outline" type="button" onClick={() => setIsPreviewOpen(true)} className="w-full flex items-center justify-center gap-2">
+              <Button variant="outline" type="button" onClick={handleOpenPreview} className="w-full flex items-center justify-center gap-2">
                 <Document1Icon className="w-4 h-4" /> Pratinjau PDF
               </Button>
             </div>
@@ -557,154 +701,187 @@ export default function BuatInvoicePage() {
           
           <div className="p-6 overflow-y-auto flex-1 bg-gray-50 print:p-0 print:bg-white">
             {/* The Invoice Document */}
-            <div
-              id="invoice-preview-document"
-              className="bg-white border border-gray-200 shadow-sm p-6 md:p-8 print:border-none print:shadow-none print:p-0 max-w-[210mm] mx-auto"
-            >
-              {/* Invoice Header */}
-              <div className="flex justify-between items-start border-b border-gray-100 pb-4 mb-4 gap-6">
-                <div className="flex flex-row items-center gap-4">
-                  {companyProfile?.logo_url ? (
-                    <img src={companyProfile.logo_url} alt="Logo" className="h-20 w-auto object-contain max-w-[160px]" />
-                  ) : (
-                    <div className="w-20 h-20 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 shrink-0">
-                      <span className="text-[10px] text-gray-300 font-bold text-center">NO<br/>LOGO</span>
-                    </div>
-                  )}
-                  <div className="flex flex-col justify-center">
-                    <h2 className="text-xl font-bold text-[#151D48] leading-tight">{companyProfile?.company_name || 'PT GMera Solusi'}</h2>
-                    <p className="text-xs text-gray-500 max-w-xs mt-1 leading-relaxed">{companyProfile?.address || 'Jl. Teknologi No. 123, Jakarta'}</p>
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                      {companyProfile?.npwp && <p className="text-[11px] text-gray-500 font-medium">NPWP: {companyProfile.npwp}</p>}
-                      <p className="text-[11px] text-gray-500">{companyProfile?.phone || '021-12345678'} • {companyProfile?.email || 'finance@gmera.com'}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <h1 className="text-2xl font-bold text-[#5C67F2] uppercase tracking-wider">INVOICE</h1>
-                  <p className="text-sm font-semibold text-[#151D48] mt-0.5">{invoiceNumber || 'INV-XXXXXX'}</p>
-                  <div className="mt-1.5 text-[11px] text-gray-600 space-y-0.5 text-right">
-                    <p><span className="text-gray-400">Terbit:</span> {invoiceDate ? new Date(invoiceDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</p>
-                    <p>
-                      <span className="text-gray-400">Jatuh Tempo:</span>{' '}
-                      <span>
-                        {dueDate ? new Date(dueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Billed To */}
-              <div className="mb-6">
-                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">DITAGIHKAN KEPADA:</h3>
-                <h4 className="text-sm font-bold text-[#151D48]">{selectedClient?.name || 'Belum memilih customer'}</h4>
-                {selectedClient?.address && <p className="text-[11px] text-gray-600 max-w-xs">{selectedClient.address}</p>}
-                {(selectedClient?.phone || selectedClient?.email) && (
-                  <p className="text-[11px] text-gray-600">{[selectedClient.phone, selectedClient.email].filter(Boolean).join(' • ')}</p>
-                )}
-              </div>
-
-              {/* Invoice Items Table */}
-              <div className="mb-4 overflow-hidden rounded-md">
-                <table className="w-full text-[11px] text-left border-collapse">
-                  <thead>
-                    <tr className="bg-[#5C67F2] text-white">
-                      <th className="px-4 py-2 font-semibold">Deskripsi Barang / Jasa</th>
-                      <th className="px-4 py-2 font-semibold text-center w-16">Qty</th>
-                      <th className="px-4 py-2 font-semibold text-right w-32">Harga Satuan (Rp)</th>
-                      <th className="px-4 py-2 font-semibold text-right w-32">Total (Rp)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-gray-700">
-                    {items.map((item: any, idx: number) => (
-                      <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8F9FF]'} style={{ borderBottom: '1px solid #eee' }}>
-                        <td className="px-4 py-2">{item.name || '-'}</td>
-                        <td className="px-4 py-2 text-center">{item.qty} {item.unit}</td>
-                        <td className="px-4 py-2 text-right tabular-nums">{formatCurrency(item.price)}</td>
-                        <td className="px-4 py-2 text-right tabular-nums font-semibold text-[#151D48]">{formatCurrency(item.qty * item.price)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Bottom: Payment info (left) + Totals (right) */}
-              <div className="flex gap-6">
-                {/* Payment info */}
-                <div className="flex-1 text-[11px]">
-                  <div className="flex gap-3 mb-2">
-                    <div className="flex-1">
-                      <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">INFORMASI PEMBAYARAN:</h3>
-                      <div className="bg-gray-50 rounded-md p-2.5 border border-gray-100 min-h-[70px]">
-                        <p className="font-semibold text-[#151D48] mb-0.5">Transfer Bank:</p>
-                        <p className="text-gray-600">Bank: <span className="font-medium text-[#151D48]">{companyProfile?.bank_name || '-'}</span></p>
-                        <p className="text-gray-600">No. Rekening: <span className="font-medium text-[#151D48]">{companyProfile?.bank_account || '-'}</span></p>
-                        <p className="text-gray-600">Atas Nama: <span className="font-medium text-[#151D48]">{companyProfile?.bank_account_name || '-'}</span></p>
-                      </div>
-                    </div>
-                    
-                    {shippingMethod && (
-                      <div className="flex-1">
-                        <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">PENGIRIMAN:</h3>
-                        <div className="bg-gray-50 rounded-md p-2.5 border border-gray-100 min-h-[70px]">
-                          <p className="text-gray-600">Kurir: <span className="font-medium text-[#151D48]">{shippingMethod}</span></p>
-                          {trackingNumber && (
-                            <p className="text-gray-600 mt-0.5">
-                              No. Resi: <span className="font-medium text-[#151D48]">{trackingNumber}</span>
-                            </p>
-                          )}
+            {getPages(items).map((page) => (
+              <div
+                key={page.pageNumber}
+                id="invoice-preview-document"
+                className="invoice-page-container bg-white border border-gray-200 shadow-md p-[6mm_10mm] print:border-none print:shadow-none print:p-[6mm_10mm] mx-auto mb-6 last:mb-0 flex flex-col justify-between"
+                style={{
+                  width: '210mm',
+                  height: '148mm',
+                  boxSizing: 'border-box',
+                  overflow: 'hidden',
+                  position: 'relative'
+                }}
+              >
+                <div>
+                  {/* Page Header */}
+                  {page.pageNumber === 1 ? (
+                    <div className="flex justify-between items-start border-b border-gray-100 pb-2 mb-2 gap-6">
+                      <div className="flex flex-row items-center gap-4">
+                        {companyProfile?.logo_url ? (
+                          <img src={companyProfile.logo_url} alt="Logo" className="h-16 w-auto object-contain max-w-[140px]" />
+                        ) : (
+                          <div className="w-16 h-16 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 shrink-0">
+                            <span className="text-[10px] text-gray-300 font-bold text-center">NO<br/>LOGO</span>
+                          </div>
+                        )}
+                        <div className="flex flex-col justify-center text-left">
+                          <h2 className="text-sm font-bold text-[#151D48] leading-tight">{companyProfile?.company_name || 'PT GMera Solusi'}</h2>
+                          <p className="text-[10px] text-gray-500 max-w-xs mt-0.5 leading-tight">{companyProfile?.address || 'Jl. Teknologi No. 123, Jakarta'}</p>
+                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+                            {companyProfile?.npwp && <p className="text-[9px] text-gray-500 font-medium">NPWP: {companyProfile.npwp}</p>}
+                            <p className="text-[9px] text-gray-500">{companyProfile?.phone || '021-12345678'} • {companyProfile?.email || 'finance@gmera.com'}</p>
+                          </div>
                         </div>
                       </div>
-                    )}
+                      <div className="text-right shrink-0">
+                        <h1 className="text-lg font-bold text-[#5C67F2] uppercase tracking-wider">INVOICE</h1>
+                        <p className="text-xs font-semibold text-[#151D48] mt-0.5">{invoiceNumber || 'INV-XXXXXX'}</p>
+                        <div className="mt-1 text-[9px] text-gray-600 space-y-0.5 text-right">
+                          <p><span className="text-gray-400">Terbit:</span> {invoiceDate ? new Date(invoiceDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</p>
+                          <p>
+                            <span className="text-gray-400">Jatuh Tempo:</span>{' '}
+                            <span>
+                              {dueDate ? new Date(dueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Minimal Header for Subsequent Pages */
+                    <div className="flex justify-between items-center border-b border-gray-100 pb-1.5 mb-2">
+                      <div className="flex items-center gap-2">
+                        {companyProfile?.logo_url ? (
+                          <img src={companyProfile.logo_url} alt="Logo" className="h-6 w-auto object-contain" />
+                        ) : (
+                          <span className="text-xs font-bold text-[#151D48]">PT GMera Solusi</span>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] font-semibold text-gray-500">INVOICE {invoiceNumber} — Halaman {page.pageNumber}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Billed To (Only on Page 1) */}
+                  {page.pageNumber === 1 && (
+                    <div className="mb-2 text-left">
+                      <h3 className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">DITAGIHKAN KEPADA:</h3>
+                      <h4 className="text-xs font-bold text-[#151D48]">{selectedClient?.name || 'Belum memilih customer'}</h4>
+                      {selectedClientAddressLine1 && <p className="text-[10px] text-gray-600 max-w-md">{selectedClientAddressLine1}</p>}
+                      {selectedClientAddressLine2 && <p className="text-[10px] text-gray-600 max-w-md">{selectedClientAddressLine2}</p>}
+                      {(selectedClient?.phone || selectedClient?.email) && (
+                        <p className="text-[9px] text-gray-600">{[selectedClient.phone, selectedClient.email].filter(Boolean).join(' • ')}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Items Table */}
+                  <div className="mb-2 overflow-hidden rounded-md">
+                    <table className="w-full text-[10px] text-left border-collapse">
+                      <thead>
+                        <tr className="bg-[#5C67F2] text-white">
+                          <th className="px-3 py-1 font-semibold">Deskripsi Barang / Jasa</th>
+                          <th className="px-3 py-1 font-semibold text-center w-16">Qty</th>
+                          <th className="px-3 py-1 font-semibold text-right w-24">Harga Satuan (Rp)</th>
+                          <th className="px-3 py-1 font-semibold text-right w-28">Total (Rp)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-gray-700">
+                        {page.items.map((item: any, idx: number) => (
+                          <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8F9FF]'} style={{ borderBottom: '1px solid #eee' }}>
+                            <td className="px-3 py-1">{item.name || '-'}</td>
+                            <td className="px-3 py-1 text-center">{item.qty} {item.unit}</td>
+                            <td className="px-3 py-1 text-right tabular-nums">{formatCurrency(item.price)}</td>
+                            <td className="px-3 py-1 text-right tabular-nums font-semibold text-[#151D48]">{formatCurrency(item.qty * item.price)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
 
-                  {notes && (
-                    <div className="mt-2">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">CATATAN:</p>
-                      <p className="text-[11px] text-gray-600 whitespace-pre-wrap">{notes}</p>
+                  {/* Summary Block (Only on Last Page) */}
+                  {page.isLastPage && (
+                    <div id="invoice-summary" className="flex gap-4 mt-2 text-left">
+                      {/* Payment info */}
+                      <div className="flex-1 text-[9px]">
+                        <div className="flex gap-3 mb-1.5">
+                          <div className="flex-1">
+                            <h3 className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">INFORMASI PEMBAYARAN:</h3>
+                            <div className="bg-gray-50 rounded-md p-2 border border-gray-100 min-h-[50px]">
+                              <p className="font-semibold text-[#151D48] mb-0.5">Transfer Bank:</p>
+                              <p className="text-gray-600">Bank: <span className="font-medium text-[#151D48]">{companyProfile?.bank_name || '-'}</span></p>
+                              <p className="text-gray-600">No. Rekening: <span className="font-medium text-[#151D48]">{companyProfile?.bank_account || '-'}</span></p>
+                              <p className="text-gray-600">Atas Nama: <span className="font-medium text-[#151D48]">{companyProfile?.bank_account_name || '-'}</span></p>
+                            </div>
+                          </div>
+                          
+                          {shippingMethod && (
+                            <div className="flex-1">
+                              <h3 className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">PENGIRIMAN:</h3>
+                              <div className="bg-gray-50 rounded-md p-2 border border-gray-100 min-h-[50px]">
+                                <p className="text-gray-600">Kurir: <span className="font-medium text-[#151D48]">{shippingMethod}</span></p>
+                                {trackingNumber && (
+                                  <p className="text-gray-600 mt-0.5">
+                                    No. Resi: <span className="font-medium text-[#151D48]">{trackingNumber}</span>
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {notes && (
+                          <div className="mt-1">
+                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">CATATAN:</p>
+                            <p className="text-[9px] text-gray-600 whitespace-pre-wrap leading-tight">{notes}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Grand totals */}
+                      <div className="w-48 shrink-0 text-[9px]">
+                        <div className="space-y-1 text-gray-600">
+                          <div className="flex justify-between">
+                            <span>Subtotal</span>
+                            <span className="font-medium text-[#151D48] tabular-nums">{formatCurrency(subtotal)}</span>
+                          </div>
+                          {discountAmount > 0 && (
+                            <div className="flex justify-between">
+                              <span>Diskon</span>
+                              <span className="font-medium text-[#FA5A7D] tabular-nums">- {formatCurrency(discountAmount)}</span>
+                            </div>
+                          )}
+                          {taxAmount > 0 && (
+                            <div className="flex justify-between">
+                              <span>Pajak ({taxRate}%)</span>
+                              <span className="font-medium text-[#151D48] tabular-nums">{formatCurrency(taxAmount)}</span>
+                            </div>
+                          )}
+                          {shippingCost > 0 && (
+                            <div className="flex justify-between">
+                              <span>Ongkos Kirim {shippingMethod ? `(${shippingMethod})` : ''}</span>
+                              <span className="font-medium text-[#151D48] tabular-nums">{formatCurrency(shippingCost)}</span>
+                            </div>
+                          )}
+                          <div className="pt-1.5 mt-1.5 border-t-2 border-[#5C67F2] flex justify-between items-center">
+                            <span className="font-bold text-[10px] text-[#151D48]">TOTAL AKHIR</span>
+                            <span className="font-bold text-xs text-[#5C67F2] tabular-nums">{formatCurrency(grandTotal)}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Grand totals */}
-                <div className="w-56 shrink-0">
-                  <div className="space-y-1.5 text-[11px] text-gray-600">
-                    <div className="flex justify-between">
-                      <span>Subtotal</span>
-                      <span className="font-medium text-[#151D48] tabular-nums">{formatCurrency(subtotal)}</span>
-                    </div>
-                    {discountAmount > 0 && (
-                      <div className="flex justify-between">
-                        <span>Diskon</span>
-                        <span className="font-medium text-[#FA5A7D] tabular-nums">- {formatCurrency(discountAmount)}</span>
-                      </div>
-                    )}
-                    {taxAmount > 0 && (
-                      <div className="flex justify-between">
-                        <span>Pajak ({taxRate}%)</span>
-                        <span className="font-medium text-[#151D48] tabular-nums">{formatCurrency(taxAmount)}</span>
-                      </div>
-                    )}
-                    {shippingCost > 0 && (
-                      <div className="flex justify-between">
-                        <span>Ongkos Kirim {shippingMethod ? `(${shippingMethod})` : ''}</span>
-                        <span className="font-medium text-[#151D48] tabular-nums">{formatCurrency(shippingCost)}</span>
-                      </div>
-                    )}
-                    <div className="pt-2 mt-2 border-t-2 border-[#5C67F2] flex justify-between items-center">
-                      <span className="font-bold text-xs text-[#151D48]">TOTAL AKHIR</span>
-                      <span className="font-bold text-sm text-[#5C67F2] tabular-nums">{formatCurrency(grandTotal)}</span>
-                    </div>
-                  </div>
+                {/* Footer */}
+                <div className="pt-1.5 border-t border-gray-100 text-center text-[8px] text-gray-400 shrink-0">
+                  <p>Terima kasih atas kepercayaan Anda kepada {companyProfile?.company_name || 'kami'}.</p>
                 </div>
               </div>
-
-              {/* Footer */}
-              <div className="pt-4 mt-4 border-t border-gray-100 text-center text-[10px] text-gray-400">
-                <p>Terima kasih atas kepercayaan Anda kepada {companyProfile?.company_name || 'kami'}.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </Modal>
@@ -722,10 +899,9 @@ export default function BuatInvoicePage() {
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 210mm !important;
-            height: 148mm !important;
-            max-height: 148mm !important;
-            overflow: hidden !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -740,10 +916,9 @@ export default function BuatInvoicePage() {
             padding: 0 !important;
             margin: 0 !important;
             display: block !important;
-            overflow: hidden !important;
-            width: 210mm !important;
-            height: 148mm !important;
-            max-height: 148mm !important;
+            overflow: visible !important;
+            width: 100% !important;
+            height: auto !important;
             box-sizing: border-box !important;
           }
 
@@ -753,10 +928,9 @@ export default function BuatInvoicePage() {
             border: none !important;
             background: transparent !important;
             display: block !important;
-            width: 210mm !important;
-            height: 148mm !important;
-            max-height: 148mm !important;
-            overflow: hidden !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
             margin: 0 !important;
             padding: 0 !important;
           }
@@ -764,16 +938,22 @@ export default function BuatInvoicePage() {
           #invoice-preview-document {
             border: none !important;
             box-shadow: none !important;
-            padding: 6mm !important;
-            width: 210mm !important;
-            height: 148mm !important;
-            max-height: 148mm !important;
-            overflow: hidden !important;
+            padding: 0 !important;
+            width: 100% !important;
+            min-height: 132mm !important;
+            height: auto !important;
+            overflow: visible !important;
             background: white !important;
             box-sizing: border-box !important;
             margin: 0 auto !important;
+          }
+
+          tr {
             page-break-inside: avoid !important;
-            page-break-after: avoid !important;
+          }
+
+          #invoice-summary {
+            page-break-inside: avoid !important;
           }
 
           /* Ensure high-fidelity exact colors */
@@ -784,10 +964,20 @@ export default function BuatInvoicePage() {
 
           @page {
             size: A5 landscape;
-            margin: 0;
+            margin: 8mm 12mm 8mm 12mm !important;
           }
         }
       `}} />
+      <ConfirmModal
+        isOpen={warningModal.isOpen}
+        onClose={() => setWarningModal({ ...warningModal, isOpen: false })}
+        onConfirm={() => setWarningModal({ ...warningModal, isOpen: false })}
+        title={warningModal.title}
+        description={warningModal.description}
+        confirmText="OK"
+        cancelText="Tutup"
+        isHelp={true}
+      />
     </form>
   );
 }
