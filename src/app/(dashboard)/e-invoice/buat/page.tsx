@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeftIcon, SaveIcon, PlusIcon, TrashIcon, Document1Icon, TruckIcon, CalculatorIcon, CheckCircleIcon } from "@astraicons/react/bold";
+import { ArrowLeftIcon, SaveIcon, PlusIcon, TrashIcon, Document1Icon, TruckIcon, CalculatorIcon, CheckCircleIcon, PrinterIcon, CloseIcon } from "@astraicons/react/bold";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { getClients, createInvoiceWithItems, Client } from "@/lib/db";
+import { getClients, createInvoiceWithItems, Client, getCompanyProfile, CompanyProfile } from "@/lib/db";
+import { Modal } from "@/components/ui/Modal";
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 import { CustomSelect } from "@/components/ui/CustomSelect";
@@ -49,13 +50,20 @@ export default function BuatInvoicePage() {
   const [taxRate, setTaxRate] = useState(11); // 11% PPN
   const [applyTax, setApplyTax] = useState(true);
   const [attachment, setAttachment] = useState<File | null>(null);
+  
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
-    const fetchClients = async () => {
-      const data = await getClients();
-      setClients(data);
+    const fetchData = async () => {
+      const [clientsData, companyData] = await Promise.all([
+        getClients(),
+        getCompanyProfile()
+      ]);
+      setClients(clientsData || []);
+      setCompanyProfile(companyData || null);
     };
-    fetchClients();
+    fetchData();
   }, []);
 
   // Selected Client Data
@@ -517,13 +525,269 @@ export default function BuatInvoicePage() {
               <Button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-6 text-base bg-[#5C67F2] hover:bg-[#4a55c2] text-white">
                 <SaveIcon className="w-[18px] h-[18px]" /> {loading ? "Menyimpan..." : "Simpan Invoice"}
               </Button>
-              <Button variant="outline" type="button" className="w-full flex items-center justify-center gap-2">
+              <Button variant="outline" type="button" onClick={() => setIsPreviewOpen(true)} className="w-full flex items-center justify-center gap-2">
                 <Document1Icon className="w-4 h-4" /> Pratinjau PDF
               </Button>
             </div>
           </div>
         </div>
       </div>
+      
+      {/* PDF Preview Modal */}
+      <Modal isOpen={isPreviewOpen} onClose={() => setIsPreviewOpen(false)}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:rounded-none">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0 print:hidden">
+            <div>
+              <h2 className="text-xl font-bold text-[#151D48]">Pratinjau PDF Invoice</h2>
+              <p className="text-sm text-gray-500 mt-1">Pratinjau tampilan cetak invoice sebelum disimpan</p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => window.print()} className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white flex items-center gap-2">
+                <PrinterIcon className="w-4 h-4" /> Cetak
+              </Button>
+              <button 
+                type="button"
+                onClick={() => setIsPreviewOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <CloseIcon className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6 overflow-y-auto flex-1 bg-gray-50 print:p-0 print:bg-white">
+            {/* The Invoice Document */}
+            <div
+              id="invoice-preview-document"
+              className="bg-white border border-gray-200 shadow-sm p-6 md:p-8 print:border-none print:shadow-none print:p-0 max-w-[210mm] mx-auto"
+            >
+              {/* Invoice Header */}
+              <div className="flex justify-between items-start border-b border-gray-100 pb-4 mb-4 gap-6">
+                <div className="flex flex-row items-center gap-4">
+                  {companyProfile?.logo_url ? (
+                    <img src={companyProfile.logo_url} alt="Logo" className="h-20 w-auto object-contain max-w-[160px]" />
+                  ) : (
+                    <div className="w-20 h-20 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 shrink-0">
+                      <span className="text-[10px] text-gray-300 font-bold text-center">NO<br/>LOGO</span>
+                    </div>
+                  )}
+                  <div className="flex flex-col justify-center">
+                    <h2 className="text-xl font-bold text-[#151D48] leading-tight">{companyProfile?.company_name || 'PT GMera Solusi'}</h2>
+                    <p className="text-xs text-gray-500 max-w-xs mt-1 leading-relaxed">{companyProfile?.address || 'Jl. Teknologi No. 123, Jakarta'}</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                      {companyProfile?.npwp && <p className="text-[11px] text-gray-500 font-medium">NPWP: {companyProfile.npwp}</p>}
+                      <p className="text-[11px] text-gray-500">{companyProfile?.phone || '021-12345678'} • {companyProfile?.email || 'finance@gmera.com'}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <h1 className="text-2xl font-bold text-[#5C67F2] uppercase tracking-wider">INVOICE</h1>
+                  <p className="text-sm font-semibold text-[#151D48] mt-0.5">{invoiceNumber || 'INV-XXXXXX'}</p>
+                  <div className="mt-1.5 text-[11px] text-gray-600 space-y-0.5 text-right">
+                    <p><span className="text-gray-400">Terbit:</span> {invoiceDate ? new Date(invoiceDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</p>
+                    <p>
+                      <span className="text-gray-400">Jatuh Tempo:</span>{' '}
+                      <span>
+                        {dueDate ? new Date(dueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Billed To */}
+              <div className="mb-6">
+                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">DITAGIHKAN KEPADA:</h3>
+                <h4 className="text-sm font-bold text-[#151D48]">{selectedClient?.name || 'Belum memilih customer'}</h4>
+                {selectedClient?.address && <p className="text-[11px] text-gray-600 max-w-xs">{selectedClient.address}</p>}
+                {(selectedClient?.phone || selectedClient?.email) && (
+                  <p className="text-[11px] text-gray-600">{[selectedClient.phone, selectedClient.email].filter(Boolean).join(' • ')}</p>
+                )}
+              </div>
+
+              {/* Invoice Items Table */}
+              <div className="mb-4 overflow-hidden rounded-md">
+                <table className="w-full text-[11px] text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#5C67F2] text-white">
+                      <th className="px-4 py-2 font-semibold">Deskripsi Barang / Jasa</th>
+                      <th className="px-4 py-2 font-semibold text-center w-16">Qty</th>
+                      <th className="px-4 py-2 font-semibold text-right w-32">Harga Satuan (Rp)</th>
+                      <th className="px-4 py-2 font-semibold text-right w-32">Total (Rp)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-gray-700">
+                    {items.map((item: any, idx: number) => (
+                      <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8F9FF]'} style={{ borderBottom: '1px solid #eee' }}>
+                        <td className="px-4 py-2">{item.name || '-'}</td>
+                        <td className="px-4 py-2 text-center">{item.qty} {item.unit}</td>
+                        <td className="px-4 py-2 text-right tabular-nums">{formatCurrency(item.price)}</td>
+                        <td className="px-4 py-2 text-right tabular-nums font-semibold text-[#151D48]">{formatCurrency(item.qty * item.price)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Bottom: Payment info (left) + Totals (right) */}
+              <div className="flex gap-6">
+                {/* Payment info */}
+                <div className="flex-1 text-[11px]">
+                  <div className="flex gap-3 mb-2">
+                    <div className="flex-1">
+                      <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">INFORMASI PEMBAYARAN:</h3>
+                      <div className="bg-gray-50 rounded-md p-2.5 border border-gray-100 min-h-[70px]">
+                        <p className="font-semibold text-[#151D48] mb-0.5">Transfer Bank:</p>
+                        <p className="text-gray-600">Bank: <span className="font-medium text-[#151D48]">{companyProfile?.bank_name || '-'}</span></p>
+                        <p className="text-gray-600">No. Rekening: <span className="font-medium text-[#151D48]">{companyProfile?.bank_account || '-'}</span></p>
+                        <p className="text-gray-600">Atas Nama: <span className="font-medium text-[#151D48]">{companyProfile?.bank_account_name || '-'}</span></p>
+                      </div>
+                    </div>
+                    
+                    {shippingMethod && (
+                      <div className="flex-1">
+                        <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">PENGIRIMAN:</h3>
+                        <div className="bg-gray-50 rounded-md p-2.5 border border-gray-100 min-h-[70px]">
+                          <p className="text-gray-600">Kurir: <span className="font-medium text-[#151D48]">{shippingMethod}</span></p>
+                          {trackingNumber && (
+                            <p className="text-gray-600 mt-0.5">
+                              No. Resi: <span className="font-medium text-[#151D48]">{trackingNumber}</span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {notes && (
+                    <div className="mt-2">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">CATATAN:</p>
+                      <p className="text-[11px] text-gray-600 whitespace-pre-wrap">{notes}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Grand totals */}
+                <div className="w-56 shrink-0">
+                  <div className="space-y-1.5 text-[11px] text-gray-600">
+                    <div className="flex justify-between">
+                      <span>Subtotal</span>
+                      <span className="font-medium text-[#151D48] tabular-nums">{formatCurrency(subtotal)}</span>
+                    </div>
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between">
+                        <span>Diskon</span>
+                        <span className="font-medium text-[#FA5A7D] tabular-nums">- {formatCurrency(discountAmount)}</span>
+                      </div>
+                    )}
+                    {taxAmount > 0 && (
+                      <div className="flex justify-between">
+                        <span>Pajak ({taxRate}%)</span>
+                        <span className="font-medium text-[#151D48] tabular-nums">{formatCurrency(taxAmount)}</span>
+                      </div>
+                    )}
+                    {shippingCost > 0 && (
+                      <div className="flex justify-between">
+                        <span>Ongkos Kirim {shippingMethod ? `(${shippingMethod})` : ''}</span>
+                        <span className="font-medium text-[#151D48] tabular-nums">{formatCurrency(shippingCost)}</span>
+                      </div>
+                    )}
+                    <div className="pt-2 mt-2 border-t-2 border-[#5C67F2] flex justify-between items-center">
+                      <span className="font-bold text-xs text-[#151D48]">TOTAL AKHIR</span>
+                      <span className="font-bold text-sm text-[#5C67F2] tabular-nums">{formatCurrency(grandTotal)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="pt-4 mt-4 border-t border-gray-100 text-center text-[10px] text-gray-400">
+                <p>Terima kasih atas kepercayaan Anda kepada {companyProfile?.company_name || 'kami'}.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* CSS Print Styles for preview page */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          /* 1. Hide the entire main layout tree of Next.js app completely */
+          nav, aside, header, footer, form, button, main, .print\\:hidden, div[class*="min-h-screen"] {
+            display: none !important;
+          }
+
+          /* 2. Reset the body and html for printing strictly to 1 page (A5 landscape) */
+          html, body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 210mm !important;
+            height: 148mm !important;
+            max-height: 148mm !important;
+            overflow: hidden !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* 3. Reset the outermost portal backdrop wrapper only to position at top-left of Page 1 */
+          div[class*="backdrop-blur"], div[class*="bg-black/50"] {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            display: block !important;
+            overflow: hidden !important;
+            width: 210mm !important;
+            height: 148mm !important;
+            max-height: 148mm !important;
+            box-sizing: border-box !important;
+          }
+
+          /* Flatten the modal card container (shadow-xl) so it flows cleanly without absolute stacking */
+          div[class*="shadow-xl"] {
+            box-shadow: none !important;
+            border: none !important;
+            background: transparent !important;
+            display: block !important;
+            width: 210mm !important;
+            height: 148mm !important;
+            max-height: 148mm !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          #invoice-preview-document {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 6mm !important;
+            width: 210mm !important;
+            height: 148mm !important;
+            max-height: 148mm !important;
+            overflow: hidden !important;
+            background: white !important;
+            box-sizing: border-box !important;
+            margin: 0 auto !important;
+            page-break-inside: avoid !important;
+            page-break-after: avoid !important;
+          }
+
+          /* Ensure high-fidelity exact colors */
+          #invoice-preview-document * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          @page {
+            size: A5 landscape;
+            margin: 0;
+          }
+        }
+      `}} />
     </form>
   );
 }
