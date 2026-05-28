@@ -18,7 +18,7 @@ import { useAuthStore } from "@/store/authStore";
 interface InvoiceItem {
   id: number;
   name: string;
-  qty: number;
+  qty: number | "";
   unit: string;
   price: number;
 }
@@ -122,7 +122,7 @@ export default function EditInvoicePage() {
               price: item.unit_price
             })));
           } else {
-            setItems([{ id: Date.now(), name: "", qty: 1, unit: "Pcs", price: 0 }]);
+            setItems([{ id: Date.now(), name: "", qty: "", unit: "Pcs", price: 0 }]);
           }
         } else {
           toast.error("Invoice tidak ditemukan");
@@ -158,14 +158,14 @@ export default function EditInvoicePage() {
 
 
   // Kalkulasi
-  const subtotal = items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+  const subtotal = items.reduce((sum, item) => sum + ((Number(item.qty) || 0) * item.price), 0);
   const taxAmount = applyTax ? ((subtotal - discountAmount) * taxRate) / 100 : 0;
   const grandTotal = subtotal - discountAmount + taxAmount + shippingCost;
 
 
 
   const addItem = () => {
-    setItems([...items, { id: Date.now(), name: "", qty: 1, unit: "Pcs", price: 0 }]);
+    setItems([...items, { id: Date.now(), name: "", qty: "", unit: "Pcs", price: 0 }]);
   };
 
   const removeItem = (id: number) => {
@@ -209,11 +209,11 @@ export default function EditInvoicePage() {
       });
       return;
     }
-    if (items.some(i => !i.name || i.price <= 0)) {
+    if (items.some(i => !i.name || !i.qty || Number(i.qty) <= 0 || i.price <= 0)) {
       setWarningModal({
         isOpen: true,
         title: "Barang / Jasa Tidak Valid",
-        description: "Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid sebelum menyimpan invoice."
+        description: "Pastikan semua barang/jasa memiliki deskripsi, jumlah (qty), dan harga yang valid sebelum menyimpan invoice."
       });
       return;
     }
@@ -256,10 +256,10 @@ export default function EditInvoicePage() {
 
       const itemsData = items.map(item => ({
         description: item.name,
-        quantity: item.qty,
+        quantity: Number(item.qty) || 0,
         unit: item.unit,
         unit_price: item.price,
-        total_price: item.qty * item.price
+        total_price: (Number(item.qty) || 0) * item.price
       }));
 
       const { error } = await updateInvoiceWithItems(invoiceId, invoiceData, itemsData);
@@ -444,7 +444,7 @@ export default function EditInvoicePage() {
                           type="number" 
                           min="1" 
                           value={item.qty}
-                          onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 0)}
+                          onChange={(e) => updateItem(item.id, 'qty', e.target.value === "" ? "" : (parseInt(e.target.value) || 0))}
                         />
                       </td>
                       <td className="px-2 py-3">
@@ -473,7 +473,7 @@ export default function EditInvoicePage() {
                         />
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-text-primary">
-                        {formatCurrency(item.qty * item.price)}
+                        {formatCurrency((Number(item.qty) || 0) * item.price)}
                       </td>
                       <td className="px-2 py-3 text-center">
                         <button 

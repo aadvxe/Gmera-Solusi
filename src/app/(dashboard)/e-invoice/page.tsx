@@ -28,7 +28,7 @@ import { toast } from "sonner";
 interface InvoiceItemForm {
   id: number;
   name: string;
-  qty: number;
+  qty: number | "";
   price: number;
 }
 
@@ -89,16 +89,16 @@ export default function EInvoicePage() {
   };
 
   // Form State
-  const [items, setItems] = useState<InvoiceItemForm[]>([{ id: 1, name: "", qty: 1, price: 0 }]);
+  const [items, setItems] = useState<InvoiceItemForm[]>([{ id: 1, name: "", qty: "", price: 0 }]);
   const [shippingCost, setShippingCost] = useState(0);
   const [taxRate, setTaxRate] = useState(11);
   const [applyTax, setApplyTax] = useState(true);
   
-  const subtotal = items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+  const subtotal = items.reduce((sum, item) => sum + ((Number(item.qty) || 0) * item.price), 0);
   const taxAmount = applyTax ? (subtotal * taxRate) / 100 : 0;
   const grandTotal = subtotal + taxAmount + shippingCost;
 
-  const addItem = () => setItems([...items, { id: Date.now(), name: "", qty: 1, price: 0 }]);
+  const addItem = () => setItems([...items, { id: Date.now(), name: "", qty: "", price: 0 }]);
   const removeItem = (id: number) => {
     if (items.length > 1) setItems(items.filter(item => item.id !== id));
   };
@@ -108,7 +108,7 @@ export default function EInvoicePage() {
 
   const handleCreateInvoice = async () => {
     if (!clientId) return alert("Pilih customer terlebih dahulu");
-    if (items.some(i => !i.name || i.qty <= 0 || i.price <= 0)) return alert("Lengkapi detail barang/jasa");
+    if (items.some(i => !i.name || !i.qty || Number(i.qty) <= 0 || i.price <= 0)) return alert("Lengkapi detail barang/jasa");
 
     setLoading(true);
     try {
@@ -141,16 +141,16 @@ export default function EInvoicePage() {
         paid_at: null,
       }, items.map(i => ({
         description: i.name,
-        quantity: i.qty,
+        quantity: Number(i.qty) || 0,
         unit: 'pcs',
         unit_price: i.price,
-        total_price: i.qty * i.price
+        total_price: (Number(i.qty) || 0) * i.price
       })));
 
       if (error) throw error;
       
       setIsModalOpen(false);
-      setItems([{ id: 1, name: "", qty: 1, price: 0 }]);
+      setItems([{ id: 1, name: "", qty: "", price: 0 }]);
       setClientId("");
       loadData();
       alert("Invoice berhasil dibuat!");
@@ -515,7 +515,7 @@ export default function EInvoicePage() {
                             <Input placeholder="Deskripsi Barang/Jasa" value={item.name} onChange={(e) => updateItem(item.id, 'name', e.target.value)} className="bg-white mb-2" />
                             <div className="flex gap-3">
                               <div className="w-24">
-                                <Input type="number" min="1" placeholder="Qty" value={item.qty} onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 0)} className="bg-white" />
+                                <Input type="number" min="1" placeholder="Qty" value={item.qty} onChange={(e) => updateItem(item.id, 'qty', e.target.value === "" ? "" : (parseInt(e.target.value) || 0))} className="bg-white" />
                               </div>
                               <div className="flex-1">
                                 <Input type="number" min="0" placeholder="Harga Satuan" value={item.price} onChange={(e) => updateItem(item.id, 'price', parseInt(e.target.value) || 0)} className="bg-white" />
@@ -523,7 +523,7 @@ export default function EInvoicePage() {
                             </div>
                           </div>
                           <div className="flex shrink-0 items-center justify-between gap-2 pt-1 sm:w-32 sm:flex-col sm:items-end">
-                            <span className="font-bold text-[#151D48] text-sm">{formatCurrency(item.qty * item.price)}</span>
+                            <span className="font-bold text-[#151D48] text-sm">{formatCurrency((Number(item.qty) || 0) * item.price)}</span>
                             <button onClick={() => removeItem(item.id)} disabled={items.length === 1} className="text-gray-400 hover:text-[#FA5A7D] p-1 mt-auto">
                               <TrashIcon className="w-4 h-4" />
                             </button>
