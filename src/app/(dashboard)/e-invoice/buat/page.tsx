@@ -529,17 +529,31 @@ export default function BuatInvoicePage() {
             </h3>
             <div>
               <label className="block text-sm font-medium text-text-primary mb-1.5">File PO / Kontrak (Opsional)</label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-xl bg-background/50 hover:bg-background transition-colors cursor-pointer">
+              <label htmlFor="main-file-upload" className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-border border-dashed rounded-xl bg-background/50 hover:bg-background transition-colors cursor-pointer relative block">
                 <div className="space-y-1 text-center">
                   <div className="flex text-sm text-text-secondary justify-center">
-                    <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
-                      <span>Unggah file lampiran</span>
-                      <input id="file-upload" name="file-upload" type="file" className="sr-only" />
-                    </label>
+                    <div className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
+                      <span>{attachment ? "Ganti file" : "Unggah file lampiran"}</span>
+                      <input 
+                        id="main-file-upload" 
+                        name="main-file-upload" 
+                        type="file" 
+                        className="sr-only" 
+                        onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            setAttachment(e.target.files[0]);
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
-                  <p className="text-xs text-text-muted">PDF, PNG, JPG maksimal 5MB</p>
+                  {attachment ? (
+                    <p className="text-xs font-medium text-text-primary mt-1">{attachment.name}</p>
+                  ) : (
+                    <p className="text-xs text-text-muted">PDF, PNG, JPG maksimal 5MB</p>
+                  )}
                 </div>
-              </div>
+              </label>
             </div>
           </div>
         </div>
@@ -637,14 +651,14 @@ export default function BuatInvoicePage() {
               
               <div>
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Lampiran Bukti (Opsional)</label>
-                <label htmlFor="file-upload" className="flex justify-center px-4 py-4 border-2 border-dashed border-border rounded-xl bg-surface hover:bg-background transition-colors cursor-pointer relative">
+                <label htmlFor="sidebar-file-upload" className="flex justify-center px-4 py-4 border-2 border-dashed border-border rounded-xl bg-surface hover:bg-background transition-colors cursor-pointer relative">
                   <div className="space-y-1 text-center">
                     <div className="flex text-sm text-text-secondary justify-center">
                       <div className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
                         <span>{attachment ? "Ganti file" : "Unggah file"}</span>
                         <input 
-                          id="file-upload" 
-                          name="file-upload" 
+                          id="sidebar-file-upload" 
+                          name="sidebar-file-upload" 
                           type="file" 
                           className="sr-only" 
                           onChange={e => {

@@ -612,14 +612,14 @@ export default function EditInvoicePage() {
                     <a href={existingAttachmentUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary font-medium hover:underline">Lihat</a>
                   </div>
                 )}
-                <label htmlFor="file-upload" className="flex justify-center px-4 py-4 border-2 border-dashed border-border rounded-xl bg-surface hover:bg-background transition-colors cursor-pointer relative">
+                <label htmlFor="edit-file-upload" className="flex justify-center px-4 py-4 border-2 border-dashed border-border rounded-xl bg-surface hover:bg-background transition-colors cursor-pointer relative">
                   <div className="space-y-1 text-center">
                     <div className="flex text-sm text-text-secondary justify-center">
                       <div className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
                         <span>{attachment ? "Ganti file" : "Unggah file baru"}</span>
                         <input 
-                          id="file-upload" 
-                          name="file-upload" 
+                          id="edit-file-upload" 
+                          name="edit-file-upload" 
                           type="file" 
                           className="sr-only" 
                           onChange={e => {
