@@ -5,41 +5,61 @@ import { getInvoices, checkAndUpdateOverdueInvoices } from './invoices';
 
 // ─── DASHBOARD SUMMARY ────────────────────────────────────────────────────────
 
-export async function getDashboardSummary() {
+export async function getDashboardSummary(year?: number, month?: number) {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const day = now.getDate();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
 
-  const prevMonth = month === 1 ? 12 : month - 1;
-  const prevYear = month === 1 ? year - 1 : year;
+  const selectedYear = year || currentYear;
+  const selectedMonth = month || currentMonth;
 
-  const [totalIncomeMonth, totalExpenseMonth, invoices] = await Promise.all([
-    getTotalIncome(year, month),
-    getTotalExpense(year, month),
+  let day = now.getDate();
+  if (selectedYear !== currentYear || selectedMonth !== currentMonth) {
+    day = new Date(selectedYear, selectedMonth, 0).getDate();
+  }
+
+  console.log('[Dashboard] getDashboardSummary called', { selectedYear, selectedMonth, day });
+
+  const prevMonth = selectedMonth === 1 ? 12 : selectedMonth - 1;
+  const prevYear = selectedMonth === 1 ? selectedYear - 1 : selectedYear;
+
+  const [totalIncomeMonth, totalExpenseMonth, invoices, allTimeIncome, allTimeExpense] = await Promise.all([
+    getTotalIncome(selectedYear, selectedMonth),
+    getTotalExpense(selectedYear, selectedMonth),
     getInvoices(),
+    getTotalIncome(),
+    getTotalExpense(),
   ]);
+
+  console.log('[Dashboard] Summary results:', { totalIncomeMonth, totalExpenseMonth, allTimeIncome, allTimeExpense, invoiceCount: invoices.length });
 
   const supabase = createClient();
   const prevMonthStart = `${prevYear}-${String(prevMonth).padStart(2, '0')}-01`;
-  const prevMonthEndMTD = `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(day).padStart(2, '0')} 23:59:59`;
+  const prevMonthEndMTD = `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
   const [prevIncomeRes, prevExpenseRes] = await Promise.all([
     supabase.from('income').select('amount').gte('date', prevMonthStart).lte('date', prevMonthEndMTD),
     supabase.from('expense').select('amount').gte('date', prevMonthStart).lte('date', prevMonthEndMTD),
   ]);
 
-  const prevMonthIncomeMTD = (prevIncomeRes.data || []).reduce((sum, row) => sum + (row.amount || 0), 0);
-  const prevMonthExpenseMTD = (prevExpenseRes.data || []).reduce((sum, row) => sum + (row.amount || 0), 0);
+  console.log('[Dashboard] Previous month raw data:', {
+    prevIncomeData: prevIncomeRes.data,
+    prevIncomeError: prevIncomeRes.error,
+    prevExpenseData: prevExpenseRes.data,
+    prevExpenseError: prevExpenseRes.error,
+  });
+
+  const prevMonthIncomeMTD = (prevIncomeRes.data || []).reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
+  const prevMonthExpenseMTD = (prevExpenseRes.data || []).reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
 
   const totalPiutang = invoices
     .filter(i => i.status === 'unpaid' || i.status === 'overdue')
-    .reduce((s, i) => s + (i.grand_total || 0), 0);
+    .reduce((s, i) => s + (Number(i.grand_total) || 0), 0);
 
-  const netProfit = totalIncomeMonth - totalExpenseMonth;
+  const netProfit = allTimeIncome - allTimeExpense;
   const prevNetProfitMTD = prevMonthIncomeMTD - prevMonthExpenseMTD;
 
-  return {
+  const result = {
     totalIncomeMonth,
     totalExpenseMonth,
     netProfit,
@@ -50,6 +70,9 @@ export async function getDashboardSummary() {
     unpaidInvoices: invoices.filter(i => i.status === 'unpaid').length,
     overdueInvoices: invoices.filter(i => i.status === 'overdue').length,
   };
+
+  console.log('[Dashboard] Final summary result:', result);
+  return result;
 }
 
 // ─── DASHBOARD CHART DATA ─────────────────────────────────────────────────────
@@ -61,9 +84,16 @@ export async function getDashboardChartData(year: number, month: number) {
     ? `${year + 1}-01-01`
     : `${year}-${String(month + 1).padStart(2, '0')}-01`;
 
-  const [incomeData, expenseData] = await Promise.all([
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const prevYear = month === 1 ? year - 1 : year;
+  const prevStart = `${prevYear}-${String(prevMonth).padStart(2, '0')}-01`;
+  const prevEnd = start;
+
+  const [incomeData, expenseData, prevIncomeData, prevExpenseData] = await Promise.all([
     supabase.from('income').select('date, amount').gte('date', start).lt('date', end),
     supabase.from('expense').select('date, amount').gte('date', start).lt('date', end),
+    supabase.from('income').select('date, amount').gte('date', prevStart).lt('date', prevEnd),
+    supabase.from('expense').select('date, amount').gte('date', prevStart).lt('date', prevEnd),
   ]);
 
   const daysInMonth = new Date(year, month, 0).getDate();
@@ -71,6 +101,8 @@ export async function getDashboardChartData(year: number, month: number) {
 
   for (let i = 1; i <= daysInMonth; i++) {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+    const prevDateStr = `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
     const dayIncome = (incomeData.data || [])
       .filter(item => item.date === dateStr)
       .reduce((sum, item) => sum + Number(item.amount), 0);
@@ -78,9 +110,58 @@ export async function getDashboardChartData(year: number, month: number) {
       .filter(item => item.date === dateStr)
       .reduce((sum, item) => sum + Number(item.amount), 0);
 
-    chartData.push({ name: String(i), pendapatan: dayIncome, pengeluaran: dayExpense, laba: dayIncome - dayExpense });
+    const prevDayIncome = (prevIncomeData.data || [])
+      .filter(item => item.date === prevDateStr)
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+    const prevDayExpense = (prevExpenseData.data || [])
+      .filter(item => item.date === prevDateStr)
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+
+    chartData.push({
+      name: String(i),
+      pendapatan: dayIncome,
+      pengeluaran: dayExpense,
+      laba: dayIncome - dayExpense,
+      last: prevDayIncome - prevDayExpense
+    });
   }
   return chartData;
+}
+
+// ─── DASHBOARD YEARLY DATA ───────────────────────────────────────────────────
+
+export async function getDashboardYearlyData(year: number) {
+  const supabase = createClient();
+  const start = `${year}-01-01`;
+  const end = `${year + 1}-01-01`;
+
+  const [incomeRes, expenseRes] = await Promise.all([
+    supabase.from('income').select('date, amount').gte('date', start).lt('date', end),
+    supabase.from('expense').select('date, amount').gte('date', start).lt('date', end),
+  ]);
+
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+  const yearlyData = months.map((m, idx) => {
+    const monthNum = idx + 1;
+    const monthStr = `${year}-${String(monthNum).padStart(2, '0')}`;
+    
+    const monthIncome = (incomeRes.data || [])
+      .filter(item => item.date.startsWith(monthStr))
+      .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+      
+    const monthExpense = (expenseRes.data || [])
+      .filter(item => item.date.startsWith(monthStr))
+      .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
+    return {
+      name: m,
+      pendapatan: monthIncome,
+      pengeluaran: monthExpense,
+      laba: monthIncome - monthExpense
+    };
+  });
+
+  return yearlyData;
 }
 
 // ─── REPORT CHART DATA ────────────────────────────────────────────────────────
@@ -91,8 +172,8 @@ export async function getFinancialReport(startDate: string, endDate: string) {
     supabase.from('income').select('amount').gte('date', startDate).lte('date', endDate),
     supabase.from('expense').select('amount').gte('date', startDate).lte('date', endDate),
   ]);
-  const totalIncome = (incomeRes.data || []).reduce((s, r) => s + (r.amount || 0), 0);
-  const totalExpense = (expenseRes.data || []).reduce((s, r) => s + (r.amount || 0), 0);
+  const totalIncome = (incomeRes.data || []).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+  const totalExpense = (expenseRes.data || []).reduce((s, r) => s + (Number(r.amount) || 0), 0);
   return { totalIncome, totalExpense, netProfit: totalIncome - totalExpense };
 }
 
@@ -137,7 +218,7 @@ export async function getTopClientsStats(limit = 3) {
       if (!clientTotals[inv.client_id]) {
         clientTotals[inv.client_id] = { id: inv.client_id, name: inv.client_name, total: 0 };
       }
-      clientTotals[inv.client_id].total += Number(inv.grand_total);
+      clientTotals[inv.client_id].total += Number(inv.grand_total) || 0;
     }
   });
 

@@ -22,10 +22,12 @@ export async function getTotalIncome(year?: number, month?: number): Promise<num
       ? `${year + 1}-01-01`
       : `${year}-${String(month + 1).padStart(2, '0')}-01`;
     query = query.gte('date', start).lt('date', end);
+    console.log('[getTotalIncome] Querying date range:', { start, end });
   }
   const { data, error } = await query;
+  console.log('[getTotalIncome] Result:', { dataLength: data?.length, error, sampleData: data?.slice(0, 3) });
   if (error || !data) return 0;
-  return data.reduce((sum, row) => sum + (row.amount || 0), 0);
+  return data.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
 }
 
 export async function createIncome(

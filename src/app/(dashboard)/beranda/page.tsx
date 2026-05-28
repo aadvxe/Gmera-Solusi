@@ -23,7 +23,7 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { getDashboardChartData, getTopClientsStats, getRecentActivities } from "@/lib/db";
+import { getDashboardChartData, getTopClientsStats, getRecentActivities, getDashboardYearlyData } from "@/lib/db";
 
 const formatCompactCurrency = (value: number) => {
   const absValue = Math.abs(value);
@@ -95,33 +95,148 @@ export default function DashboardPage() {
   const [topClients, setTopClients] = useState<any[]>([]);
   const [aktivitasTerbaru, setAktivitasTerbaru] = useState<any[]>([]);
   const [invoiceDonutData, setInvoiceDonutData] = useState<any[]>([]);
+  const [yearlyData, setYearlyData] = useState<any[]>([]);
+
+  // Period filter states
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("");
+  const [periodOptions, setPeriodOptions] = useState<{ value: string, label: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getDisplayName = useAuthStore((state) => state.getDisplayName);
   const displayName = getDisplayName();
 
+  // Set greeting based on time of day
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) setGreeting("Selamat Pagi");
     else if (hour >= 12 && hour < 15) setGreeting("Selamat Siang");
     else if (hour >= 15 && hour < 19) setGreeting("Selamat Sore");
     else setGreeting("Selamat Malam");
+  }, []);
+
+  // Initialize selected period and available period options
+  useEffect(() => {
+    const initializePeriod = async () => {
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+
+      let defaultYear = currentYear;
+      let defaultMonth = currentMonth;
+
+      try {
+        // Query to find the latest transaction date to set smart default active month
+        const [latestIncome, latestExpense] = await Promise.all([
+          supabase.from('income').select('date').order('date', { ascending: false }).limit(1),
+          supabase.from('expense').select('date').order('date', { ascending: false }).limit(1)
+        ]);
+
+        const incomeDate = latestIncome.data?.[0]?.date;
+        const expenseDate = latestExpense.data?.[0]?.date;
+        let latestDate = null;
+        if (incomeDate && expenseDate) {
+          latestDate = incomeDate > expenseDate ? incomeDate : expenseDate;
+        } else if (incomeDate) {
+          latestDate = incomeDate;
+        } else if (expenseDate) {
+          latestDate = expenseDate;
+        }
+
+        if (latestDate) {
+          const [y, m] = latestDate.split('-').map(Number);
+          defaultYear = y;
+          defaultMonth = m;
+        }
+
+        // Query oldest transaction date to establish start bounds for filter dropdown
+        const [oldestIncome, oldestExpense] = await Promise.all([
+          supabase.from('income').select('date').order('date', { ascending: true }).limit(1),
+          supabase.from('expense').select('date').order('date', { ascending: true }).limit(1)
+        ]);
+
+        const oldestIncomeDate = oldestIncome.data?.[0]?.date;
+        const oldestExpenseDate = oldestExpense.data?.[0]?.date;
+        let oldestDate = null;
+        if (oldestIncomeDate && oldestExpenseDate) {
+          oldestDate = oldestIncomeDate < oldestExpenseDate ? oldestIncomeDate : oldestExpenseDate;
+        } else if (oldestIncomeDate) {
+          oldestDate = oldestIncomeDate;
+        } else if (oldestExpenseDate) {
+          oldestDate = oldestExpenseDate;
+        }
+
+        let startYear = currentYear;
+        let startMonth = currentMonth;
+        if (oldestDate) {
+          const [y, m] = oldestDate.split('-').map(Number);
+          startYear = y;
+          startMonth = m;
+        }
+
+        // Generate options array in Indonesian format from oldest month to current month
+        const options = [];
+        const monthNames = [
+          "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+          "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+
+        let loopYear = startYear;
+        let loopMonth = startMonth;
+
+        while (
+          loopYear < currentYear || 
+          (loopYear === currentYear && loopMonth <= currentMonth)
+        ) {
+          options.push({
+            value: `${loopYear}-${loopMonth}`,
+            label: `${monthNames[loopMonth - 1]} ${loopYear}`
+          });
+          loopMonth++;
+          if (loopMonth > 12) {
+            loopMonth = 1;
+            loopYear++;
+          }
+        }
+
+        options.reverse(); // Reverse chronology for premium UI feel
+        setPeriodOptions(options);
+        setSelectedPeriod(`${defaultYear}-${defaultMonth}`);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error initializing dashboard period:", err);
+        setSelectedPeriod(`${currentYear}-${currentMonth}`);
+        setPeriodOptions([{ value: `${currentYear}-${currentMonth}`, label: `Mei ${currentYear}` }]);
+        setIsLoading(false);
+      }
+    };
+
+    initializePeriod();
+  }, []);
+
+  // Fetch dashboard data when active period selection changes
+  useEffect(() => {
+    if (!selectedPeriod) return;
+
+    const [year, month] = selectedPeriod.split('-').map(Number);
 
     const loadData = async () => {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth() + 1;
-
-      const [data, cData, clients, activities] = await Promise.all([
-        getDashboardSummary(),
+      const [data, cData, clients, activities, yData] = await Promise.all([
+        getDashboardSummary(year, month),
         getDashboardChartData(year, month),
         getTopClientsStats(4),
-        getRecentActivities(6)
+        getRecentActivities(6),
+        getDashboardYearlyData(year)
       ]);
-      
+
+      console.log('[DEBUG] Dashboard filter loaded: year=', year, 'month=', month);
+      console.log('[DEBUG] Summary result:', data);
+
       setSummary(data);
       setChartData(cData);
+      setYearlyData(yData);
       
-      // Calculate percentages for top clients based on total of all top clients
       const totalTopClientsValue = clients.reduce((acc, c) => acc + c.total, 0);
       setTopClients(clients.map((c, i) => ({
         id: String(i + 1).padStart(2, '0'),
@@ -146,30 +261,44 @@ export default function DashboardPage() {
         ]);
       }
     };
+
     loadData();
-  }, []);
+  }, [selectedPeriod]);
 
   return (
     <div className="space-y-6">
       
-      {/* Top Greeting */}
-      <div className="mb-8 pt-2 sm:pt-0">
-        <h1 className="text-2xl font-bold text-[#151D48] mb-1">
-          {greeting}, {displayName}! 🌤️
-        </h1>
-        <p className="text-sm text-gray-500">
-          {summary ? (
-            summary.overdueInvoices > 0
-              ? `Ada ${summary.overdueInvoices} invoice jatuh tempo yang perlu perhatian Anda segera ⚠️`
-              : summary.unpaidInvoices > 0
-              ? `Ada ${summary.unpaidInvoices} invoice yang belum dibayar menunggu pelunasan ⏳`
-              : summary.totalInvoices > 0
-              ? `Kerja bagus! Semua ${summary.paidInvoices} invoice telah lunas dibayar ✅`
-              : "Belum ada invoice. Mulai catat pendapatan atau buat invoice baru 🚀"
-          ) : (
-            "Memuat ringkasan data..."
-          )}
-        </p>
+      {/* Top Greeting & Period Filter */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pt-2 sm:pt-0">
+        <div>
+          <h1 className="text-2xl font-bold text-[#151D48] mb-1">
+            {greeting}, {displayName}! 🌤️
+          </h1>
+          <p className="text-sm text-gray-500">
+            {summary ? (
+              summary.overdueInvoices > 0
+                ? `Ada ${summary.overdueInvoices} invoice jatuh tempo yang perlu perhatian Anda segera ⚠️`
+                : summary.unpaidInvoices > 0
+                ? `Ada ${summary.unpaidInvoices} invoice yang belum dibayar menunggu pelunasan ⏳`
+                : summary.totalInvoices > 0
+                ? `Kerja bagus! Semua ${summary.paidInvoices} invoice telah lunas dibayar ✅`
+                : "Belum ada invoice. Mulai catat pendapatan atau buat invoice baru 🚀"
+            ) : (
+              "Memuat ringkasan data..."
+            )}
+          </p>
+        </div>
+
+        {/* Period Filter Dropdown */}
+        <div className="w-full md:w-52 shrink-0 relative z-20">
+          <CalenderIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none z-10" />
+          <CustomSelect
+            options={periodOptions}
+            value={selectedPeriod}
+            onChange={setSelectedPeriod}
+            triggerClassName="pl-10 font-semibold text-[#151D48]"
+          />
+        </div>
       </div>
 
       {/* Top Row: Ringkasan & Tren Arus Kas */}
@@ -180,7 +309,9 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-lg font-bold text-[#151D48]">Ringkasan Keuangan</h2>
-              <p className="text-sm text-gray-500">Bulan Ini</p>
+              <p className="text-sm text-gray-500">
+                {periodOptions.find(opt => opt.value === selectedPeriod)?.label || "Bulan Ini"}
+              </p>
             </div>
           </div>
           
@@ -194,7 +325,9 @@ export default function DashboardPage() {
                 {summary ? `Rp ${formatCompactCurrency(summary.totalIncomeMonth)}` : "..."}
               </h3>
               <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Pendapatan<br/>Bulan Ini</p>
-              <p className="text-xs text-[#76c893] mt-auto">Bulan berjalan</p>
+              <p className="text-xs text-[#76c893] mt-auto">
+                {periodOptions.find(opt => opt.value === selectedPeriod)?.label || "Bulan berjalan"}
+              </p>
             </div>
 
             {/* Card 2: Pengeluaran Bulan Ini */}
@@ -206,7 +339,9 @@ export default function DashboardPage() {
                 {summary ? `Rp ${formatCompactCurrency(summary.totalExpenseMonth)}` : "..."}
               </h3>
               <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Pengeluaran<br/>Bulan Ini</p>
-              <p className="text-xs text-[#f08a5d] mt-auto">Bulan berjalan</p>
+              <p className="text-xs text-[#f08a5d] mt-auto">
+                {periodOptions.find(opt => opt.value === selectedPeriod)?.label || "Bulan berjalan"}
+              </p>
             </div>
             
             {/* Card 3: Saldo Saat Ini */}
@@ -312,16 +447,7 @@ export default function DashboardPage() {
                   });
                 }
                 if (periodeKas === "Tahun Ini") {
-                  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
-                  // Placeholder: using current month data for the current month index, 0 for others
-                  // In a real app, this would fetch year-wide data.
-                  const currentMonthIdx = new Date().getMonth();
-                  return months.map((m, idx) => ({
-                    name: m,
-                    pendapatan: idx === currentMonthIdx ? summary?.totalIncomeMonth || 0 : 0,
-                    pengeluaran: idx === currentMonthIdx ? summary?.totalExpenseMonth || 0 : 0,
-                    laba: idx === currentMonthIdx ? summary?.netProfit || 0 : 0
-                  }));
+                  return yearlyData;
                 }
                 return chartData;
               })()} barGap={4}>
