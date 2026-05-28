@@ -237,11 +237,10 @@ export default function DashboardPage() {
       setChartData(cData);
       setYearlyData(yData);
       
-      const totalTopClientsValue = clients.reduce((acc, c) => acc + c.total, 0);
       setTopClients(clients.map((c, i) => ({
         id: String(i + 1).padStart(2, '0'),
         name: c.name,
-        percent: totalTopClientsValue ? Math.round((c.total / totalTopClientsValue) * 100) : 0,
+        percent: c.percent,
         color: c.color
       })));
 
@@ -596,16 +595,15 @@ export default function DashboardPage() {
                     <td className="py-4 text-[#151D48] font-medium">{client.name}</td>
                     <td className="py-4 w-32">
                       <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${client.color}`} style={{ width: `${client.percent}%` }}></div>
+                        <div className="h-full rounded-full animate-pulse-slow" style={{ width: `${client.percent}%`, backgroundColor: client.color }}></div>
                       </div>
                     </td>
                     <td className="py-4 text-right">
-                      <span className={`px-2 py-1 rounded border text-xs ${
-                        client.color.includes('7983ff') ? 'border-[#7983ff] text-[#7983ff] bg-[#7983ff]/10' :
-                        client.color.includes('76c893') ? 'border-[#76c893] text-[#76c893] bg-[#76c893]/10' :
-                        client.color.includes('a78bfa') ? 'border-[#a78bfa] text-[#a78bfa] bg-[#a78bfa]/10' :
-                        'border-[#ffd166] text-[#ffd166] bg-[#ffd166]/10'
-                      }`}>
+                      <span className="px-2 py-1 rounded-xl border text-xs font-bold" style={{
+                        borderColor: client.color,
+                        color: client.color,
+                        backgroundColor: `${client.color}1A` // 1A is hex for 10% alpha opacity
+                      }}>
                         {client.percent}%
                       </span>
                     </td>

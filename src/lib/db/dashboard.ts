@@ -222,6 +222,8 @@ export async function getTopClientsStats(limit = 3) {
     }
   });
 
+  const overallTotal = Object.values(clientTotals).reduce((sum, c) => sum + c.total, 0);
+
   return Object.values(clientTotals)
     .sort((a, b) => b.total - a.total)
     .slice(0, limit)
@@ -229,7 +231,8 @@ export async function getTopClientsStats(limit = 3) {
       id: c.id,
       name: c.name,
       total: c.total,
-      color: ['bg-[#7983ff]', 'bg-[#76c893]', 'bg-[#a78bfa]', 'bg-[#ffd166]'][i % 4],
+      percent: overallTotal ? Math.round((c.total / overallTotal) * 100) : 0,
+      color: ['#7983ff', '#76c893', '#a78bfa', '#ffd166'][i % 4],
     }));
 }
 
