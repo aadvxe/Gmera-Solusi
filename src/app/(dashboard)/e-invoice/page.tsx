@@ -182,6 +182,17 @@ export default function EInvoicePage() {
     }
   };
 
+  const getFilteredInvoices = () => {
+    return invoices.filter(row => {
+      const matchesSearch = row.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            row.clients?.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = filterStatus === "all" ? true : row.status === filterStatus;
+      const matchesClient = filterClientId === "all" ? true : row.client_id === filterClientId;
+      
+      return matchesSearch && matchesStatus && matchesClient;
+    });
+  };
+
   const exportColumns = [
     { header: 'No. Invoice', key: 'invoice_number', width: 18 },
     { header: 'Customer', key: 'clients.name', width: 24 },
@@ -193,7 +204,7 @@ export default function EInvoicePage() {
 
   const handleExportExcel = async () => {
     try {
-      exportToExcel(invoices, exportColumns, `Invoice_${new Date().toISOString().slice(0,10)}`);
+      exportToExcel(getFilteredInvoices(), exportColumns, `Invoice_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor Excel Selesai", {
         description: "Daftar invoice berhasil diekspor ke format Excel.",
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
@@ -214,7 +225,7 @@ export default function EInvoicePage() {
   const handleExportPDF = async () => {
     toast.info("Sedang menyiapkan PDF...");
     try {
-      exportToPDF(invoices, exportColumns, 'Laporan Invoice', `Laporan_Invoice_${new Date().toISOString().slice(0,10)}`);
+      exportToPDF(getFilteredInvoices(), exportColumns, 'Laporan Invoice', `Laporan_Invoice_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor PDF Selesai", {
         description: "Laporan invoice berhasil diunduh dalam format PDF.",
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
@@ -379,21 +390,14 @@ export default function EInvoicePage() {
                     Memuat data invoice...
                   </TableCell>
                 </TableRow>
-              ) : invoices.length === 0 ? (
+              ) : getFilteredInvoices().length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-10 text-gray-500">
                     Tidak ada invoice yang ditemukan.
                   </TableCell>
                 </TableRow>
               ) : (
-                invoices.filter(row => {
-                  const matchesSearch = row.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                        row.clients?.name.toLowerCase().includes(searchTerm.toLowerCase());
-                  const matchesStatus = filterStatus === "all" ? true : row.status === filterStatus;
-                  const matchesClient = filterClientId === "all" ? true : row.client_id === filterClientId;
-                  
-                  return matchesSearch && matchesStatus && matchesClient;
-                }).map((row) => (
+                getFilteredInvoices().map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-[#5C67F2] cursor-pointer hover:underline">{row.invoice_number}</TableCell>
                     <TableCell className="font-semibold text-[#151D48]">{row.clients?.name}</TableCell>
@@ -442,7 +446,7 @@ export default function EInvoicePage() {
 
         {/* Pagination */}
         <div className="p-4 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-500">
-          <div>Menampilkan {invoices.length} data</div>
+          <div>Menampilkan {getFilteredInvoices().length} data</div>
           <div className="flex w-full justify-end gap-1 sm:w-auto">
             <Button variant="outline" size="sm" disabled>Seb</Button>
             <Button variant="default" size="sm" className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">1</Button>

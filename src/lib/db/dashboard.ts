@@ -64,6 +64,8 @@ export async function getDashboardSummary(year?: number, month?: number) {
     totalExpenseMonth,
     netProfit,
     prevNetProfitMTD,
+    prevMonthIncomeMTD,
+    prevMonthExpenseMTD,
     totalPiutang,
     totalInvoices: invoices.length,
     paidInvoices: invoices.filter(i => i.status === 'paid').length,

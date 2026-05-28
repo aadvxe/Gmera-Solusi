@@ -96,7 +96,7 @@ export default function BuatInvoicePage() {
   const [shippingMethod, setShippingMethod] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
   const [estimatedArrival, setEstimatedArrival] = useState("");
-  const [notes, setNotes] = useState("Terima kasih atas bisnis Anda bersama PT GMera Solusi. Pembayaran harap ditransfer ke rekening BCA 1234567890 a.n PT GMera Solusi.");
+  const [notes, setNotes] = useState("Terima kasih atas pembelian produk kami. Pembayaran harap ditransfer ke rekening BCA 7642276754 a.n PT GMera Solusi");
 
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: 1, name: "", qty: 1, unit: "Pcs", price: 0 }

@@ -160,6 +160,18 @@ export default function PendapatanPage() {
     }
   };
 
+  const getFilteredIncomes = () => {
+    return incomes.filter(row => {
+      const matchesSearch = row.source.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            (row.reference_number || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesDateFrom = filterFrom ? row.date >= filterFrom : true;
+      const matchesDateTo = filterTo ? row.date <= filterTo : true;
+      const matchesCategory = filterCategoryId === "all" ? true : row.category_id === filterCategoryId;
+      
+      return matchesSearch && matchesDateFrom && matchesDateTo && matchesCategory;
+    });
+  };
+
   const exportColumns = [
     { header: 'Tanggal', key: 'date', isDate: true, width: 14 },
     { header: 'No. Referensi', key: 'reference_number', width: 16 },
@@ -171,7 +183,7 @@ export default function PendapatanPage() {
 
   const handleExportExcel = async () => {
     try {
-      exportToExcel(incomes, exportColumns, `Pendapatan_${new Date().toISOString().slice(0,10)}`);
+      exportToExcel(getFilteredIncomes(), exportColumns, `Pendapatan_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor Excel Selesai", {
         description: "Data pendapatan berhasil diekspor ke format Excel.",
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
@@ -192,7 +204,7 @@ export default function PendapatanPage() {
   const handleExportPDF = async () => {
     toast.info("Sedang menyiapkan PDF...");
     try {
-      exportToPDF(incomes, exportColumns, 'Laporan Pendapatan', `Laporan_Pendapatan_${new Date().toISOString().slice(0,10)}`);
+      exportToPDF(getFilteredIncomes(), exportColumns, 'Laporan Pendapatan', `Laporan_Pendapatan_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor PDF Selesai", {
         description: "Laporan pendapatan berhasil diunduh dalam format PDF.",
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
@@ -352,22 +364,14 @@ export default function PendapatanPage() {
                     Memuat data...
                   </TableCell>
                 </TableRow>
-              ) : incomes.length === 0 ? (
+              ) : getFilteredIncomes().length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-10 text-gray-500">
                     Tidak ada data pendapatan yang ditemukan.
                   </TableCell>
                 </TableRow>
               ) : (
-                incomes.filter(row => {
-                  const matchesSearch = row.source.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                        (row.reference_number || "").toLowerCase().includes(searchTerm.toLowerCase());
-                  const matchesDateFrom = filterFrom ? row.date >= filterFrom : true;
-                  const matchesDateTo = filterTo ? row.date <= filterTo : true;
-                  const matchesCategory = filterCategoryId === "all" ? true : row.category_id === filterCategoryId;
-                  
-                  return matchesSearch && matchesDateFrom && matchesDateTo && matchesCategory;
-                }).map((row) => (
+                getFilteredIncomes().map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-[#151D48]">{new Date(row.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
                     <TableCell className="text-gray-600">{row.reference_number || '-'}</TableCell>
@@ -425,7 +429,7 @@ export default function PendapatanPage() {
 
         {/* Pagination */}
           <div className="p-4 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-500">
-          <div>Menampilkan {incomes.length} data</div>
+          <div>Menampilkan {getFilteredIncomes().length} data</div>
             <div className="flex w-full justify-end gap-1 sm:w-auto">
             <Button variant="outline" size="sm" disabled>Seb</Button>
             <Button variant="default" size="sm" className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">1</Button>

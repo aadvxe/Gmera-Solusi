@@ -46,11 +46,21 @@ export function exportToExcel(
   filename: string,
   isAccountingLayout: boolean = false
 ) {
+  // Sort data ascending by date (lowest date to highest date)
+  const sortedData = [...data].sort((a, b) => {
+    const dateA = a.date || a.invoice_date || a.created_at || "";
+    const dateB = b.date || b.invoice_date || b.created_at || "";
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return new Date(dateA).getTime() - new Date(dateB).getTime();
+  });
+
   // ── build header row ──────────────────────────────────────────────────────
   const headerRow = isAccountingLayout ? columns.map(c => c.header) : ['No.', ...columns.map(c => c.header)];
 
   // ── build data rows ───────────────────────────────────────────────────────
-  const bodyRows = data.map((row, idx) => {
+  const bodyRows = sortedData.map((row, idx) => {
     const cells: any[] = isAccountingLayout ? [] : [idx + 1]; // row number only for standard layout
     columns.forEach(col => {
       let val = resolveKey(row, col.key);
@@ -85,7 +95,7 @@ export function exportToExcel(
   if (!isAccountingLayout) {
     columns.forEach((col, i) => {
       if (col.isCurrency) {
-        const sum = data.reduce((acc, row) => {
+        const sum = sortedData.reduce((acc, row) => {
           const v = resolveKey(row, col.key);
           return acc + (typeof v === 'number' ? v : 0);
         }, 0);
@@ -119,7 +129,7 @@ export function exportToExcel(
   const subRows = new Set<number>();
   const ftrRows = new Set<number>();
   if (isAccountingLayout) {
-    data.forEach((row, idx) => {
+    sortedData.forEach((row, idx) => {
       const val = resolveKey(row, columns[0].key);
       if (typeof val === 'string') {
         if (val.startsWith('HDR: ')) hdrRows.add(idx + 1);
@@ -267,6 +277,16 @@ export function exportToPDF(
   periode: string = "",
   isAccountingLayout: boolean = false
 ) {
+  // Sort data ascending by date (lowest date to highest date)
+  const sortedData = [...data].sort((a, b) => {
+    const dateA = a.date || a.invoice_date || a.created_at || "";
+    const dateB = b.date || b.invoice_date || b.created_at || "";
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return new Date(dateA).getTime() - new Date(dateB).getTime();
+  });
+
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
@@ -306,7 +326,7 @@ export function exportToPDF(
 
   // right side — period info
   doc.setFontSize(8);
-  doc.text(`Jumlah data: ${data.length} baris`, pageW - 14, 14, { align: 'right' });
+  doc.text(`Jumlah data: ${sortedData.length} baris`, pageW - 14, 14, { align: 'right' });
 
   // divider
   doc.setDrawColor(220, 220, 230);
@@ -321,7 +341,7 @@ export function exportToPDF(
   columns.forEach((c, i) => { if (c.isCurrency) currencyColIndices.add(isAccountingLayout ? i : i + 1); });
 
   // ── Table body ────────────────────────────────────────────────────────────
-  const body = data.map((row, idx) => {
+  const body = sortedData.map((row, idx) => {
     const cells: string[] = isAccountingLayout ? [] : [String(idx + 1)];
     columns.forEach(col => {
       const rawVal = resolveKey(row, col.key);
@@ -353,7 +373,7 @@ export function exportToPDF(
   if (!isAccountingLayout) {
     columns.forEach((col, i) => {
       if (col.isCurrency) {
-        const sum = data.reduce((acc, row) => {
+        const sum = sortedData.reduce((acc, row) => {
           const v = resolveKey(row, col.key);
           return acc + (typeof v === 'number' ? v : 0);
         }, 0);

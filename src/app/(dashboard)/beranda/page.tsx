@@ -87,6 +87,18 @@ const CustomPieTooltip = ({ active, payload }: any) => {
 };
 
 export default function DashboardPage() {
+  const renderComparison = (current: number, previous: number) => {
+    if (previous === 0) {
+      if (current > 0) return <span className="text-[#76c893] font-semibold">+100% vs bulan lalu</span>;
+      return <span className="text-gray-400 font-medium">0% vs bulan lalu</span>;
+    }
+    const diff = current - previous;
+    const percent = (diff / previous) * 100;
+    const sign = percent > 0 ? "+" : "";
+    const color = percent > 0 ? "text-[#76c893] font-semibold" : percent < 0 ? "text-[#f08a5d] font-semibold" : "text-gray-400 font-medium";
+    return <span className={color}>{sign}{percent.toFixed(1)}% vs bulan lalu</span>;
+  };
+
   const [greeting, setGreeting] = useState("Selamat Pagi");
   const [periodeKas, setPeriodeKas] = useState("Bulan Ini");
   const [isAktivitasModalOpen, setIsAktivitasModalOpen] = useState(false);
@@ -324,8 +336,8 @@ export default function DashboardPage() {
                 {summary ? `Rp ${formatCompactCurrency(summary.totalIncomeMonth)}` : "..."}
               </h3>
               <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Pendapatan<br/>Bulan Ini</p>
-              <p className="text-xs text-[#76c893] mt-auto">
-                {periodOptions.find(opt => opt.value === selectedPeriod)?.label || "Bulan berjalan"}
+              <p className="text-xs mt-auto">
+                {summary ? renderComparison(summary.totalIncomeMonth, summary.prevMonthIncomeMTD) : "..."}
               </p>
             </div>
 
@@ -338,8 +350,8 @@ export default function DashboardPage() {
                 {summary ? `Rp ${formatCompactCurrency(summary.totalExpenseMonth)}` : "..."}
               </h3>
               <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Pengeluaran<br/>Bulan Ini</p>
-              <p className="text-xs text-[#f08a5d] mt-auto">
-                {periodOptions.find(opt => opt.value === selectedPeriod)?.label || "Bulan berjalan"}
+              <p className="text-xs mt-auto">
+                {summary ? renderComparison(summary.totalExpenseMonth, summary.prevMonthExpenseMTD) : "..."}
               </p>
             </div>
             

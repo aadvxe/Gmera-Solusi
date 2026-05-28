@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Filter1Icon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, EmailIcon, CallIcon, CloseIcon } from "@astraicons/react/bold";
+import { Filter1Icon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, EmailIcon, CallIcon, CloseIcon, ArrowDownIcon, HelpIcon } from "@astraicons/react/bold";
 import { SearchIcon } from "@astraicons/react/linear";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
@@ -17,9 +17,11 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { getClients, insertClient, updateClient, deleteClient, Client, getClientInvoiceStats, getInvoicesByClient, Invoice } from "@/lib/db";
+import { createAuditLog } from "@/lib/db/users";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 import { useAuthStore } from "@/store/authStore";
+import { exportToExcel, exportToPDF } from "@/lib/export";
 
 export default function CustomerPage() {
   const role = useAuthStore(state => state.role);
@@ -180,7 +182,72 @@ export default function CustomerPage() {
     }
   };
 
+  const getFilteredClients = () => {
+    return clients.filter(row => {
+      const matchesSearch = row.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            (row.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (row.phone || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCity = filterCity === "all" ? true : row.city === filterCity;
+      const matchesStatus = filterStatus === "all" ? true : (filterStatus === "active" ? row.is_active : !row.is_active);
+      
+      return matchesSearch && matchesCity && matchesStatus;
+    });
+  };
 
+  const exportColumns = [
+    { header: 'Nama Customer', key: 'name', width: 24 },
+    { header: 'NPWP', key: 'npwp', width: 20 },
+    { header: 'Telepon', key: 'phone', width: 16 },
+    { header: 'Email', key: 'email', width: 22 },
+    { header: 'Alamat', key: 'address', width: 30 },
+    { header: 'Kota', key: 'city', width: 16 },
+    { header: 'Total Invoice', key: 'stats.totalInvoices', width: 14 },
+    { header: 'Piutang Berjalan (Rp)', key: 'stats.unpaidAmount', isCurrency: true, width: 22 }
+  ];
+
+  const handleExportExcel = async () => {
+    try {
+      exportToExcel(getFilteredClients(), exportColumns, `Customer_${new Date().toISOString().slice(0,10)}`);
+      toast("Ekspor Excel Selesai", {
+        description: "Data customer berhasil diekspor ke format Excel.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
+      });
+      
+      const user = useAuthStore.getState().user;
+      if (user) {
+        await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Daftar Customer (Excel) berhasil diunduh' });
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
+      }
+    } catch (error) {
+      toast("Gagal Ekspor Excel", {
+        description: "Terjadi kesalahan saat mengekspor data ke Excel.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
+      });
+    }
+  };
+
+  const handleExportPDF = async () => {
+    toast.info("Sedang menyiapkan PDF...");
+    try {
+      exportToPDF(getFilteredClients(), exportColumns, 'Daftar Customer', `Daftar_Customer_${new Date().toISOString().slice(0,10)}`);
+      toast("Ekspor PDF Selesai", {
+        description: "Daftar customer berhasil diunduh dalam format PDF.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
+      });
+
+      const user = useAuthStore.getState().user;
+      if (user) {
+        await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Daftar Customer (PDF) berhasil diunduh' });
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
+      }
+    } catch (error) {
+      console.error("PDF Export Error:", error);
+      toast("Gagal Ekspor PDF", {
+        description: "Terjadi kesalahan saat mengekspor data ke PDF.",
+        icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#FA5A7D]/10 text-[#FA5A7D]"><HelpIcon className="w-5 h-5" /></div>,
+      });
+    }
+  };
 
   return (
     <>
@@ -193,8 +260,11 @@ export default function CustomerPage() {
               <p className="text-sm text-gray-500 mt-1">Kelola data customer dan riwayat penagihan</p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button variant="outline" className="flex items-center gap-2">
-                <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">Ekspor</span>
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleExportExcel}>
+                <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">Excel</span>
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleExportPDF}>
+                <DocumentDownloadIcon className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
               </Button>
               <Button 
                 onClick={() => { resetForm(); setIsModalOpen(true); }}
@@ -319,21 +389,14 @@ export default function CustomerPage() {
                     Memuat data customer...
                   </TableCell>
                 </TableRow>
-              ) : clients.length === 0 ? (
+              ) : getFilteredClients().length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-10 text-gray-500">
                     Tidak ada data customer yang ditemukan.
                   </TableCell>
                 </TableRow>
               ) : (
-                clients.filter(row => {
-                  const matchesSearch = row.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                        (row.email || "").toLowerCase().includes(searchTerm.toLowerCase());
-                  const matchesCity = filterCity === "all" ? true : row.city === filterCity;
-                  const matchesStatus = filterStatus === "all" ? true : (filterStatus === "active" ? row.is_active : !row.is_active);
-                  
-                  return matchesSearch && matchesCity && matchesStatus;
-                }).map((row) => (
+                getFilteredClients().map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>
                       <div className="font-semibold text-[#151D48]">{row.name}</div>
@@ -391,7 +454,7 @@ export default function CustomerPage() {
 
         {/* Pagination */}
         <div className="p-4 border-t border-border flex items-center justify-between text-sm text-gray-500">
-          <div>Menampilkan {clients.length} data</div>
+          <div>Menampilkan {getFilteredClients().length} data</div>
           <div className="flex gap-1">
             <Button variant="outline" size="sm" disabled>Seb</Button>
             <Button variant="default" size="sm" className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">1</Button>
