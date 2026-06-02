@@ -21,7 +21,7 @@ export default function LaporanPage() {
   const [periodTo, setPeriodTo] = useState("2026-12-31");
   const [loading, setLoading] = useState(true);
   const user = useAuthStore(state => state.user);
-  
+
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, netProfit: 0 });
   const [chartData, setChartData] = useState<any[]>([]);
   const [rawTransactions, setRawTransactions] = useState<any[]>([]);
@@ -56,11 +56,11 @@ export default function LaporanPage() {
     try {
       const pFormat = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' });
       const p = `${pFormat.format(new Date(periodFrom))} - ${pFormat.format(new Date(periodTo))}`;
-      
+
       let data: any[] = [];
       let cols: any[] = [];
       let title = "";
-      
+
       if (type === 'transaksi') {
         title = "Laporan Transaksi";
         cols = [
@@ -89,7 +89,7 @@ export default function LaporanPage() {
         data = rawTransactions.map(t => {
           if (t.type === 'income') runningBalance += t.amount;
           else runningBalance -= t.amount;
-          
+
           return {
             date: t.date,
             description: t.title + (t.description ? ` - ${t.description}` : ''),
@@ -105,7 +105,7 @@ export default function LaporanPage() {
           { header: 'Keterangan', key: 'keterangan', width: 45 },
           { header: 'Total', key: 'total', isCurrency: true, width: 30 },
         ];
-        
+
         // Group by category for Pendapatan
         const pendapatanGroup: Record<string, number> = {};
         rawTransactions.filter(t => t.type === 'income').forEach(t => {
@@ -122,7 +122,7 @@ export default function LaporanPage() {
           keterangan: k,
           total: pendapatanGroup[k]
         }));
-        
+
         const expenseItems = Object.keys(pengeluaranGroup).map(k => ({
           keterangan: k,
           total: pengeluaranGroup[k]
@@ -169,19 +169,19 @@ export default function LaporanPage() {
           <h1 className="text-2xl font-bold text-text-primary">Laporan Keuangan</h1>
           <p className="text-sm text-text-secondary mt-1">Analitik dan ringkasan arus kas perusahaan</p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            <CustomDatePicker 
-              value={periodFrom} 
-              onChange={setPeriodFrom} 
-              className="w-full sm:w-40" 
+            <CustomDatePicker
+              value={periodFrom}
+              onChange={setPeriodFrom}
+              className="w-full sm:w-40"
             />
             <span className="text-text-secondary font-medium hidden sm:block">s/d</span>
-            <CustomDatePicker 
-              value={periodTo} 
-              onChange={setPeriodTo} 
-              className="w-full sm:w-40" 
+            <CustomDatePicker
+              value={periodTo}
+              onChange={setPeriodTo}
+              className="w-full sm:w-40"
             />
           </div>
           <Button onClick={handleApply} disabled={loading} className="w-full sm:w-auto shrink-0 px-6 rounded-xl">
@@ -192,26 +192,26 @@ export default function LaporanPage() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <MetricCard 
-          title="Total Pendapatan" 
-          amount={formatCurrency(summary.totalIncome)} 
-          period="Periode Terpilih" 
-          icon={ArrowUpIcon} 
-          variant="success" 
+        <MetricCard
+          title="Total Pendapatan"
+          amount={formatCurrency(summary.totalIncome)}
+          period="Periode Terpilih"
+          icon={ArrowUpIcon}
+          variant="success"
         />
-        <MetricCard 
-          title="Total Pengeluaran" 
-          amount={formatCurrency(summary.totalExpense)} 
-          period="Periode Terpilih" 
-          icon={ArrowDownIcon} 
-          variant="danger" 
+        <MetricCard
+          title="Total Pengeluaran"
+          amount={formatCurrency(summary.totalExpense)}
+          period="Periode Terpilih"
+          icon={ArrowDownIcon}
+          variant="danger"
         />
-        <MetricCard 
-          title="Laba Bersih (Net Profit)" 
-          amount={formatCurrency(summary.netProfit)} 
-          period="Periode Terpilih" 
-          icon={WalletIcon} 
-          variant="info" 
+        <MetricCard
+          title="Laba Bersih (Net Profit)"
+          amount={formatCurrency(summary.netProfit)}
+          period="Periode Terpilih"
+          icon={WalletIcon}
+          variant="info"
         />
       </div>
 
@@ -219,7 +219,7 @@ export default function LaporanPage() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <FinancialChart 
+        <FinancialChart
           title="Tren Pendapatan"
           icon={MarginIcon}
           rawData={chartData}
@@ -227,7 +227,7 @@ export default function LaporanPage() {
           color="#76c893"
           total={formatCurrency(summary.totalIncome)}
         />
-        <FinancialChart 
+        <FinancialChart
           title="Tren Pengeluaran"
           icon={NegativeMarginIcon}
           rawData={chartData}
@@ -245,7 +245,7 @@ export default function LaporanPage() {
           </div>
           <h3 className="text-xl font-bold text-text-primary">Unduh Laporan Lengkap</h3>
           <p className="text-sm text-text-secondary max-w-lg mx-auto mt-2">
-            Ekspor seluruh transaksi, buku besar, dan laba rugi untuk periode yang dipilih dalam format PDF yang rapi atau Excel untuk analisis lebih lanjut.
+            Ekspor seluruh transaksi, dan buku besar untuk periode yang dipilih dalam format PDF yang rapi atau Excel untuk analisis lebih lanjut.
           </p>
         </div>
 
