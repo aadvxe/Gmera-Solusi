@@ -24,6 +24,7 @@ import { useAuthStore } from "@/store/authStore";
 import { formatCurrency } from "@/lib/utils";
 import { exportToExcel, exportToPDF } from "@/lib/export";
 import { toast } from "sonner";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface InvoiceItemForm {
   id: number;
@@ -43,6 +44,10 @@ export default function EInvoicePage() {
   const [clientId, setClientId] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -191,6 +196,56 @@ export default function EInvoicePage() {
       
       return matchesSearch && matchesStatus && matchesClient;
     });
+  };
+
+  // Reset page to 1 when filters or search terms change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, filterClientId]);
+
+  const filteredInvoices = getFilteredInvoices();
+  const totalItems = filteredInvoices.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+      
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+      
+      if (currentPage <= 3) {
+        end = 4;
+      } else if (currentPage >= totalPages - 2) {
+        start = totalPages - 3;
+      }
+      
+      if (start > 2) {
+        pages.push("ellipsis-start");
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      if (end < totalPages - 1) {
+        pages.push("ellipsis-end");
+      }
+      
+      pages.push(totalPages);
+    }
+    
+    return pages;
   };
 
   const exportColumns = [
@@ -390,14 +445,14 @@ export default function EInvoicePage() {
                     Memuat data invoice...
                   </TableCell>
                 </TableRow>
-              ) : getFilteredInvoices().length === 0 ? (
+              ) : filteredInvoices.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-10 text-gray-500">
                     Tidak ada invoice yang ditemukan.
                   </TableCell>
                 </TableRow>
               ) : (
-                getFilteredInvoices().map((row) => (
+                paginatedInvoices.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-[#5C67F2] cursor-pointer hover:underline">{row.invoice_number}</TableCell>
                     <TableCell className="font-semibold text-[#151D48]">{row.clients?.name}</TableCell>
@@ -445,14 +500,74 @@ export default function EInvoicePage() {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-500">
-          <div>Menampilkan {getFilteredInvoices().length} data</div>
-          <div className="flex w-full justify-end gap-1 sm:w-auto">
-            <Button variant="outline" size="sm" disabled>Seb</Button>
-            <Button variant="default" size="sm" className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">1</Button>
-            <Button variant="outline" size="sm">2</Button>
-            <Button variant="outline" size="sm">3</Button>
-            <Button variant="outline" size="sm">Lan</Button>
+        <div className="p-4 border-t border-border flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span>Tampilkan:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#5C67F2]/20"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span>data per halaman</span>
+            </div>
+            <div>
+              Menampilkan {totalItems === 0 ? 0 : startIndex + 1} - {Math.min(endIndex, totalItems)} dari {totalItems} data
+            </div>
+          </div>
+          <div className="flex flex-row flex-nowrap gap-1 items-center justify-end select-none">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              className="w-8 px-0 flex items-center justify-center"
+              title="Sebelumnya"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            {getPageNumbers().map((p, idx) => {
+              if (p === "ellipsis-start" || p === "ellipsis-end") {
+                return (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
+                    ...
+                  </span>
+                );
+              }
+              return (
+                <Button
+                  key={`page-${p}`}
+                  variant={currentPage === p ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(p as number)}
+                  className={currentPage === p 
+                    ? "bg-[#5C67F2] hover:bg-[#4a55c2] text-white w-8 px-0 flex items-center justify-center" 
+                    : "w-8 px-0 flex items-center justify-center"}
+                >
+                  {p}
+                </Button>
+              );
+            })}
+
+            <Button 
+              variant="outline" 
+              size="sm" 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              className="w-8 px-0 flex items-center justify-center"
+              title="Selanjutnya"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </div>

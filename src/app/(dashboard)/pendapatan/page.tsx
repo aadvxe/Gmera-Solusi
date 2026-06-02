@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { uploadFile } from "@/lib/storage";
 import { exportToExcel, exportToPDF } from "@/lib/export";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function PendapatanPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,6 +35,10 @@ export default function PendapatanPage() {
   const role = useAuthStore(state => state.role);
   const [categories, setCategories] = useState<Category[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const loadData = async () => {
     setLoading(true);
@@ -170,6 +175,56 @@ export default function PendapatanPage() {
       
       return matchesSearch && matchesDateFrom && matchesDateTo && matchesCategory;
     });
+  };
+
+  // Reset page to 1 when filters or search terms change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterFrom, filterTo, filterCategoryId]);
+
+  const filteredIncomes = getFilteredIncomes();
+  const totalItems = filteredIncomes.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedIncomes = filteredIncomes.slice(startIndex, endIndex);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+      
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+      
+      if (currentPage <= 3) {
+        end = 4;
+      } else if (currentPage >= totalPages - 2) {
+        start = totalPages - 3;
+      }
+      
+      if (start > 2) {
+        pages.push("ellipsis-start");
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      if (end < totalPages - 1) {
+        pages.push("ellipsis-end");
+      }
+      
+      pages.push(totalPages);
+    }
+    
+    return pages;
   };
 
   const exportColumns = [
@@ -364,14 +419,14 @@ export default function PendapatanPage() {
                     Memuat data...
                   </TableCell>
                 </TableRow>
-              ) : getFilteredIncomes().length === 0 ? (
+              ) : filteredIncomes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-10 text-gray-500">
                     Tidak ada data pendapatan yang ditemukan.
                   </TableCell>
                 </TableRow>
               ) : (
-                getFilteredIncomes().map((row) => (
+                paginatedIncomes.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-[#151D48]">{new Date(row.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
                     <TableCell className="text-gray-600">{row.reference_number || '-'}</TableCell>
@@ -428,14 +483,74 @@ export default function PendapatanPage() {
         </div>
 
         {/* Pagination */}
-          <div className="p-4 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-500">
-          <div>Menampilkan {getFilteredIncomes().length} data</div>
-            <div className="flex w-full justify-end gap-1 sm:w-auto">
-            <Button variant="outline" size="sm" disabled>Seb</Button>
-            <Button variant="default" size="sm" className="bg-[#5C67F2] hover:bg-[#4a55c2] text-white">1</Button>
-            <Button variant="outline" size="sm">2</Button>
-            <Button variant="outline" size="sm">3</Button>
-            <Button variant="outline" size="sm">Lan</Button>
+        <div className="p-4 border-t border-border flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span>Tampilkan:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[#5C67F2]/20"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span>data per halaman</span>
+            </div>
+            <div>
+              Menampilkan {totalItems === 0 ? 0 : startIndex + 1} - {Math.min(endIndex, totalItems)} dari {totalItems} data
+            </div>
+          </div>
+          <div className="flex flex-row flex-nowrap gap-1 items-center justify-end select-none">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              className="w-8 px-0 flex items-center justify-center"
+              title="Sebelumnya"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            {getPageNumbers().map((p, idx) => {
+              if (p === "ellipsis-start" || p === "ellipsis-end") {
+                return (
+                  <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
+                    ...
+                  </span>
+                );
+              }
+              return (
+                <Button
+                  key={`page-${p}`}
+                  variant={currentPage === p ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(p as number)}
+                  className={currentPage === p 
+                    ? "bg-[#5C67F2] hover:bg-[#4a55c2] text-white w-8 px-0 flex items-center justify-center" 
+                    : "w-8 px-0 flex items-center justify-center"}
+                >
+                  {p}
+                </Button>
+              );
+            })}
+
+            <Button 
+              variant="outline" 
+              size="sm" 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              className="w-8 px-0 flex items-center justify-center"
+              title="Selanjutnya"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </div>
