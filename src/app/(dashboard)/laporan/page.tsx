@@ -14,6 +14,8 @@ import { createAuditLog } from "@/lib/db/users";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 
+const SHOW_LABA_RUGI = false; // Toggle to true to show the Laba Rugi button/card in the future
+
 export default function LaporanPage() {
   const [periodFrom, setPeriodFrom] = useState("2026-01-01");
   const [periodTo, setPeriodTo] = useState("2026-12-31");
@@ -247,7 +249,7 @@ export default function LaporanPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`grid grid-cols-1 ${SHOW_LABA_RUGI ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6`}>
           {/* Laporan Transaksi */}
           <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
             <h3 className="text-lg font-bold text-[#151D48] mb-2">Laporan Transaksi</h3>
@@ -281,20 +283,22 @@ export default function LaporanPage() {
           </div>
 
           {/* Laba Rugi */}
-          <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
-            <h3 className="text-lg font-bold text-[#151D48] mb-2">Laba Rugi</h3>
-            <p className="text-xs text-gray-500 mb-6 flex-1">
-              Ringkasan total pendapatan dan pengeluaran untuk melihat net profit.
-            </p>
-            <div className="flex gap-2 w-full">
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors" onClick={() => handleExport('labarugi', 'pdf')} disabled={loading}>
-                <Document1Icon className="w-4 h-4" /> PDF
-              </Button>
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors" onClick={() => handleExport('labarugi', 'excel')} disabled={loading}>
-                <DocumentDownloadIcon className="w-4 h-4" /> Excel
-              </Button>
+          {SHOW_LABA_RUGI && (
+            <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
+              <h3 className="text-lg font-bold text-[#151D48] mb-2">Laba Rugi</h3>
+              <p className="text-xs text-gray-500 mb-6 flex-1">
+                Ringkasan total pendapatan dan pengeluaran untuk melihat net profit.
+              </p>
+              <div className="flex gap-2 w-full">
+                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors" onClick={() => handleExport('labarugi', 'pdf')} disabled={loading}>
+                  <Document1Icon className="w-4 h-4" /> PDF
+                </Button>
+                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors" onClick={() => handleExport('labarugi', 'excel')} disabled={loading}>
+                  <DocumentDownloadIcon className="w-4 h-4" /> Excel
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
