@@ -1,310 +1,98 @@
-# 📘 LLM.md — Gmera Solusi V3 Dashboard Keuangan
-> **Dokumentasi AI-assisted Development Log & Panduan Migrasi**  
-> Dibuat: 30 April 2026 | Versi: 3.x
-
----
-
-## 1. Deskripsi Proyek
-
-**PT Gmera Solusi** — Dashboard Keuangan Internal
-
-Aplikasi web full-stack berbasis **Next.js 16 + Supabase** yang berfungsi sebagai pusat kendali keuangan perusahaan. Mencakup modul:
-
-- Beranda (Dashboard dengan grafik real-time)
-- Pendapatan & Pengeluaran
-- E-Invoice
-- Laporan Keuangan
-- Klien
-- Profil & Pengaturan
-
----
-
-## 2. Stack Teknologi
-
-| Layer | Teknologi | Versi |
-|---|---|---|
-| Framework | Next.js (App Router) | ^16.2.4 |
-| Runtime | React | ^19.2.5 |
-| Backend | Supabase (Auth + DB) | ^2.105.1 |
-| SSR Auth | @supabase/ssr | ^0.10.2 |
-| Styling | Tailwind CSS | ^3.4.1 |
-| Icons | @astraicons/react | ^1.7.0 |
-| Icons 2 | lucide-react | ^1.14.0 |
-| Charts | Recharts | ^3.8.1 |
-| Toasts | Sonner | ^2.0.7 |
-| State | Zustand | ^5.0.12 |
-| CSS Utils | tailwind-merge, tailwindcss-animate | latest |
-| Language | TypeScript | ^5 |
-
----
-
-## 3. Arsitektur Kunci
-
-### Autentikasi
-- **Supabase Auth** digunakan untuk login/session management.
-- **`middleware.ts`** menangani route protection server-side.
-  - Route protected: `/beranda`, `/pendapatan`, `/pengeluaran`, `/e-invoice`, `/laporan`, `/klien`, `/pengaturan`, `/profil`
-  - Jika belum login → redirect ke `/login`
-  - Jika sudah login dan akses `/login` atau `/` → redirect ke `/beranda`
-- Session dipertahankan via **cookie** yang dikelola oleh `@supabase/ssr`.
-- Client-side auth store: `src/store/authStore.ts` (Zustand)
-
-### Data Layer
-- **`src/lib/db.ts`** adalah *single source of truth* untuk semua query ke Supabase.
-- Semua function di `db.ts` menggunakan Supabase browser client dari `src/utils/supabase/client.ts`.
-
-### Layout
-```
-src/app/
-├── (dashboard)/              # Authenticated layout group
-│   ├── layout.tsx            # Sidebar + Navbar layout
-│   ├── beranda/page.tsx      # Dashboard utama
-│   ├── pendapatan/page.tsx
-│   ├── pengeluaran/page.tsx
-│   ├── e-invoice/page.tsx
-│   ├── laporan/page.tsx      # Laporan + custom date picker
-│   ├── klien/page.tsx
-│   ├── pengaturan/page.tsx
-│   └── profil/page.tsx
-├── login/page.tsx
-└── globals.css
-```
-
-### Komponen Penting
-```
-src/components/
-├── layout/
-│   ├── Sidebar.tsx           # Navigasi sidebar (collapsible, bahasa Indonesia)
-│   └── Navbar.tsx            # Top bar + profil dropdown
-├── ui/
-│   ├── CustomDatePicker.tsx  # ⭐ Custom calendar (no native browser)
-│   ├── CustomSelect.tsx
-│   ├── Modal.tsx
-│   ├── Button.tsx
-│   ├── Input.tsx
-│   └── ChartWrapper.tsx
-└── dashboard/
-    ├── FinancialChart.tsx    # ⭐ Grafik dinamis (Harian/Mingguan/Bulanan)
-    └── MetricCard.tsx
-```
-
----
-
-## 4. Variabel Environment (`.env.local`)
-
-File ini **tidak dikommit ke Git**. Buat ulang saat pindah device:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://<project-id>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key-dari-supabase-dashboard>
-```
-
-> Dapatkan nilainya dari: **Supabase Dashboard → Project Settings → API**
-
----
-
-## 5. Database (Supabase)
-
-Schema tersimpan di root project:
-- `supabase-schema-final.sql` — DDL tabel utama
-- `supabase-seed-final.sql` — Data awal (seed)
-- `supabase-create-users.sql` — Setup user auth
-
-### Tabel Utama
-| Tabel | Deskripsi |
-|---|---|
-| `income` | Data pemasukan, kolom: `id, date, amount, category_id, description, client_id` |
-| `expense` | Data pengeluaran, kolom: `id, date, amount, category_id, description` |
-| `invoices` | E-Invoice, kolom: `id, client_id, status, grand_total, issue_date, due_date` |
-| `clients` | Data klien |
-| `categories` | Kategori income/expense |
-| `profiles` | Profil user (extends Supabase auth.users) |
-
-> **Penting:** Tabel `income` dan `expense` menggunakan kolom `date` bertipe `DATE` dalam format `YYYY-MM-DD`.
-
----
-
-## 6. Log Sesi Pengembangan AI (Rangkuman Perubahan)
-
-### Sesi 1 — Fondasi Autentikasi
-- ✅ Hapus sesi Guest (tidak ada bypass ke dashboard tanpa login)
-- ✅ Perbaiki infinite loading loop (middleware redirect langsung, bukan loop)
-- ✅ Hapus logo SI dan box ungu di halaman login & loading
-
-### Sesi 2 — UI & Navigasi
-- ✅ Ubah icon collapse sidebar: `ChevronLeft` saat buka, `ChevronRight` saat tutup
-- ✅ Translasi label sidebar: "Settings" → "Pengaturan", "Sign Out" → "Keluar"
-- ✅ Hapus menu "Pengaturan" redundan dari dropdown profil Navbar
-
-### Sesi 3 — Perbaikan Bug Modul
-- ✅ Fix `ReferenceError: TableRow is not defined` → tambah import di `klien/page.tsx`
-- ✅ Fix `ReferenceError: useEffect is not defined` → tambah import di `pengaturan/page.tsx`
-- ✅ Konfirmasi koneksi database untuk modul Klien dan Pengaturan
-
-### Sesi 4 — UI Custom & Logika Laporan
-- ✅ Styling global input `type="date"` di `globals.css` (rounded corners)
-- ✅ **Custom React Calendar** (`CustomDatePicker.tsx`) — menggantikan native browser calendar sepenuhnya, dengan popup kustom rounded-2xl, navigasi bulan, dan highlight warna brand
-- ✅ Filter laporan keuangan: `getReportChartData(startDate, endDate)` menggunakan tanggal penuh bukan tahun hardcoded
-- ✅ Logika MTD (Month-to-Date) untuk perbandingan laba bersih bulan lalu vs bulan ini
-
-### Sesi 5 — Grafik Dinamis
-- ✅ **FinancialChart.tsx dirombak total**: 
-  - Menerima `rawData` (data mentah harian) dan `dataKey` ("income"/"expense")
-  - Mengelompokkan data secara dinamis berdasarkan tab aktif:
-    - **Harian**: Label X = "23 Apr", "24 Apr", ...
-    - **Mingguan**: Label X = "M1 (Apr)", "M2 (Apr)", ...
-    - **Bulanan**: Label X = "Apr", "Mei", "Jun", ...
-  - `getReportChartData` di `db.ts` kini mengembalikan data mentah harian
-  - Rata-rata di footer grafik otomatis menggunakan satuan: `/hr`, `/mgg`, `/bln`
-
-### Sesi 6 — Polish & Format Angka
-- ✅ **Custom Tooltip** grafik laporan disamakan dengan tooltip dashboard (kotak putih, shadow, rounded-2xl)
-- ✅ Fungsi `formatCompactCurrency(value)` di beranda:
-  - ≥ 1.000.000 → `X Jt`
-  - ≥ 1.000 → `X k`
-  - < 1.000 → angka penuh
-- ✅ `YAxis` grafik Tren Arus Kas dan Perbandingan Arus Kas menggunakan `formatCompactCurrency`
-- ✅ Label sumbu X (bawah) dirapikan dengan `minTickGap={20}` dan `interval="preserveStartEnd"`
-- ✅ Ringkasan Keuangan di dashboard cards menggunakan format angka dinamis (tidak lagi hardcode Jt)
-
----
-
-## 7. File Kunci untuk Referensi
-
-| File | Fungsi |
-|---|---|
-| `src/lib/db.ts` | Semua query Supabase |
-| `middleware.ts` | Auth guard & routing |
-| `src/store/authStore.ts` | State user (Zustand) |
-| `src/utils/supabase/client.ts` | Supabase browser client |
-| `src/utils/supabase/server.ts` | Supabase server client |
-| `src/components/ui/CustomDatePicker.tsx` | Kalender kustom |
-| `src/components/dashboard/FinancialChart.tsx` | Grafik dinamis laporan |
-| `src/app/(dashboard)/beranda/page.tsx` | Dashboard utama |
-| `src/app/(dashboard)/laporan/page.tsx` | Laporan keuangan |
-| `tailwind.config.ts` | Design tokens (warna, font) |
-| `supabase-schema-final.sql` | DDL database |
-
----
-
-## 8. 🍎 Panduan Migrasi ke Mac
-
-### Prasyarat
-Pastikan sudah terinstal di Mac:
-
-```bash
-# 1. Cek apakah Homebrew sudah ada
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# 2. Install Node.js (gunakan versi LTS via nvm — sangat dianjurkan)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-# Restart terminal, lalu:
-nvm install --lts
-nvm use --lts
-
-# Verifikasi
-node -v    # Harus 20.x atau lebih
-npm -v     # Harus 10.x atau lebih
-```
-
-### Langkah Migrasi
-
-**Step 1 — Transfer file proyek**
-
-Pilih salah satu cara:
-```bash
-# Opsi A: Git (jika sudah ada remote repo)
-git clone https://github.com/<username>/gmera-solusi-v3.git
-cd gmera-solusi-v3
-
-# Opsi B: Copy manual via USB / AirDrop / Google Drive
-# Salin folder "Gmera Solusi V3" ke Mac
-# PENTING: Jangan salin folder .next dan node_modules
-# File yang perlu ada: src/, package.json, tsconfig.json, tailwind.config.ts,
-#   postcss.config.mjs, next.config.mjs, middleware.ts, .gitignore
-```
-
-**Step 2 — Buat `.env.local`**
-
-```bash
-cd "Gmera Solusi V3"
-touch .env.local
-```
-
-Isi dengan:
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://<project-id>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key-anda>
-```
-
-**Step 3 — Install dependencies**
-
-```bash
-npm install
-```
-
-> ⚠️ Jika ada error ERESOLVE atau peer conflict, coba: `npm install --legacy-peer-deps`
-
-**Step 4 — Jalankan dev server**
-
-```bash
-npm run dev
-```
-
-Buka browser: [http://localhost:3000](http://localhost:3000)
-
----
-
-### Potensi Masalah di Mac & Solusinya
-
-| Masalah | Penyebab | Solusi |
-|---|---|---|
-| `EACCES permission denied` saat install | Permission npm global | Gunakan nvm (lebih disarankan) atau `sudo chown -R $USER ~/.npm` |
-| `Error: Cannot find module '...'` | node_modules tidak ter-install | Jalankan `rm -rf node_modules && npm install` |
-| Port 3000 sudah dipakai | Proses lain | Gunakan `npx kill-port 3000` atau `npm run dev -- -p 3001` |
-| `next dev` lambat di M1/M2 | Arsitektur ARM | Pastikan Node diinstall native (via nvm, bukan Rosetta) |
-| `Cannot read environment variables` | `.env.local` belum dibuat | Buat file `.env.local` seperti langkah Step 2 |
-| Tailwind tidak mau compile | PostCSS config | Pastikan `postcss.config.mjs` ada dan `tailwind.config.ts` valid |
-| TypeScript error `ts-node` tidak ditemukan | dev dependency | Jalankan `npm install --save-dev typescript` |
-| `.next/` cache corrupt setelah transfer | Build cache Windows | Hapus `.next/` lalu `npm run dev` lagi |
-
----
-
-### Catatan Tambahan Mac
-
-- **Case-sensitive filesystem**: Mac (APFS/HFS+) *biasanya* case-insensitive, Windows *selalu* case-insensitive. Impor file di TypeScript yang salah kapitalisasi mungkin tidak error di Windows tapi akan gagal jika Mac dalam mode case-sensitive.
-- **`.env.local` wajib ada**: File ini tidak di-commit (ada di `.gitignore`). Isi nilainya dari Supabase Dashboard.
-- **Supabase berjalan di cloud**: Tidak perlu install apapun untuk Supabase, karena backend-nya hosted di cloud Supabase. Cukup pastikan API key di `.env.local` benar.
-
----
-
-## 9. Perintah Berguna
-
-```bash
-# Jalankan development server
-npm run dev
-
-# Build production
-npm run build
-
-# Jalankan setelah build
-npm start
-
-# Lint codebase
-npm run lint
-
-# Hapus cache dan restart
-rm -rf .next && npm run dev
-
-# Reinstall semua dependency
-rm -rf node_modules && npm install
-```
-
----
-
-## 10. Kontak & Referensi
-
-- **Supabase Dashboard**: https://supabase.com/dashboard
-- **Next.js Docs**: https://nextjs.org/docs
-- **AstraIcons** (perhatikan ejaan `CalenderIcon` bukan `CalendarIcon`): https://astraicons.com
-- **Recharts Docs**: https://recharts.org
+# Code Notes For Maintainers And LLMs
+
+Last updated: 2026-06-06.
+
+This file is the compact codebase map. Use it when you need to understand where a feature lives before editing.
+
+## App Shell
+
+| File | What it does |
+| --- | --- |
+| `src/app/layout.tsx` | Sets root metadata, Poppins font, global styles, body classes, and the toast host. |
+| `src/app/page.tsx` | Redirects root visits to `/beranda`. |
+| `src/app/login/page.tsx` | Handles Supabase email/password login, profile enrichment, and post-login routing. |
+| `src/app/(dashboard)/layout.tsx` | Wraps dashboard pages in auth, sidebar, navbar, and layout spacing. |
+| `middleware.ts` | Refreshes Supabase session cookies and redirects unauthenticated protected routes. |
+
+## Dashboard Pages
+
+| File | What it does |
+| --- | --- |
+| `src/app/(dashboard)/beranda/page.tsx` | Main dashboard with KPI cards, chart modes, unpaid invoice panel, top clients/products, and recent activity. |
+| `src/app/(dashboard)/pendapatan/page.tsx` | Income list with filtering, editing, deletion, and exports. |
+| `src/app/(dashboard)/pendapatan/tambah/page.tsx` | Income creation form with item rows and attachment support. |
+| `src/app/(dashboard)/pengeluaran/page.tsx` | Expense list with filtering, editing, deletion, and exports. |
+| `src/app/(dashboard)/pengeluaran/tambah/page.tsx` | Expense creation form with item rows and attachment support. |
+| `src/app/(dashboard)/e-invoice/page.tsx` | Invoice list with status filters, payment actions, export, and deletion. |
+| `src/app/(dashboard)/e-invoice/buat/page.tsx` | Invoice creation form, item pagination preview logic, totals, tax, discount, shipping, and save. |
+| `src/app/(dashboard)/e-invoice/[id]/detail/page.tsx` | Invoice detail/preview page with print-style pagination. |
+| `src/app/(dashboard)/e-invoice/[id]/edit/page.tsx` | Invoice edit form that reloads invoice/items and replaces item rows on save. |
+| `src/app/(dashboard)/customer/page.tsx` | Customer list, stats cards, customer create/edit/delete entry points, and invoice/customer metrics. |
+| `src/app/(dashboard)/customer/tambah/page.tsx` | Customer creation form. |
+| `src/app/(dashboard)/customer/[id]/page.tsx` | Customer detail screen; currently mock-backed. |
+| `src/app/(dashboard)/laporan/page.tsx` | Financial report screen and export controls. |
+| `src/app/(dashboard)/pengaturan/page.tsx` | Company profile, users, categories, tax, payment settings, and audit-triggering updates. |
+| `src/app/(dashboard)/profil/page.tsx` | Current user profile display/update screen. |
+| `src/app/(dashboard)/pencarian/page.tsx` | Dedicated search page using the global search helper. |
+
+## Components
+
+| File | What it does |
+| --- | --- |
+| `src/components/AuthProvider.tsx` | Loads session user, enriches metadata from `public.users`, listens to auth changes. |
+| `src/components/AuthGate.tsx` | Shows loading UI and redirects to login when no session is available. |
+| `src/components/layout/SidebarContext.tsx` | Owns responsive sidebar open/close state. |
+| `src/components/layout/Sidebar.tsx` | Role-filtered navigation and logout confirmation. |
+| `src/components/layout/Navbar.tsx` | Search, notifications, profile menu, logout, and mobile search overlay. |
+| `src/components/dashboard/MetricCard.tsx` | Reusable dashboard KPI card. |
+| `src/components/dashboard/FinancialChart.tsx` | Bar chart card with daily/weekly/monthly grouping. |
+| `src/components/dashboard/RecentTransactions.tsx` | Recent activity list card. |
+| `src/components/dashboard/UnpaidInvoices.tsx` | Unpaid/overdue invoice list card. |
+| `src/components/ui/Button.tsx` | Styled button primitive. |
+| `src/components/ui/Input.tsx` | Styled input primitive with optional icon. |
+| `src/components/ui/Modal.tsx` | Portal modal with body scroll lock and open/close animations. |
+| `src/components/ui/ConfirmModal.tsx` | Confirmation dialog built on `Modal`. |
+| `src/components/ui/CustomSelect.tsx` | Dropdown select control. |
+| `src/components/ui/CustomDatePicker.tsx` | Calendar picker that emits `YYYY-MM-DD`. |
+| `src/components/ui/SearchDropdown.tsx` | Debounced global search with keyboard navigation and invoice quick actions. |
+| `src/components/ui/Table.tsx` | Responsive table primitives. |
+| `src/components/ui/Skeleton.tsx` | Loading placeholders. |
+| `src/components/ui/Toaster.tsx` | Sonner toast styling and icons. |
+| `src/components/ui/ChartWrapper.tsx` | Delays Recharts rendering until after mount to avoid hydration mismatch. |
+
+## Libraries And Stores
+
+| File | What it does |
+| --- | --- |
+| `src/lib/utils.ts` | Class-name merge helper plus Indonesian Rupiah format/parse helpers. |
+| `src/lib/supabase.ts` | Legacy direct Supabase client export. |
+| `src/utils/supabase/client.ts` | Memoized browser Supabase client factory. |
+| `src/utils/supabase/server.ts` | Server Supabase client factory with Next cookie integration. |
+| `src/lib/storage.ts` | Uploads a file into Supabase Storage and returns its public URL. |
+| `src/lib/export.ts` | Styled Excel/PDF export functions. |
+| `src/store/authStore.ts` | Zustand auth state, role labels, display name, and initials helpers. |
+| `src/store/uiStore.ts` | Legacy/global sidebar open state store. |
+
+## Database Helpers
+
+| File | What it does |
+| --- | --- |
+| `src/lib/db/types.ts` | Shared TypeScript models for public database tables. |
+| `src/lib/db/index.ts` | Barrel export for all database helper modules. |
+| `src/lib/db/clients.ts` | Customer CRUD and customer invoice stats. |
+| `src/lib/db/categories.ts` | Category/payment method reads plus category create/update/delete/order helpers. |
+| `src/lib/db/income.ts` | Income reads, totals, create/update/delete, and linked invoice payment update. |
+| `src/lib/db/expense.ts` | Expense reads, totals, create/update/delete. |
+| `src/lib/db/invoices.ts` | Invoice reads, overdue refresh, create/update with item rows, delete, status labels. |
+| `src/lib/db/dashboard.ts` | Dashboard, chart, report, activity, top client/product, and accounting report aggregations. |
+| `src/lib/db/search.ts` | Role-aware global search and page shortcut search. |
+| `src/lib/db/users.ts` | User/company profile helpers and audit log insertion. |
+
+## Editing Guidance
+
+- Keep Supabase table names aligned with `schema/schema-final.sql`.
+- Keep `YYYY-MM-DD` strings for date comparisons; many queries rely on lexicographic date ordering.
+- Keep `"use client"` as the first statement in client components.
+- When adding Recharts charts, wrap browser-only rendering with `ChartWrapper` or mount gating.
+- When changing role behavior, update both UI checks and database policies.
+- When adding export columns, prefer `ExportColumn` definitions and `resolveKey` nested access.
