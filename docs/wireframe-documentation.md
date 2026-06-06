@@ -179,7 +179,7 @@ Right Section:
 │                    │  │ └───────────────────────────┘ │   │                  │
 │                    │  └───────────────────────────────┘   │                  │
 │                    │                                     │                  │
-│                    │  [ ] Ingat saya         Lupa password?│                  │
+│                    │  [ ] Ingat saya                       │                  │
 │                    │                                     │                  │
 │                    │  ┌───────────────────────────────┐   │                  │
 │                    │  │     🔐 Masuk                 │   │                  │
@@ -204,7 +204,6 @@ Right Section:
 - Label: text-sm, font-medium, slate-700, mb-1.5
 - Input: full width, py-3, px-4
 - Button: full width, py-3, bg-blue-600, font-semibold
-- Forgot password: text-sm, text-blue-600, hover:underline
 
 ---
 

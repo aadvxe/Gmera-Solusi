@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { EyeIcon } from "@astraicons/react/bold";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useAuthStore } from "@/store/authStore";
 
@@ -142,11 +141,6 @@ export default function LoginPage() {
                 </label>
               </div>
 
-              <div className="text-sm">
-                <Link href="/forgot-password" className="font-medium text-text-primary hover:text-primary transition-colors">
-                  Lupa password?
-                </Link>
-              </div>
             </div>
 
             <div>

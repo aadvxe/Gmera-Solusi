@@ -67,7 +67,6 @@ src/app/
 │   ├── pengaturan/page.tsx
 │   └── profil/page.tsx
 ├── login/page.tsx
-├── forgot-password/
 └── globals.css
 ```
 

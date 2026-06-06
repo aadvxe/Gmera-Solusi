@@ -122,7 +122,6 @@ src/
 ├── pages/                          # Page components
 │   ├── auth/
 │   │   ├── LoginPage.tsx
-│   │   └── ForgotPasswordPage.tsx
 │   ├── dashboard/
 │   │   └── DashboardPage.tsx
 │   ├── income/
@@ -366,8 +365,6 @@ company_profile ||--|| users : belongs_to
 | POST | /api/auth/login | Login with email/password | No |
 | POST | /api/auth/logout | Invalidate tokens | Yes |
 | POST | /api/auth/refresh | Refresh access token | Yes (refresh token) |
-| POST | /api/auth/forgot-password | Send reset email | No |
-| POST | /api/auth/reset-password | Confirm reset | No |
 | GET | /api/auth/me | Get current user | Yes |
 
 ### 4.2 User Management Endpoints (Admin only)

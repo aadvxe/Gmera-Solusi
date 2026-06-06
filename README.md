@@ -179,7 +179,6 @@ Built with modern, production-ready technologies following industry best practic
 | `src/app/` | Main Next.js app directory. Contains all pages and layouts for dashboard, authentication, and features. |
 | `src/app/(dashboard)/` | Dashboard area: layouts and pages for Beranda, E-Invoice, Klien, Laporan, Pendapatan, Pengeluaran, Pengaturan, Profil. |
 | `src/app/login/` | Login page for user authentication. |
-| `src/app/forgot-password/` | Password reset page. |
 | `src/components/` | All React components. |
 | `src/components/layout/` | Navbar, Sidebar, SidebarContext for app layout. |
 | `src/components/dashboard/` | Dashboard widgets: FinancialChart, MetricCard, RecentTransactions, UnpaidInvoices. |
