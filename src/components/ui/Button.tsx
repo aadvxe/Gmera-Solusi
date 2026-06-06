@@ -1,4 +1,6 @@
+// Import React untuk forwardRef dan tipe atribut button bawaan HTML.
 import * as React from "react"
+// Import utility project agar Button.tsx bisa menggabungkan class Tailwind atau format Rupiah dengan helper yang sama.
 import { cn } from "@/lib/utils"
 
 export interface ButtonProps
@@ -7,8 +9,10 @@ export interface ButtonProps
   size?: "default" | "sm" | "lg" | "icon";
 }
 
+// Komponen Button meneruskan ref ke elemen HTML asli, jadi komponen lain tetap bisa mengakses elemennya.
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
+    // Button.tsx menampilkan elemen UI kecil yang dipakai ulang di dashboard.
     return (
       <button
         ref={ref}

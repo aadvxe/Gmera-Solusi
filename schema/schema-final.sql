@@ -4,13 +4,17 @@
 -- ============================================================
 
 -- ENUM TYPES
+-- Enum user_role membatasi role user ke daftar yang dipakai Sidebar, search, dan pengaturan akses.
 CREATE TYPE user_role AS ENUM ('super_admin', 'finance_manager', 'accounting_staff', 'sales_staff', 'viewer');
+-- Enum category_type memastikan kategori hanya untuk income atau expense.
 CREATE TYPE category_type AS ENUM ('income', 'expense');
+-- Enum invoice_status menyamakan status invoice yang dipakai list, badge, dan dashboard.
 CREATE TYPE invoice_status AS ENUM ('unpaid', 'paid', 'overdue', 'cancelled');
 CREATE TYPE entry_method AS ENUM ('manual', 'auto');
 CREATE TYPE audit_action AS ENUM ('create', 'update', 'delete', 'view', 'export', 'login', 'logout');
 
 -- USERS (profile, linked to Supabase Auth)
+-- Tabel users menyimpan profil tambahan dari akun Supabase Auth, termasuk nama dan role.
 CREATE TABLE public.users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name VARCHAR(100) NOT NULL,
@@ -26,6 +30,7 @@ CREATE TABLE public.users (
 );
 
 -- CLIENTS
+-- Tabel clients menyimpan data customer yang dipilih saat membuat invoice.
 CREATE TABLE public.clients (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(200) NOT NULL,
@@ -78,6 +83,7 @@ CREATE TABLE public.company_profile (
 );
 
 -- INVOICES
+-- Tabel invoices menyimpan header invoice seperti nomor, customer, tanggal, status, dan total.
 CREATE TABLE public.invoices (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   invoice_number VARCHAR(20) UNIQUE NOT NULL,
@@ -108,6 +114,7 @@ CREATE TABLE public.invoices (
 );
 
 -- INVOICE ITEMS
+-- Tabel invoice_items menyimpan baris barang/jasa milik setiap invoice.
 CREATE TABLE public.invoice_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   invoice_id UUID NOT NULL REFERENCES public.invoices(id) ON DELETE CASCADE,
@@ -119,6 +126,7 @@ CREATE TABLE public.invoice_items (
 );
 
 -- INCOME
+-- Tabel income menyimpan pendapatan manual maupun pendapatan otomatis dari invoice lunas.
 CREATE TABLE public.income (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   date DATE NOT NULL,
@@ -138,6 +146,7 @@ CREATE TABLE public.income (
 );
 
 -- INCOME ITEMS
+-- Tabel income menyimpan pendapatan manual maupun pendapatan otomatis dari invoice lunas.
 CREATE TABLE public.income_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   income_id UUID NOT NULL REFERENCES public.income(id) ON DELETE CASCADE,
@@ -149,6 +158,7 @@ CREATE TABLE public.income_items (
 );
 
 -- EXPENSE
+-- Tabel expense menyimpan pengeluaran perusahaan.
 CREATE TABLE public.expense (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   date DATE NOT NULL,
@@ -166,6 +176,7 @@ CREATE TABLE public.expense (
 );
 
 -- EXPENSE ITEMS
+-- Tabel expense menyimpan pengeluaran perusahaan.
 CREATE TABLE public.expense_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   expense_id UUID NOT NULL REFERENCES public.expense(id) ON DELETE CASCADE,
@@ -177,6 +188,7 @@ CREATE TABLE public.expense_items (
 );
 
 -- AUDIT LOGS
+-- Tabel audit_logs menyimpan jejak aktivitas penting agar perubahan bisa dilacak.
 CREATE TABLE public.audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
@@ -216,60 +228,107 @@ CREATE INDEX idx_audit_logs_entity ON public.audit_logs(entity_type, entity_id);
 -- ============================================================
 -- ROW LEVEL SECURITY
 -- ============================================================
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.payment_methods ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.company_profile ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.invoice_items ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.income ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.income_items ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.expense ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.expense_items ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE public.couriers ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: semua user autentikasi bisa baca
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.users FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.clients FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.categories FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.payment_methods FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.company_profile FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.invoices FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.invoice_items FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.income FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.income_items FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.expense FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.expense_items FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.audit_logs FOR SELECT TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON public.couriers FOR SELECT TO authenticated USING (true);
 
 -- INSERT
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON public.clients FOR INSERT TO authenticated WITH CHECK (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON public.invoices FOR INSERT TO authenticated WITH CHECK (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON public.invoice_items FOR INSERT TO authenticated WITH CHECK (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON public.income FOR INSERT TO authenticated WITH CHECK (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON public.income_items FOR INSERT TO authenticated WITH CHECK (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON public.expense FOR INSERT TO authenticated WITH CHECK (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON public.expense_items FOR INSERT TO authenticated WITH CHECK (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON public.audit_logs FOR INSERT TO authenticated WITH CHECK (true);
 
 -- UPDATE
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON public.clients FOR UPDATE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON public.invoices FOR UPDATE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON public.income FOR UPDATE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON public.expense FOR UPDATE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON public.company_profile FOR UPDATE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "own_update" ON public.users FOR UPDATE TO authenticated USING (auth.uid() = id);
 
 -- DELETE
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON public.clients FOR DELETE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON public.invoices FOR DELETE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON public.invoice_items FOR DELETE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON public.income FOR DELETE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON public.income_items FOR DELETE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON public.expense FOR DELETE TO authenticated USING (true);
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON public.expense_items FOR DELETE TO authenticated USING (true);
 
 -- ============================================================

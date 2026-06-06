@@ -1,14 +1,24 @@
 "use client";
 
+// Import React hook yang dipakai halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect } from "react";
+// Import Link supaya menu/tombol di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import ikon yang dipakai halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { Filter1Icon, PlusIcon, DocumentDownloadIcon, MoreHorizontalIcon, EyeIcon, EmailSentIcon, TrashIcon, CheckCircleIcon, CloseIcon, CalculatorIcon, TruckIcon, Document1Icon, ChevronDownIcon, EditIcon, HelpIcon, ArrowDownIcon } from "@astraicons/react/bold";
+// Import ikon yang dipakai halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { SearchIcon } from "@astraicons/react/linear";
+// Import komponen UI reusable supaya halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Modal } from "@/components/ui/Modal";
+// Import komponen UI reusable supaya halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+// Import komponen UI reusable supaya halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import komponen UI reusable supaya halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman daftar invoice.
 import { 
   Table, 
   TableBody, 
@@ -17,15 +27,24 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/Table";
+// Import helper database yang dipakai halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export untuk mengambil atau menyimpan data Supabase.
 import { getInvoices, deleteInvoice, getClients, Invoice, Client } from "@/lib/db";
+// Import helper database yang dipakai halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export untuk mengambil atau menyimpan data Supabase.
 import { createInvoiceWithItems } from "@/lib/db/invoices";
+// Import helper database yang dipakai halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export untuk mengambil atau menyimpan data Supabase.
 import { createAuditLog } from "@/lib/db/users";
+// Import authStore supaya halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import utility project supaya halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatCurrency } from "@/lib/utils";
+// Import helper export supaya daftar invoice bisa diunduh sebagai PDF/Excel sesuai pencarian, customer, status, dan halaman yang sedang aktif.
 import { exportToExcel, exportToPDF } from "@/lib/export";
+// Import Sonner untuk menampilkan toast sukses/error di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
 import { toast } from "sonner";
+// Import ikon yang dipakai halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+// Interface ini menjelaskan field yang dipakai halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export supaya data form/database tidak salah bentuk.
 interface InvoiceItemForm {
   id: number;
   name: string;
@@ -33,34 +52,47 @@ interface InvoiceItemForm {
   price: number;
 }
 
+// EInvoicePage menampilkan semua invoice dan mengatur aksi status, preview, edit, hapus, serta export.
 export default function EInvoicePage() {
+  // searchTerm menyimpan nilai search term yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [searchTerm, setSearchTerm] = useState("");
   const [invoices, setInvoices] = useState<(Invoice & { clients: { name: string } | null })[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [loading, setLoading] = useState(true);
   const user = useAuthStore(state => state.user);
   const role = useAuthStore(state => state.role);
+  // isModalOpen menyimpan nilai is modal open yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // clientId menyimpan nilai client id yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [clientId, setClientId] = useState("");
+  // isDeleteModalOpen menyimpan nilai is delete modal open yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
+  // itemsPerPage menyimpan nilai items per page yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // isFilterDropdownOpen menyimpan nilai is filter dropdown open yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  // filterStatus menyimpan nilai filter status yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [filterStatus, setFilterStatus] = useState("all");
+  // filterClientId menyimpan nilai filter client id yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [filterClientId, setFilterClientId] = useState("all");
 
+  // resetFilters mengembalikan filter invoice ke kondisi awal: semua status, tanpa pencarian, dan halaman pertama.
   const resetFilters = () => {
     setFilterStatus("all");
     setFilterClientId("all");
     setIsFilterDropdownOpen(false);
   };
 
+  // loadData mengambil data yang dibutuhkan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export dari Supabase lalu mengisi state halaman.
   const loadData = async () => {
     setLoading(true);
+    // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
     const [invData, clientData] = await Promise.all([
       getInvoices(),
       getClients()
@@ -70,52 +102,71 @@ export default function EInvoicePage() {
     setLoading(false);
   };
 
+  // Effect ini mengambil data yang diperlukan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export saat halaman dibuka atau filter berubah.
   useEffect(() => {
     loadData();
   }, []);
 
 
 
+  // getStatusBadge mengambil atau menghitung data yang dibutuhkan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const getStatusBadge = (status: string) => {
     const s = status.toLowerCase();
     switch (s) {
       case "paid":
       case "lunas":
+        // getStatusBadge menampilkan potongan UI yang dipakai di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
         return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#76c893]/10 text-[#76c893] flex items-center gap-1 w-max"><CheckCircleIcon className="w-3 h-3" /> Lunas</span>;
       case "overdue":
       case "jatuh tempo":
+        // getStatusBadge menampilkan potongan UI yang dipakai di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
         return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f08a5d]/10 text-[#f08a5d] w-max block">Jatuh T.</span>;
       case "cancelled":
       case "dibatalkan":
+        // getStatusBadge menampilkan potongan UI yang dipakai di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
         return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 w-max block">Dibatalkan</span>;
       default:
+        // getStatusBadge menampilkan potongan UI yang dipakai di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
         return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#ffd166]/10 text-[#ffd166] w-max block">Belum Bayar</span>;
     }
   };
 
   // Form State
   const [items, setItems] = useState<InvoiceItemForm[]>([{ id: 1, name: "", qty: "", price: 0 }]);
+  // shippingCost menyimpan nilai shipping cost yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [shippingCost, setShippingCost] = useState(0);
+  // taxRate menyimpan nilai tax rate yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [taxRate, setTaxRate] = useState(11);
+  // applyTax menyimpan nilai apply tax yang berubah saat user berinteraksi dengan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const [applyTax, setApplyTax] = useState(true);
   
+  // reduce ini menjumlahkan nominal transaksi untuk ringkasan angka di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const subtotal = items.reduce((sum, item) => sum + ((Number(item.qty) || 0) * item.price), 0);
   const taxAmount = applyTax ? (subtotal * taxRate) / 100 : 0;
   const grandTotal = subtotal + taxAmount + shippingCost;
 
+  // addItem menambah satu baris barang/jasa kosong supaya user bisa memasukkan item invoice berikutnya.
   const addItem = () => setItems([...items, { id: Date.now(), name: "", qty: "", price: 0 }]);
+  // removeItem menghapus atau menonaktifkan data yang dipilih user.
   const removeItem = (id: number) => {
+    // Kalau invoice masih punya lebih dari satu item, user boleh menghapus baris item yang dipilih.
     if (items.length > 1) setItems(items.filter(item => item.id !== id));
   };
+  // updateItem menyimpan perubahan data yang diedit dari halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const updateItem = (id: number, field: keyof InvoiceItemForm, value: any) => {
+    // map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel.
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
+  // handleCreateInvoice menangani aksi user di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export, seperti klik tombol, submit form, atau perubahan input.
   const handleCreateInvoice = async () => {
+    // Kalau customer belum dipilih, proses simpan invoice dihentikan dan modal peringatan ditampilkan.
     if (!clientId) return alert("Pilih customer terlebih dahulu");
+    // Kalau ada item tanpa nama, qty, atau harga valid, invoice tidak disimpan.
     if (items.some(i => !i.name || !i.qty || Number(i.qty) <= 0 || i.price <= 0)) return alert("Lengkapi detail barang/jasa");
 
     setLoading(true);
+    // try ini membaca atau menyimpan data invoice dari Supabase sesuai aksi user di halaman invoice.
     try {
       const now = new Date();
       const due = new Date();
@@ -123,6 +174,7 @@ export default function EInvoicePage() {
 
       const selectedClient = clients.find(c => c.id === clientId);
 
+      // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
       const { error } = await createInvoiceWithItems({
         invoice_number: `INV-${Date.now()}`,
         client_id: clientId,
@@ -144,6 +196,7 @@ export default function EInvoicePage() {
         notes: null,
         created_by: null,
         paid_at: null,
+      // map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel.
       }, items.map(i => ({
         description: i.name,
         quantity: Number(i.qty) || 0,
@@ -152,6 +205,7 @@ export default function EInvoicePage() {
         total_price: (Number(i.qty) || 0) * i.price
       })));
 
+      // Kalau Supabase mengembalikan error atau data kosong, halaman daftar invoice menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
       if (error) throw error;
       
       setIsModalOpen(false);
@@ -166,18 +220,23 @@ export default function EInvoicePage() {
     }
   };
 
+  // handleDeleteClick adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleDeleteClick = (id: string) => {
     setInvoiceToDelete(id);
     setIsDeleteModalOpen(true);
   };
 
+  // confirmDelete menjalankan hapus data setelah user menyetujui modal konfirmasi.
   const confirmDelete = async () => {
+    // Kondisi if (!invoiceToDelete) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar invoice.
     if (!invoiceToDelete) return;
     
     setLoading(true);
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await deleteInvoice(invoiceToDelete);
     setLoading(false);
     
+    // Kalau Supabase mengembalikan error atau data kosong, halaman daftar invoice menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       alert("Gagal menghapus invoice: " + error.message);
     } else {
@@ -187,13 +246,16 @@ export default function EInvoicePage() {
     }
   };
 
+  // getFilteredInvoices mengambil atau menghitung data yang dibutuhkan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const getFilteredInvoices = () => {
+    // getFilteredInvoices mengembalikan hasil untuk halaman daftar invoice, sesuai data yang dihitung tepat sebelum baris return ini.
     return invoices.filter(row => {
       const matchesSearch = row.invoice_number?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             row.clients?.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = filterStatus === "all" ? true : row.status === filterStatus;
       const matchesClient = filterClientId === "all" ? true : row.client_id === filterClientId;
       
+      // matchesClient mengembalikan hasil untuk halaman daftar invoice, sesuai data yang dihitung tepat sebelum baris return ini.
       return matchesSearch && matchesStatus && matchesClient;
     });
   };
@@ -206,14 +268,17 @@ export default function EInvoicePage() {
   const filteredInvoices = getFilteredInvoices();
   const totalItems = filteredInvoices.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  // Bagian startIndex menyimpan logika yang dipakai di bawahnya.
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
 
+  // getPageNumbers mengambil atau menghitung data yang dibutuhkan halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
     
+    // Kondisi if (totalPages <= maxVisible) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar invoice.
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -224,12 +289,14 @@ export default function EInvoicePage() {
       let start = Math.max(2, currentPage - 1);
       let end = Math.min(totalPages - 1, currentPage + 1);
       
+      // Kondisi if (currentPage <= 3) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar invoice.
       if (currentPage <= 3) {
         end = 4;
       } else if (currentPage >= totalPages - 2) {
         start = totalPages - 3;
       }
       
+      // Kondisi if (start > 2) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar invoice.
       if (start > 2) {
         pages.push("ellipsis-start");
       }
@@ -238,6 +305,7 @@ export default function EInvoicePage() {
         pages.push(i);
       }
       
+      // Kondisi if (end < totalPages - 1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar invoice.
       if (end < totalPages - 1) {
         pages.push("ellipsis-end");
       }
@@ -245,6 +313,7 @@ export default function EInvoicePage() {
       pages.push(totalPages);
     }
     
+    // maxVisible mengembalikan hasil untuk halaman daftar invoice, sesuai data yang dihitung tepat sebelum baris return ini.
     return pages;
   };
 
@@ -257,7 +326,9 @@ export default function EInvoicePage() {
     { header: 'Status', key: 'status', width: 12 }
   ];
 
+  // handleExportExcel menangani aksi user di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export, seperti klik tombol, submit form, atau perubahan input.
   const handleExportExcel = async () => {
+    // try ini membaca atau menyimpan data invoice dari Supabase sesuai aksi user di halaman invoice.
     try {
       exportToExcel(getFilteredInvoices(), exportColumns, `Invoice_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor Excel Selesai", {
@@ -265,7 +336,9 @@ export default function EInvoicePage() {
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
       
+      // Kalau data user tersedia, lanjutkan proses yang membutuhkan akun login.
       if (user) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Daftar E-Invoice (Excel) berhasil diunduh' });
         window.dispatchEvent(new CustomEvent('refreshNotifications'));
       }
@@ -277,8 +350,10 @@ export default function EInvoicePage() {
     }
   };
 
+  // handleExportPDF menangani aksi user di halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export, seperti klik tombol, submit form, atau perubahan input.
   const handleExportPDF = async () => {
     toast.info("Sedang menyiapkan PDF...");
+    // try ini membaca atau menyimpan data invoice dari Supabase sesuai aksi user di halaman invoice.
     try {
       exportToPDF(getFilteredInvoices(), exportColumns, 'Laporan Invoice', `Laporan_Invoice_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor PDF Selesai", {
@@ -286,7 +361,9 @@ export default function EInvoicePage() {
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
 
+      // Kalau data user tersedia, lanjutkan proses yang membutuhkan akun login.
       if (user) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Laporan E-Invoice (PDF) berhasil diunduh' });
         window.dispatchEvent(new CustomEvent('refreshNotifications'));
       }
@@ -299,6 +376,7 @@ export default function EInvoicePage() {
     }
   };
 
+  // handleExportPDF menampilkan UI untuk halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
   return (
     <>
       <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
@@ -384,6 +462,7 @@ export default function EInvoicePage() {
                             <CustomSelect 
                               options={[
                                 { value: "all", label: "Semua Customer" },
+                                // map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase.
                                 ...clients.map(c => ({ value: c.id, label: c.name }))
                               ]}
                               value={filterClientId}
@@ -452,6 +531,7 @@ export default function EInvoicePage() {
                   </TableCell>
                 </TableRow>
               ) : (
+                // filter ini menyisakan data halaman daftar invoice yang cocok dengan pencarian, status, role, atau tanggal aktif.
                 paginatedInvoices.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-[#5C67F2] cursor-pointer hover:underline">{row.invoice_number}</TableCell>
@@ -535,14 +615,18 @@ export default function EInvoicePage() {
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
+            {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman daftar invoice. */}
             {getPageNumbers().map((p, idx) => {
+              // Kondisi if (p === "ellipsis-start" || p === "ellipsis-end") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar invoice.
               if (p === "ellipsis-start" || p === "ellipsis-end") {
+                // handleExportPDF menampilkan UI untuk halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
                 return (
                   <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
                     ...
                   </span>
                 );
               }
+              // handleExportPDF menampilkan UI untuk halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export.
               return (
                 <Button
                   key={`page-${p}`}
@@ -600,6 +684,7 @@ export default function EInvoicePage() {
                       <div className="md:col-span-2">
                         <label className="block text-xs font-medium text-gray-500 mb-1.5">Customer <span className="text-red-500">*</span></label>
                         <CustomSelect 
+                          // map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase.
                           options={clients.map(c => ({ value: c.id, label: c.name }))}
                           value={clientId}
                           onChange={setClientId}
@@ -624,6 +709,7 @@ export default function EInvoicePage() {
                       <PlusIcon className="w-4 h-4 text-[#5C67F2]" /> Detail Tagihan
                     </h3>
                     <div className="space-y-3">
+                      {/* map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel. */}
                       {items.map((item, idx) => (
                         <div key={item.id} className="flex flex-col gap-3 p-3 border border-gray-100 rounded-lg bg-[#F9FAFB] sm:flex-row sm:items-start">
                           <div className="flex-1">

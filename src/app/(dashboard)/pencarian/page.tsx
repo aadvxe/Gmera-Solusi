@@ -1,22 +1,30 @@
 "use client";
 
+// Import React hook yang dipakai halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect, Suspense } from "react";
+// Import alat navigasi Next.js supaya halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran bisa pindah halaman atau membaca route aktif.
 import { useSearchParams, useRouter } from "next/navigation";
+// Import ikon yang dipakai halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { SearchIcon } from "@astraicons/react/linear";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman pencarian.
 import { 
   ArrowDownIcon, 
   ArrowUpIcon,
   DocumentIcon, 
   Profile1Icon 
 } from "@astraicons/react/bold";
+// Import helper database yang dipakai halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran untuk mengambil atau menyimpan data Supabase.
 import { getClients, getIncome, getExpense, getInvoices } from "@/lib/db";
+// Import utility project supaya halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatCurrency } from "@/lib/utils";
 
+// PencarianContent menjalankan pencarian berdasarkan kata kunci lalu mengelompokkan hasilnya untuk ditampilkan.
 function PencarianContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
   const router = useRouter();
 
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran.
   const [loading, setLoading] = useState(true);
   const [results, setResults] = useState<{
     clients: any[],
@@ -30,14 +38,19 @@ function PencarianContent() {
     invoices: []
   });
 
+  // Effect ini mengambil data yang diperlukan halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran saat halaman dibuka atau filter berubah.
   useEffect(() => {
+    // fetchResults mengambil data yang dibutuhkan halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran dari Supabase lalu mengisi state halaman.
     const fetchResults = async () => {
+      // Kalau teks pencarian cocok dengan nama/nomor/keterangan data, item itu masuk hasil pencarian.
       if (!query) {
         setLoading(false);
+        // fetchResults berhenti di sini karena syarat lanjut belum terpenuhi.
         return;
       }
       
       setLoading(true);
+      // try ini mengambil hasil globalSearch untuk halaman pencarian penuh.
       try {
         const lowerQuery = query.toLowerCase();
 
@@ -49,24 +62,28 @@ function PencarianContent() {
           getInvoices()
         ]);
 
+        // filter ini menyisakan data halaman pencarian yang cocok dengan pencarian, status, role, atau tanggal aktif.
         const filteredClients = allClients.filter(c => 
           c.name.toLowerCase().includes(lowerQuery) || 
           c.email?.toLowerCase().includes(lowerQuery) || 
           c.phone?.toLowerCase().includes(lowerQuery)
         );
 
+        // filter ini menyisakan data halaman pencarian yang cocok dengan pencarian, status, role, atau tanggal aktif.
         const filteredIncomes = allIncomes.filter((i: any) => 
           i.description?.toLowerCase().includes(lowerQuery) || 
           i.source?.toLowerCase().includes(lowerQuery) ||
           i.categories?.name?.toLowerCase().includes(lowerQuery)
         );
 
+        // filter ini menyisakan data halaman pencarian yang cocok dengan pencarian, status, role, atau tanggal aktif.
         const filteredExpenses = allExpenses.filter((e: any) => 
           e.description?.toLowerCase().includes(lowerQuery) ||
           e.expense_type?.toLowerCase().includes(lowerQuery) || 
           e.categories?.name?.toLowerCase().includes(lowerQuery)
         );
 
+        // filter ini menyisakan data halaman pencarian yang cocok dengan pencarian, status, role, atau tanggal aktif.
         const filteredInvoices = allInvoices.filter((inv: any) => 
           inv.invoice_number?.toLowerCase().includes(lowerQuery) || 
           inv.client_name?.toLowerCase().includes(lowerQuery)
@@ -88,7 +105,9 @@ function PencarianContent() {
     fetchResults();
   }, [query]);
 
+  // Kondisi if (loading) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pencarian.
   if (loading) {
+    // fetchResults menampilkan UI untuk halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran.
     return (
       <div className="flex h-full items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5C67F2]"></div>
@@ -98,6 +117,7 @@ function PencarianContent() {
 
   const totalResults = results.clients.length + results.incomes.length + results.expenses.length + results.invoices.length;
 
+  // fetchResults menampilkan UI untuk halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran.
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       <div>
@@ -132,6 +152,7 @@ function PencarianContent() {
             <h2 className="text-lg font-bold text-[#151D48]">Customer ({results.clients.length})</h2>
           </div>
           <div className="divide-y divide-gray-50">
+            {/* map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase. */}
             {results.clients.map(client => (
               <div 
                 key={client.id} 
@@ -160,6 +181,7 @@ function PencarianContent() {
             <h2 className="text-lg font-bold text-[#151D48]">Pendapatan ({results.incomes.length})</h2>
           </div>
           <div className="divide-y divide-gray-50">
+            {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman pencarian. */}
             {results.incomes.map((inc: any) => (
               <div 
                 key={inc.id} 
@@ -191,6 +213,7 @@ function PencarianContent() {
             <h2 className="text-lg font-bold text-[#151D48]">Pengeluaran ({results.expenses.length})</h2>
           </div>
           <div className="divide-y divide-gray-50">
+            {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman pencarian. */}
             {results.expenses.map((exp: any) => (
               <div 
                 key={exp.id} 
@@ -221,6 +244,7 @@ function PencarianContent() {
             <h2 className="text-lg font-bold text-[#151D48]">Invoice ({results.invoices.length})</h2>
           </div>
           <div className="divide-y divide-gray-50">
+            {/* map ini membuat baris invoice dari daftar invoice yang sedang ditampilkan user. */}
             {results.invoices.map((inv: any) => (
               <div 
                 key={inv.id} 
@@ -253,7 +277,9 @@ function PencarianContent() {
   );
 }
 
+// PencarianPage membungkus halaman pencarian supaya hasil globalSearch bisa ditampilkan sebagai halaman penuh.
 export default function PencarianPage() {
+  // PencarianPage menampilkan UI untuk halaman pencarian penuh untuk halaman, invoice, customer, pendapatan, dan pengeluaran.
   return (
     <Suspense fallback={
       <div className="flex h-full items-center justify-center">

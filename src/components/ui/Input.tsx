@@ -1,4 +1,6 @@
+// Import React untuk forwardRef, tipe input HTML, dan tipe ReactNode pada ikon.
 import * as React from "react"
+// Import utility project agar Input.tsx bisa menggabungkan class Tailwind atau format Rupiah dengan helper yang sama.
 import { cn } from "@/lib/utils"
 
 export interface InputProps
@@ -6,8 +8,10 @@ export interface InputProps
   icon?: React.ReactNode;
 }
 
+// Komponen Input meneruskan ref ke elemen HTML asli, jadi komponen lain tetap bisa mengakses elemennya.
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, icon, ...props }, ref) => {
+    // Input.tsx menampilkan elemen UI kecil yang dipakai ulang di dashboard.
     return (
       <div className="relative">
         {icon && (

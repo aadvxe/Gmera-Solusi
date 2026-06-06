@@ -1,29 +1,44 @@
 "use client";
 
+// Import React hook yang dipakai halaman login yang mengirim email dan password ke Supabase, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState } from "react";
+// Import ikon yang dipakai halaman login yang mengirim email dan password ke Supabase untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { EyeIcon } from "@astraicons/react/bold";
+// Import alat navigasi Next.js supaya halaman login yang mengirim email dan password ke Supabase bisa pindah halaman atau membaca route aktif.
 import { useRouter } from "next/navigation";
+// Import createClient untuk membuka koneksi Supabase dari browser saat halaman login yang mengirim email dan password ke Supabase perlu membaca/menyimpan data.
 import { createClient } from "@/utils/supabase/client";
+// Import authStore supaya halaman login yang mengirim email dan password ke Supabase bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
 
+// LoginPage menampilkan form masuk, mengirim email/password ke Supabase, lalu menyimpan data user yang berhasil login.
 export default function LoginPage() {
+  // email menyimpan alamat email yang diketik user di form login.
   const [email, setEmail] = useState("");
+  // password menyimpan kata sandi yang diketik user sebelum dikirim ke Supabase.
   const [password, setPassword] = useState("");
+  // showPassword menentukan apakah kata sandi ditampilkan sebagai teks biasa atau disembunyikan.
   const [showPassword, setShowPassword] = useState(false);
+  // error menyimpan pesan gagal agar bisa ditampilkan ke user.
   const [error, setError] = useState("");
+  // isLoading menandai proses sedang berjalan supaya tombol bisa dibuat disabled atau layar loading muncul.
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { setUser } = useAuthStore();
 
+  // handleLogin menangani aksi user di halaman login yang mengirim email dan password ke Supabase, seperti klik tombol, submit form, atau perubahan input.
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
+    // try ini mengirim email dan password ke Supabase Auth, lalu mengambil profil user jika login berhasil.
     try {
       const supabase = createClient();
+      // await menunggu respons Supabase selesai sebelum kode memakai data atau error yang dikembalikan.
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
+      // Kalau Supabase mengembalikan error atau data kosong, page.tsx menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
       if (error) {
         setError(error.message === "Invalid login credentials" ? "Email atau password salah." : error.message);
       } else if (data.user) {
@@ -63,6 +78,7 @@ export default function LoginPage() {
     }
   };
 
+  // handleLogin menampilkan UI untuk halaman login yang mengirim email dan password ke Supabase.
   return (
     <div className="flex min-h-dvh flex-col justify-center overflow-y-auto bg-background px-4 py-6 sm:px-6 sm:py-12 lg:px-8">
       <div className="mx-auto w-full max-w-md">

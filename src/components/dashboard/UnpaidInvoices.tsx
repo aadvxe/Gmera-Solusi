@@ -1,7 +1,11 @@
+// Import React hook yang dipakai kartu invoice belum bayar dan invoice jatuh tempo, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React from "react";
+// Import ikon yang dipakai kartu invoice belum bayar dan invoice jatuh tempo untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { InfoIcon, ArrowRightIcon } from "@astraicons/react/bold";
+// Import Link supaya menu/tombol di kartu invoice belum bayar dan invoice jatuh tempo bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
 
+// Interface ini menjelaskan field yang dipakai kartu invoice belum bayar dan invoice jatuh tempo supaya data form/database tidak salah bentuk.
 interface Invoice {
   id: string;
   client: string;
@@ -10,11 +14,14 @@ interface Invoice {
   isOverdue?: boolean;
 }
 
+// Interface ini menjelaskan field yang dipakai kartu invoice belum bayar dan invoice jatuh tempo supaya data form/database tidak salah bentuk.
 interface UnpaidInvoicesProps {
   invoices: Invoice[];
 }
 
+// UnpaidInvoices menampilkan invoice yang belum dibayar dan menandai mana yang sudah jatuh tempo.
 export function UnpaidInvoices({ invoices }: UnpaidInvoicesProps) {
+  // UnpaidInvoices menampilkan UI untuk kartu invoice belum bayar dan invoice jatuh tempo.
   return (
     <div className="bg-surface rounded-xl border border-border shadow-sm flex flex-col h-full">
       <div className="p-6 border-b border-border flex justify-between items-center">
@@ -23,11 +30,13 @@ export function UnpaidInvoices({ invoices }: UnpaidInvoicesProps) {
         </h3>
         <span className="bg-warning/20 text-warning px-2.5 py-0.5 rounded-full text-xs font-semibold flex items-center gap-1">
           <InfoIcon className="w-3 h-3" />
+          {/* filter ini menyisakan data UnpaidInvoices yang cocok dengan pencarian, status, role, atau tanggal aktif. */}
           {invoices.filter(i => i.isOverdue).length} Overdue
         </span>
       </div>
 
       <div className="p-4 flex-1 flex flex-col gap-2">
+        {/* map ini membuat baris invoice dari daftar invoice yang sedang ditampilkan user. */}
         {invoices.map((invoice) => (
           <div 
             key={invoice.id} 

@@ -1,5 +1,6 @@
 "use client";
 
+// Import React hook yang dipakai pembungkus chart agar Recharts hanya render di browser setelah halaman siap, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useEffect, useState } from "react";
 
 /**
@@ -16,13 +17,17 @@ export function ChartWrapper({
   height?: number;
   className?: string;
 }) {
+  // mounted menyimpan nilai mounted yang berubah saat user berinteraksi dengan pembungkus chart agar Recharts hanya render di browser setelah halaman siap.
   const [mounted, setMounted] = useState(false);
 
+  // Effect ini menandai komponen sudah berjalan di browser, lalu grafik boleh dirender dengan aman.
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Kalau komponen belum berjalan di browser, ChartWrapper belum merender Recharts agar tidak bentrok dengan server render.
   if (!mounted) {
+    // Komponen ini menampilkan UI untuk pembungkus chart agar Recharts hanya render di browser setelah halaman siap.
     return (
       <div
         style={{ height }}
@@ -31,6 +36,7 @@ export function ChartWrapper({
     );
   }
 
+  // Komponen ini menampilkan UI untuk pembungkus chart agar Recharts hanya render di browser setelah halaman siap.
   return (
     <div style={{ height, width: '100%' }} className={className}>
       {children}

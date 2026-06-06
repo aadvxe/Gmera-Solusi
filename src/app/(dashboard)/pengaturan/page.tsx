@@ -1,7 +1,10 @@
 "use client";
 
+// Import React hook yang dipakai halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect, useRef } from "react";
+// Import Sonner untuk menampilkan toast sukses/error di halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
 import { toast } from "sonner";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman pengaturan.
 import { 
   GroupIcon as Building2Icon,
   GroupIcon,
@@ -16,11 +19,17 @@ import {
   CloseCircleIcon,
   CloseIcon
 } from "@astraicons/react/bold";
+// Import ikon yang dipakai halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { SearchIcon, Menu2Icon } from "@astraicons/react/linear";
+// Import komponen UI reusable supaya halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import komponen UI reusable supaya halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Modal } from "@/components/ui/Modal";
+// Import komponen UI reusable supaya halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman pengaturan.
 import { 
   Table, 
   TableBody, 
@@ -29,6 +38,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/Table";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman pengaturan.
 import { 
   getCompanyProfile, 
   updateCompanyProfile, 
@@ -46,11 +56,16 @@ import {
   Category,
   PaymentMethod
 } from "@/lib/db";
+// Import createClient untuk membuka koneksi Supabase dari browser saat halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran perlu membaca/menyimpan data.
 import { createClient } from "@/utils/supabase/client";
+// Import alat navigasi Next.js supaya halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran bisa pindah halaman atau membaca route aktif.
 import { useRouter } from "next/navigation";
+// Import uploadFile supaya halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran bisa mengirim lampiran ke Supabase Storage.
 import { uploadFile } from "@/lib/storage";
+// Import authStore supaya halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
 
+// Type ini memberi nama pada bentuk data yang dipakai halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
 type TabId = "profil" | "pengguna" | "kategori" | "pajak" | "pembayaran";
 
 const TABS = [
@@ -61,6 +76,7 @@ const TABS = [
   { id: "pembayaran", label: "Metode Pembayaran", icon: CardIcon },
 ];
 
+// PengaturanPage mengatur data master seperti profil perusahaan, user, kategori, pajak, dan rekening pembayaran.
 export default function PengaturanPage() {
   const router = useRouter();
   const role = useAuthStore(state => state.role);
@@ -70,35 +86,51 @@ export default function PengaturanPage() {
   const [activeCatTab, setActiveCatTab] = useState<"pendapatan"|"pengeluaran">("pendapatan");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
 
+  // isDeleteUserModalOpen menyimpan nilai is delete user modal open yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   
+  // isDeleteCategoryModalOpen menyimpan nilai is delete category modal open yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  // isLogoutModalOpen menentukan apakah modal konfirmasi logout sedang tampil.
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  // isLoggingOut menandai proses logout sedang berjalan agar tombol tidak diklik berkali-kali.
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  // isAddCategoryModalOpen menyimpan nilai is add category modal open yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  // newCategoryName menyimpan nilai new category name yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [newCategoryName, setNewCategoryName] = useState("");
 
+  // isEditCategoryModalOpen menyimpan nilai is edit category modal open yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [isEditCategoryModalOpen, setIsEditCategoryModalOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
+  // editCategoryName menyimpan nilai edit category name yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [editCategoryName, setEditCategoryName] = useState("");
 
+  // isEditUserModalOpen menyimpan nilai is edit user modal open yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<UserProfile | null>(null);
+  // editUserRole menyimpan nilai edit user role yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [editUserRole, setEditUserRole] = useState("staff");
 
+  // isAddUserModalOpen menyimpan nilai is add user modal open yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  // newUserName menyimpan nilai new user name yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [newUserName, setNewUserName] = useState("");
+  // newUserEmail menyimpan nilai new user email yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [newUserEmail, setNewUserEmail] = useState("");
+  // newUserRole menyimpan nilai new user role yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [newUserRole, setNewUserRole] = useState("staff");
+  // newUserPassword menyimpan nilai new user password yang berubah saat user berinteraksi dengan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const [newUserPassword, setNewUserPassword] = useState("");
 
   const dragItem = useRef<number | null>(null);
@@ -115,15 +147,22 @@ export default function PengaturanPage() {
     rotation: number;
     scale: number;
   } | null>(null);
+  // dragTargetRef menyimpan referensi ke elemen/timer tanpa memaksa layar render ulang.
   const dragTargetRef = useRef({ x: 0, y: 0 });
+  // dragMotionRef menyimpan referensi ke elemen/timer tanpa memaksa layar render ulang.
   const dragMotionRef = useRef({ x: 0, y: 0, vx: 0, vy: 0 });
+  // dragOffsetRef menyimpan referensi ke elemen/timer tanpa memaksa layar render ulang.
   const dragOffsetRef = useRef({ x: 0, y: 0 });
+  // dragBaseXRef menyimpan referensi ke elemen/timer tanpa memaksa layar render ulang.
   const dragBaseXRef = useRef(0);
   const dragAnimationFrame = useRef<number | null>(null);
 
+  // loadData mengambil data yang dibutuhkan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran dari Supabase lalu mengisi state halaman.
   const loadData = async () => {
     setLoading(true);
+    // try ini menyimpan perubahan pengaturan seperti profil perusahaan, user, kategori, pajak, atau metode pembayaran.
     try {
+      // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
       const [compData, userData, catData, pmData] = await Promise.all([
         getCompanyProfile(),
         getAllUsers(),
@@ -141,34 +180,44 @@ export default function PengaturanPage() {
     }
   };
 
+  // Effect ini mengambil data yang diperlukan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran saat halaman dibuka atau filter berubah.
   useEffect(() => {
     loadData();
   }, []);
 
+  // Effect ini mengambil data yang diperlukan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran saat halaman dibuka atau filter berubah.
   useEffect(() => {
+    // loadData menampilkan UI untuk halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
     return () => {
+      // Kondisi if (dragAnimationFrame.current !== null) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
       if (dragAnimationFrame.current !== null) {
         cancelAnimationFrame(dragAnimationFrame.current);
       }
     };
   }, []);
 
+  // handleUpdateCompany menangani aksi user di halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran, seperti klik tombol, submit form, atau perubahan input.
   const handleUpdateCompany = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
+    // Kondisi if (!company) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (!company) return;
 
     setLoading(true);
 
     let newLogoUrl = company.logo_url;
+    // Kondisi if (logoFile) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (logoFile) {
+      // await menunggu upload lampiran selesai agar invoice menyimpan URL file yang benar.
       const { url, error } = await uploadFile(logoFile, 'uploads');
+      // Kalau Supabase mengembalikan error atau data kosong, halaman pengaturan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
       if (!error && url) {
         newLogoUrl = url;
       } else {
         console.error("Upload error:", error);
         toast.error("Gagal mengunggah logo. Pastikan bucket 'uploads' sudah dibuat di Supabase Storage.");
         setLoading(false);
+        // form berhenti di sini karena syarat lanjut belum terpenuhi.
         return;
       }
     }
@@ -178,26 +227,36 @@ export default function PengaturanPage() {
     
     // Only include fields that are present in the form
     formData.forEach((value, key) => {
+      // Kondisi ini memastikan nilai input ada sebelum dipakai untuk tampilan atau perhitungan.
       if (value !== null && value !== "" && key !== 'logo-upload') {
+        // Kondisi ini memastikan nilai input ada sebelum dipakai untuk tampilan atau perhitungan.
         if (key === 'tax_rate') payload[key] = parseFloat(value as string);
+        // Kondisi else payload[key] = value as string; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
         else payload[key] = value as string;
       }
     });
 
+    // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
     if (Object.keys(payload).length === 0) {
       setLoading(false);
+      // payload berhenti di sini karena syarat lanjut belum terpenuhi.
       return;
     }
 
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await updateCompanyProfile(payload);
     setLoading(false);
 
+    // Kalau Supabase mengembalikan error atau data kosong, halaman pengaturan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       toast.error("Gagal memperbarui: " + (typeof error === 'string' ? error : error.message));
     } else {
       let desc = "Pengaturan sistem berhasil diperbarui";
+      // Kondisi if (payload.tax_rate || payload.npwp) desc = "Pengaturan pajak diperbarui"; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
       if (payload.tax_rate || payload.npwp) desc = "Pengaturan pajak diperbarui";
+      // Kondisi else if (payload.bank_name || payload.bank_account) desc = "Metode pembayaran diperbarui"; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
       else if (payload.bank_name || payload.bank_account) desc = "Metode pembayaran diperbarui";
+      // Kondisi else desc = "Profil perusahaan berhasil diperbarui"; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
       else desc = "Profil perusahaan berhasil diperbarui";
 
       toast.warning("Pengaturan Sistem", {
@@ -210,31 +269,42 @@ export default function PengaturanPage() {
     }
   };
 
+  // handleDeleteUserClick adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleDeleteUserClick = (id: string) => {
     setUserToDelete(id);
     setIsDeleteUserModalOpen(true);
   };
 
+  // confirmDeleteUser menonaktifkan user yang dipilih setelah modal konfirmasi disetujui.
   const confirmDeleteUser = async () => {
+    // Kalau belum ada akun Supabase yang login, hentikan proses yang membutuhkan profil user.
     if (!userToDelete) return;
     setLoading(true);
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await deleteUser(userToDelete);
+    // Kalau Supabase mengembalikan error atau data kosong, halaman pengaturan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) toast.error("Gagal menonaktifkan pengguna");
+    // Kondisi else { toast.success("Pengguna dinonaktifkan"); loadData(); } membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     else { toast.success("Pengguna dinonaktifkan"); loadData(); }
     setIsDeleteUserModalOpen(false);
     setUserToDelete(null);
     setLoading(false);
   };
 
+  // handleDeleteCategoryClick adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleDeleteCategoryClick = (id: string) => {
     setCategoryToDelete(id);
     setIsDeleteCategoryModalOpen(true);
   };
 
+  // confirmDeleteCategory menghapus kategori yang dipilih lalu menutup modal konfirmasi.
   const confirmDeleteCategory = async () => {
+    // Kondisi if (!categoryToDelete) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (!categoryToDelete) return;
     setLoading(true);
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await deleteCategory(categoryToDelete);
+    // Kalau Supabase mengembalikan error atau data kosong, halaman pengaturan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       toast.error("Gagal menghapus kategori");
     } else {
@@ -249,14 +319,18 @@ export default function PengaturanPage() {
     setLoading(false);
   };
 
+  // handleCreateCategory menangani aksi user di halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran, seperti klik tombol, submit form, atau perubahan input.
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Kondisi if (!newCategoryName.trim()) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (!newCategoryName.trim()) return;
     
     setLoading(true);
     const type = activeCatTab === "pendapatan" ? "income" : "expense";
+    // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman pengaturan.
     const maxOrder = Math.max(0, ...categories.filter(c => c.type === type).map(c => c.order_index || 0));
     
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await createCategory({
       name: newCategoryName.trim(),
       type: type,
@@ -265,6 +339,7 @@ export default function PengaturanPage() {
       is_active: true
     });
     
+    // Kalau Supabase mengembalikan error atau data kosong, halaman pengaturan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       toast.error("Gagal menambahkan kategori: " + error.message);
     } else {
@@ -279,19 +354,24 @@ export default function PengaturanPage() {
     setLoading(false);
   };
 
+  // handleEditCategoryClick adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleEditCategoryClick = (cat: Category) => {
     setCategoryToEdit(cat);
     setEditCategoryName(cat.name);
     setIsEditCategoryModalOpen(true);
   };
 
+  // handleUpdateCategory menangani aksi user di halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran, seperti klik tombol, submit form, atau perubahan input.
   const handleUpdateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Kondisi if (!categoryToEdit || !editCategoryName.trim()) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (!categoryToEdit || !editCategoryName.trim()) return;
 
     setLoading(true);
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await updateCategory(categoryToEdit.id, { name: editCategoryName.trim() });
     
+    // Kalau Supabase mengembalikan error atau data kosong, halaman pengaturan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       toast.error("Gagal mengubah kategori: " + error.message);
     } else {
@@ -304,12 +384,15 @@ export default function PengaturanPage() {
     setLoading(false);
   };
 
+  // handleCreateUser menangani aksi user di halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran, seperti klik tombol, submit form, atau perubahan input.
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
+    // try ini menyimpan perubahan pengaturan seperti profil perusahaan, user, kategori, pajak, atau metode pembayaran.
     try {
       const supabase = createClient();
+      // await menunggu respons Supabase selesai sebelum kode memakai data atau error yang dikembalikan.
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUserEmail,
         password: newUserPassword,
@@ -321,6 +404,7 @@ export default function PengaturanPage() {
         }
       });
 
+      // Kondisi if (authError) throw authError; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
       if (authError) throw authError;
       
       toast.success("Pengguna baru berhasil ditambahkan. Silakan minta pengguna untuk verifikasi email.");
@@ -336,19 +420,24 @@ export default function PengaturanPage() {
     }
   };
 
+  // handleEditUserClick adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleEditUserClick = (user: UserProfile) => {
     setUserToEdit(user);
     setEditUserRole(user.role || "staff");
     setIsEditUserModalOpen(true);
   };
 
+  // handleUpdateUserRole menangani aksi user di halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran, seperti klik tombol, submit form, atau perubahan input.
   const handleUpdateUserRole = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Kalau belum ada akun Supabase yang login, hentikan proses yang membutuhkan profil user.
     if (!userToEdit) return;
 
     setLoading(true);
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await updateUserRole(userToEdit.id, editUserRole);
     
+    // Kalau Supabase mengembalikan error atau data kosong, halaman pengaturan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       toast.error("Gagal mengubah akses pengguna: " + error.message);
     } else {
@@ -361,19 +450,25 @@ export default function PengaturanPage() {
     setLoading(false);
   };
 
+  // handleSort menangani aksi user di halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran, seperti klik tombol, submit form, atau perubahan input.
   const handleSort = async () => {
+    // Kondisi if (dragItem.current === null || dragOverItem.current === null) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (dragItem.current === null || dragOverItem.current === null) return;
+    // Kondisi if (dragItem.current === dragOverItem.current) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (dragItem.current === dragOverItem.current) {
       dragItem.current = null;
       dragOverItem.current = null;
       setDraggingCategoryId(null);
       setDragOverCategoryId(null);
       clearDragPreview();
+      // handleSort berhenti di sini karena syarat lanjut belum terpenuhi.
       return;
     }
 
     const type = activeCatTab === "pendapatan" ? "income" : "expense";
+    // filter ini menyisakan data halaman pengaturan yang cocok dengan pencarian, status, role, atau tanggal aktif.
     const filteredCats = categories.filter(c => c.type === type);
+    // filter ini menyisakan data halaman pengaturan yang cocok dengan pencarian, status, role, atau tanggal aktif.
     const otherCats = categories.filter(c => c.type !== type);
 
     const _filteredCats = [...filteredCats];
@@ -396,7 +491,9 @@ export default function PengaturanPage() {
     clearDragPreview();
 
     setLoading(true);
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await updateCategoryOrder(itemsToUpdate);
+    // Kalau Supabase mengembalikan error atau data kosong, halaman pengaturan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       toast.error("Gagal mengubah urutan: " + error.message);
       loadData(); // Revert
@@ -411,28 +508,34 @@ export default function PengaturanPage() {
     setLoading(false);
   };
 
+  // getCategoryIndexAtPoint mengambil atau menghitung data yang dibutuhkan halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   const getCategoryIndexAtPoint = (clientY: number, visibleCategories: Category[]) => {
     let closestIndex = dragItem.current ?? 0;
     let closestDistance = Number.POSITIVE_INFINITY;
 
     visibleCategories.forEach((cat, idx) => {
       const row = categoryRowRefs.current[cat.id];
+      // Kondisi if (!row) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
       if (!row) return;
 
       const rect = row.getBoundingClientRect();
       const midpoint = rect.top + rect.height / 2;
       const distance = Math.abs(clientY - midpoint);
 
+      // Kondisi if (distance < closestDistance) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
       if (distance < closestDistance) {
         closestDistance = distance;
         closestIndex = idx;
       }
     });
 
+    // distance mengembalikan hasil untuk halaman pengaturan, sesuai data yang dihitung tepat sebelum baris return ini.
     return closestIndex;
   };
 
+  // clearDragPreview menghapus bayangan item kategori yang sedang di-drag.
   const clearDragPreview = () => {
+    // Kondisi if (dragAnimationFrame.current !== null) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (dragAnimationFrame.current !== null) {
       cancelAnimationFrame(dragAnimationFrame.current);
       dragAnimationFrame.current = null;
@@ -440,9 +543,12 @@ export default function PengaturanPage() {
     setDragPreview(null);
   };
 
+  // runDragPreviewSpring menjalankan animasi halus untuk bayangan kategori saat drag berjalan.
   const runDragPreviewSpring = () => {
+    // Kondisi if (dragAnimationFrame.current !== null) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (dragAnimationFrame.current !== null) return;
 
+    // tick menghitung posisi animasi berikutnya untuk preview drag kategori.
     const tick = () => {
       const motion = dragMotionRef.current;
       const target = dragTargetRef.current;
@@ -474,6 +580,7 @@ export default function PengaturanPage() {
     dragAnimationFrame.current = requestAnimationFrame(tick);
   };
 
+  // startDragPreview membuat bayangan kategori di posisi pointer saat user mulai drag.
   const startDragPreview = (name: string, rowRect: DOMRect, pointerX: number, pointerY: number) => {
     clearDragPreview();
     dragBaseXRef.current = rowRect.left;
@@ -495,11 +602,13 @@ export default function PengaturanPage() {
     runDragPreviewSpring();
   };
 
+  // Bagian handleCategoryPointerDown menyimpan logika yang dipakai di bawahnya.
   const handleCategoryPointerDown = (
     event: React.PointerEvent<HTMLButtonElement>,
     index: number,
     categoryId: string
   ) => {
+    // Kondisi if (event.pointerType === "mouse" && event.button !== 0) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (event.pointerType === "mouse" && event.button !== 0) return;
 
     event.preventDefault();
@@ -508,16 +617,19 @@ export default function PengaturanPage() {
     setDraggingCategoryId(categoryId);
     setDragOverCategoryId(categoryId);
     const rowRect = categoryRowRefs.current[categoryId]?.getBoundingClientRect();
+    // Kondisi if (rowRect) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (rowRect) {
       startDragPreview(categories.find((cat) => cat.id === categoryId)?.name ?? "", rowRect, event.clientX, event.clientY);
     }
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
+  // Bagian handleCategoryPointerMove menyimpan logika yang dipakai di bawahnya.
   const handleCategoryPointerMove = (
     event: React.PointerEvent<HTMLButtonElement>,
     visibleCategories: Category[]
   ) => {
+    // Kondisi if (dragItem.current === null) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (dragItem.current === null) return;
 
     event.preventDefault();
@@ -530,15 +642,20 @@ export default function PengaturanPage() {
     };
   };
 
+  // handleCategoryPointerEnd menangani aksi user di halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran, seperti klik tombol, submit form, atau perubahan input.
   const handleCategoryPointerEnd = async (event: React.PointerEvent<HTMLButtonElement>) => {
+    // Kondisi if (event.currentTarget.hasPointerCapture(event.pointerId)) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     await handleSort();
   };
 
+  // handleCategoryPointerCancel adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleCategoryPointerCancel = (event: React.PointerEvent<HTMLButtonElement>) => {
+    // Kondisi if (event.currentTarget.hasPointerCapture(event.pointerId)) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman pengaturan.
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -550,9 +667,11 @@ export default function PengaturanPage() {
     clearDragPreview();
   };
 
+  // handleLogout menangani aksi user di halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran, seperti klik tombol, submit form, atau perubahan input.
   const handleLogout = async () => {
     setIsLoggingOut(true);
     const supabase = createClient();
+    // await menunggu respons Supabase selesai sebelum kode memakai data atau error yang dikembalikan.
     await supabase.auth.signOut();
     document.cookie = "mock_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     setUser(null);
@@ -560,9 +679,11 @@ export default function PengaturanPage() {
     router.push("/login");
   };
 
+  // renderContent memilih isi tab pengaturan yang tampil: perusahaan, user, kategori, pajak, atau pembayaran.
   const renderContent = () => {
     switch (activeTab) {
       case "profil":
+        // handleLogout menampilkan UI untuk halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
         return (
           <form onSubmit={handleUpdateCompany} className="space-y-6 max-w-3xl">
             <div>
@@ -573,7 +694,7 @@ export default function PengaturanPage() {
             <div className="flex items-start gap-6 border-b border-gray-100 pb-6">
               <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 shrink-0 overflow-hidden relative group">
                 {(logoFile || company?.logo_url) ? (
-                  <img src={logoFile ? URL.createObjectURL(logoFile) : company?.logo_url!} alt="Company Logo" className="w-full h-full object-contain bg-white" />
+                  <img src={logoFile ? URL.createObjectURL(logoFile) : (company?.logo_url ?? "")} alt="Company Logo" className="w-full h-full object-contain bg-white" />
                 ) : (
                   <>
                     <Building2Icon className="w-6 h-6 mb-2" />
@@ -588,6 +709,7 @@ export default function PengaturanPage() {
                     accept="image/*" 
                     className="sr-only" 
                     onChange={e => {
+                      // Kalau user memilih file dari input lampiran, simpan file itu ke state attachment.
                       if (e.target.files && e.target.files[0]) {
                         setLogoFile(e.target.files[0]);
                       }
@@ -655,7 +777,9 @@ export default function PengaturanPage() {
         );
       
       case "pengguna":
+        // Kondisi ini mengecek role agar menu/fitur yang tampil sesuai hak akses user.
         if (role !== "super_admin") return null;
+        // handleLogout menampilkan UI untuk halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
         return (
           <div className="space-y-6 max-w-4xl">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -682,6 +806,7 @@ export default function PengaturanPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman pengaturan. */}
                   {users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
@@ -723,7 +848,9 @@ export default function PengaturanPage() {
         );
 
       case "kategori": {
+        // filter ini menyisakan data halaman pengaturan yang cocok dengan pencarian, status, role, atau tanggal aktif.
         const visibleCategories = categories.filter(c => c.type === (activeCatTab === "pendapatan" ? "income" : "expense"));
+        // handleLogout menampilkan UI untuk halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
         return (
           <div className="space-y-6 max-w-3xl">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -758,6 +885,7 @@ export default function PengaturanPage() {
             <div className="relative border border-gray-100 rounded-2xl overflow-hidden">
               <Table>
                 <TableBody>
+                  {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman pengaturan. */}
                   {visibleCategories.map((cat, idx) => (
                     <TableRow 
                       key={cat.id}
@@ -837,6 +965,7 @@ export default function PengaturanPage() {
       }
 
       case "pajak":
+        // handleLogout menampilkan UI untuk halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
         return (
           <form onSubmit={handleUpdateCompany} className="space-y-6 max-w-2xl">
             <div>
@@ -879,6 +1008,7 @@ export default function PengaturanPage() {
         );
 
       case "pembayaran":
+        // handleLogout menampilkan UI untuk halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
         return (
           <form onSubmit={handleUpdateCompany} className="space-y-6 max-w-3xl">
             <div>
@@ -930,15 +1060,18 @@ export default function PengaturanPage() {
     }
   };
 
+  // handleLogout menampilkan UI untuk halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
   return (
     <div className="flex min-h-[calc(100dvh-6rem)] flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm md:h-[calc(100vh-8rem)] md:flex-row">
       {/* Sidebar Navigation */}
       <div className="w-full shrink-0 border-b border-gray-100 bg-gray-50 p-4 md:w-64 md:border-b-0 md:border-r md:overflow-y-auto">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 px-3">Menu Pengaturan</h3>
         <nav className="flex gap-2 overflow-x-auto md:block md:space-y-1">
+          {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman pengaturan. */}
           {TABS.filter(tab => tab.id !== "pengguna" || role === "super_admin").map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+            // handleLogout menampilkan UI untuk halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran.
             return (
               <button
                 key={tab.id}

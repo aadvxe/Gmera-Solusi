@@ -1,3 +1,4 @@
+// Import createClient untuk membuka koneksi Supabase dari browser saat helper pencarian global berdasarkan keyword dan role user perlu membaca/menyimpan data.
 import { createClient } from '@/utils/supabase/client';
 
 export type SearchResult = {
@@ -10,6 +11,7 @@ export type SearchResult = {
   href: string;
 };
 
+// Type ini memberi nama pada bentuk data yang dipakai helper pencarian global berdasarkan keyword dan role user.
 type PageShortcut = {
   id: string;
   type: 'page';
@@ -29,6 +31,7 @@ const PAGE_SHORTCUTS: PageShortcut[] = [
   { id: 'page-pengaturan', type: 'page', title: 'Pengaturan', subtitle: 'Konfigurasi akun & perusahaan', href: '/pengaturan', keywords: ['pengaturan', 'setting', 'konfigurasi', 'profil'] },
 ];
 
+// formatCurrency mengubah angka menjadi format mata uang Indonesia lengkap dengan Rp.
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
 
@@ -39,6 +42,7 @@ const STATUS_LABEL: Record<string, string> = {
   cancelled: 'Dibatalkan',
 };
 
+// globalSearch mencari halaman, invoice, customer, pendapatan, dan pengeluaran sesuai keyword dan role user.
 export async function globalSearch(
   query: string,
   role: string
@@ -47,17 +51,23 @@ export async function globalSearch(
 
   // Static page shortcuts — always available
   const pages: SearchResult[] = PAGE_SHORTCUTS
+    // filter ini menyisakan data helper pencarian global yang cocok dengan pencarian, status, role, atau tanggal aktif.
     .filter(p => {
+      // Kondisi if (!q) return true; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper pencarian global.
       if (!q) return true;
+      // formatCurrency menampilkan UI untuk helper pencarian global berdasarkan keyword dan role user.
       return (
         p.title.toLowerCase().includes(q) ||
         p.subtitle.toLowerCase().includes(q) ||
         p.keywords.some(k => k.includes(q))
       );
     })
+    // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh helper pencarian global.
     .map(({ keywords: _k, ...rest }) => rest);
 
+  // Kondisi if (!q) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper pencarian global.
   if (!q) {
+    // pages mengembalikan nilai yang dibutuhkan oleh helper pencarian global.
     return { pages, invoices: [], clients: [], income: [], expense: [] };
   }
 
@@ -106,6 +116,7 @@ export async function globalSearch(
 
   const invoices: SearchResult[] =
     invoicesRes.status === 'fulfilled' && invoicesRes.value.data
+      // map ini membentuk data grafik/tabel dari hasil transaksi yang sudah dihitung.
       ? invoicesRes.value.data.map((inv: any) => ({
           id: inv.id,
           type: 'invoice' as const,
@@ -119,10 +130,12 @@ export async function globalSearch(
 
   const clients: SearchResult[] =
     clientsRes.status === 'fulfilled' && (clientsRes.value as any).data
+      // map ini membentuk data grafik/tabel dari hasil transaksi yang sudah dihitung.
       ? (clientsRes.value as any).data.map((c: any) => ({
           id: c.id,
           type: 'client' as const,
           title: c.name,
+          // filter(Boolean) membuang nilai kosong, misalnya nomor telepon/email yang tidak ada, sebelum teks digabung.
           subtitle: [c.city, c.phone, c.email].filter(Boolean).join(' · '),
           href: `/customer/${c.id}`,
         }))
@@ -130,6 +143,7 @@ export async function globalSearch(
 
   const income: SearchResult[] =
     incomeRes.status === 'fulfilled' && (incomeRes.value as any).data
+      // map ini membentuk data grafik/tabel dari hasil transaksi yang sudah dihitung.
       ? (incomeRes.value as any).data.map((i: any) => ({
           id: i.id,
           type: 'income' as const,
@@ -142,6 +156,7 @@ export async function globalSearch(
 
   const expense: SearchResult[] =
     expenseRes.status === 'fulfilled' && (expenseRes.value as any).data
+      // map ini membentuk data grafik/tabel dari hasil transaksi yang sudah dihitung.
       ? (expenseRes.value as any).data.map((e: any) => ({
           id: e.id,
           type: 'expense' as const,
@@ -152,6 +167,7 @@ export async function globalSearch(
         }))
       : [];
 
+  // expense mengembalikan nilai yang dibutuhkan oleh helper pencarian global.
   return { pages, invoices, clients, income, expense };
 }
 

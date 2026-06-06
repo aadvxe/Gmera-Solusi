@@ -1,28 +1,37 @@
 "use client";
 
+// Import React hook yang dipakai modal portal yang mengunci scroll halaman dan memberi animasi buka/tutup, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useEffect, useState } from "react";
+// Import createPortal agar Modal bisa dirender di body, bukan terkunci di posisi parent component.
 import { createPortal } from "react-dom";
 
+// Interface ini menjelaskan field yang dipakai modal portal yang mengunci scroll halaman dan memberi animasi buka/tutup supaya data form/database tidak salah bentuk.
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
 }
 
+// Modal menampilkan konten di atas halaman, menutup scroll body, lalu mengembalikan scroll saat modal ditutup.
 export function Modal({ isOpen, onClose, children }: ModalProps) {
+  // shouldRender menjaga modal tetap ada sebentar agar animasi tutup terlihat.
   const [shouldRender, setShouldRender] = useState(isOpen);
+  // isClosing menandai modal sedang animasi keluar sebelum benar-benar dihapus dari DOM.
   const [isClosing, setIsClosing] = useState(false);
 
   // Separate effect for absolute cleanup on unmount
   useEffect(() => {
+    // Modal menampilkan UI untuk modal portal yang mengunci scroll halaman dan memberi animasi buka/tutup.
     return () => {
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
     };
   }, []);
 
+  // Effect ini menyambungkan modal portal yang mengunci scroll halaman dan memberi animasi buka/tutup dengan hal di luar render React, seperti database, ukuran layar, timer, atau event browser.
   useEffect(() => {
     let timer: NodeJS.Timeout;
+    // Kondisi ini menentukan apakah panel/modal/dropdown perlu ditampilkan atau disembunyikan.
     if (isOpen) {
       setShouldRender(true);
       setIsClosing(false);
@@ -30,6 +39,7 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
       // Calculate scrollbar width to prevent page layout jiggle
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.overflow = "hidden";
+      // Kondisi if (scrollbarWidth > 0) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di Modal.
       if (scrollbarWidth > 0) {
         document.body.style.paddingRight = `${scrollbarWidth}px`;
       }
@@ -42,13 +52,17 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
       }, 200); // match animation duration
     }
 
+    // Modal menampilkan UI untuk modal portal yang mengunci scroll halaman dan memberi animasi buka/tutup.
     return () => {
+      // Kondisi if (timer) clearTimeout(timer); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di Modal.
       if (timer) clearTimeout(timer);
     };
   }, [isOpen]);
 
+  // Kalau modal sudah selesai ditutup, Modal mengembalikan null supaya tidak ada overlay tersisa di DOM.
   if (!shouldRender || typeof window === "undefined") return null;
 
+  // scrollbarWidth mengembalikan nilai yang dibutuhkan oleh Modal.
   return createPortal(
     <>
       <style dangerouslySetInnerHTML={{ __html: `
@@ -78,6 +92,7 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
           isClosing ? "modal-backdrop-out" : "modal-backdrop-in"
         }`}
         onClick={(e) => {
+          // Kondisi if (e.target === e.currentTarget) onClose(); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di Modal.
           if (e.target === e.currentTarget) onClose();
         }}
       >

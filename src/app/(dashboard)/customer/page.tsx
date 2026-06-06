@@ -1,13 +1,22 @@
 "use client";
 
+// Import React hook yang dipakai halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect } from "react";
+// Import ikon yang dipakai halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { Filter1Icon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, EmailIcon, CallIcon, CloseIcon, ArrowDownIcon, HelpIcon } from "@astraicons/react/bold";
+// Import ikon yang dipakai halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { SearchIcon } from "@astraicons/react/linear";
+// Import komponen UI reusable supaya halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Modal } from "@/components/ui/Modal";
+// Import komponen UI reusable supaya halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+// Import komponen UI reusable supaya halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import komponen UI reusable supaya halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman customer.
 import { 
   Table, 
   TableBody, 
@@ -16,18 +25,28 @@ import {
   TableHeader, 
   TableRow,
 } from "@/components/ui/Table";
+// Import helper database yang dipakai halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan untuk mengambil atau menyimpan data Supabase.
 import { getClients, insertClient, updateClient, deleteClient, Client, getClientInvoiceStats, getInvoicesByClient, Invoice } from "@/lib/db";
+// Import helper database yang dipakai halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan untuk mengambil atau menyimpan data Supabase.
 import { createAuditLog } from "@/lib/db/users";
+// Import Sonner untuk menampilkan toast sukses/error di halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
 import { toast } from "sonner";
+// Import utility project supaya halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatCurrency } from "@/lib/utils";
+// Import authStore supaya halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import helper export supaya daftar customer bisa diunduh sebagai PDF/Excel sesuai pencarian dan status aktif/nonaktif.
 import { exportToExcel, exportToPDF } from "@/lib/export";
+// Import ikon yang dipakai halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+// CustomerPage menampilkan daftar customer aktif dan menyediakan aksi tambah, edit, detail, hapus, dan filter.
 export default function CustomerPage() {
   const role = useAuthStore(state => state.role);
 
+  // Kondisi ini mengecek role agar menu/fitur yang tampil sesuai hak akses user.
   if (role === 'viewer') {
+    // CustomerPage menampilkan UI untuk halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white rounded-2xl shadow-sm border border-gray-100">
         <h2 className="text-xl font-bold text-text-primary mb-2">Akses Ditolak</h2>
@@ -36,37 +55,51 @@ export default function CustomerPage() {
     );
   }
 
+  // searchTerm menyimpan nilai search term yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [searchTerm, setSearchTerm] = useState("");
   const [clients, setClients] = useState<(Client & { stats?: { totalInvoices: number, unpaidAmount: number } })[]>([]);
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [loading, setLoading] = useState(true);
+  // isModalOpen menyimpan nilai is modal open yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // isEdit menyimpan nilai is edit yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [isEdit, setIsEdit] = useState(false);
   const [currentClientId, setCurrentClientId] = useState<string | null>(null);
+  // isDeleteModalOpen menyimpan nilai is delete modal open yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<string | null>(null);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
+  // itemsPerPage menyimpan nilai items per page yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // isDetailModalOpen menyimpan nilai is detail modal open yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<(Client & { stats?: { totalInvoices: number, unpaidAmount: number } }) | null>(null);
   const [clientInvoices, setClientInvoices] = useState<Invoice[]>([]);
+  // loadingInvoices menyimpan nilai loading invoices yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [loadingInvoices, setLoadingInvoices] = useState(false);
 
+  // handleViewDetail menangani aksi user di halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan, seperti klik tombol, submit form, atau perubahan input.
   const handleViewDetail = async (client: (Client & { stats?: { totalInvoices: number, unpaidAmount: number } })) => {
     setSelectedClient(client);
     setIsDetailModalOpen(true);
     setLoadingInvoices(true);
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const invoices = await getInvoicesByClient(client.id);
     setClientInvoices(invoices);
     setLoadingInvoices(false);
   };
 
+  // isFilterDropdownOpen menyimpan nilai is filter dropdown open yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  // filterCity menyimpan nilai filter city yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [filterCity, setFilterCity] = useState("all");
+  // filterStatus menyimpan nilai filter status yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [filterStatus, setFilterStatus] = useState("all");
 
+  // resetFilters mengembalikan filter invoice ke kondisi awal: semua status, tanpa pencarian, dan halaman pertama.
   const resetFilters = () => {
     setFilterCity("all");
     setFilterStatus("all");
@@ -74,6 +107,7 @@ export default function CustomerPage() {
   };
 
   const uniqueCities = Array.from(
+    // map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase.
     new Set(clients.map(c => c.city).filter((city): city is string => Boolean(city)))
   ).sort();
 
@@ -90,13 +124,17 @@ export default function CustomerPage() {
     notes: ""
   });
 
+  // loadData mengambil data yang dibutuhkan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan dari Supabase lalu mengisi state halaman.
   const loadData = async () => {
     setLoading(true);
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const data = await getClients();
     
     // Fetch stats for each client (not the most efficient but works for now)
     const clientsWithStats = await Promise.all(data.map(async (client) => {
+      // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
       const stats = await getClientInvoiceStats(client.id);
+      // loadData mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
       return { ...client, stats };
     }));
 
@@ -104,10 +142,12 @@ export default function CustomerPage() {
     setLoading(false);
   };
 
+  // Effect ini mengambil data yang diperlukan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan saat halaman dibuka atau filter berubah.
   useEffect(() => {
     loadData();
   }, []);
 
+  // resetForm mengosongkan form customer dan mengembalikan modal ke mode tambah data.
   const resetForm = () => {
     setFormData({
       name: "",
@@ -124,6 +164,7 @@ export default function CustomerPage() {
     setCurrentClientId(null);
   };
 
+  // handleEdit adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleEdit = (client: Client) => {
     setFormData({
       name: client.name,
@@ -141,18 +182,23 @@ export default function CustomerPage() {
     setIsModalOpen(true);
   };
 
+  // handleDeleteClick adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleDeleteClick = (id: string) => {
     setClientToDelete(id);
     setIsDeleteModalOpen(true);
   };
 
+  // confirmDelete menjalankan hapus data setelah user menyetujui modal konfirmasi.
   const confirmDelete = async () => {
+    // Kondisi if (!clientToDelete) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman customer.
     if (!clientToDelete) return;
 
     setLoading(true);
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await deleteClient(clientToDelete);
     setLoading(false);
 
+    // Kalau Supabase mengembalikan error atau data kosong, halaman customer menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       toast.error("Gagal menghapus customer: " + error.message);
     } else {
@@ -163,17 +209,24 @@ export default function CustomerPage() {
     }
   };
 
+  // handleSubmit menangani aksi user di halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan, seperti klik tombol, submit form, atau perubahan input.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    // try ini membaca, menyimpan, mengedit, menghapus, atau export data customer dari Supabase.
     try {
+      // Kalau mode edit aktif dan ada id customer, form memperbarui customer lama; selain itu form membuat customer baru.
       if (isEdit && currentClientId) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         const { error } = await updateClient(currentClientId, formData);
+        // Kalau Supabase mengembalikan error atau data kosong, halaman customer menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
         if (error) throw error;
         toast.success("Customer berhasil diperbarui");
       } else {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         const { error } = await insertClient(formData);
+        // Kalau Supabase mengembalikan error atau data kosong, halaman customer menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
         if (error) throw error;
         toast.success("Customer baru berhasil ditambahkan");
       }
@@ -187,7 +240,9 @@ export default function CustomerPage() {
     }
   };
 
+  // getFilteredClients mengambil atau menghitung data yang dibutuhkan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const getFilteredClients = () => {
+    // getFilteredClients mengembalikan hasil untuk halaman customer, sesuai data yang dihitung tepat sebelum baris return ini.
     return clients.filter(row => {
       const matchesSearch = row.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             (row.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -195,6 +250,7 @@ export default function CustomerPage() {
       const matchesCity = filterCity === "all" ? true : row.city === filterCity;
       const matchesStatus = filterStatus === "all" ? true : (filterStatus === "active" ? row.is_active : !row.is_active);
       
+      // matchesStatus mengembalikan hasil untuk halaman customer, sesuai data yang dihitung tepat sebelum baris return ini.
       return matchesSearch && matchesCity && matchesStatus;
     });
   };
@@ -207,14 +263,17 @@ export default function CustomerPage() {
   const filteredClients = getFilteredClients();
   const totalItems = filteredClients.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  // Bagian startIndex menyimpan logika yang dipakai di bawahnya.
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedClients = filteredClients.slice(startIndex, endIndex);
 
+  // getPageNumbers mengambil atau menghitung data yang dibutuhkan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
     
+    // Kondisi if (totalPages <= maxVisible) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman customer.
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -225,12 +284,14 @@ export default function CustomerPage() {
       let start = Math.max(2, currentPage - 1);
       let end = Math.min(totalPages - 1, currentPage + 1);
       
+      // Kondisi if (currentPage <= 3) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman customer.
       if (currentPage <= 3) {
         end = 4;
       } else if (currentPage >= totalPages - 2) {
         start = totalPages - 3;
       }
       
+      // Kondisi if (start > 2) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman customer.
       if (start > 2) {
         pages.push("ellipsis-start");
       }
@@ -239,6 +300,7 @@ export default function CustomerPage() {
         pages.push(i);
       }
       
+      // Kondisi if (end < totalPages - 1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman customer.
       if (end < totalPages - 1) {
         pages.push("ellipsis-end");
       }
@@ -246,6 +308,7 @@ export default function CustomerPage() {
       pages.push(totalPages);
     }
     
+    // maxVisible mengembalikan hasil untuk halaman customer, sesuai data yang dihitung tepat sebelum baris return ini.
     return pages;
   };
 
@@ -260,7 +323,9 @@ export default function CustomerPage() {
     { header: 'Piutang Berjalan (Rp)', key: 'stats.unpaidAmount', isCurrency: true, width: 22 }
   ];
 
+  // handleExportExcel menangani aksi user di halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan, seperti klik tombol, submit form, atau perubahan input.
   const handleExportExcel = async () => {
+    // try ini membaca, menyimpan, mengedit, menghapus, atau export data customer dari Supabase.
     try {
       exportToExcel(getFilteredClients(), exportColumns, `Customer_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor Excel Selesai", {
@@ -269,7 +334,9 @@ export default function CustomerPage() {
       });
       
       const user = useAuthStore.getState().user;
+      // Kalau data user tersedia, lanjutkan proses yang membutuhkan akun login.
       if (user) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Daftar Customer (Excel) berhasil diunduh' });
         window.dispatchEvent(new CustomEvent('refreshNotifications'));
       }
@@ -281,8 +348,10 @@ export default function CustomerPage() {
     }
   };
 
+  // handleExportPDF menangani aksi user di halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan, seperti klik tombol, submit form, atau perubahan input.
   const handleExportPDF = async () => {
     toast.info("Sedang menyiapkan PDF...");
+    // try ini membaca, menyimpan, mengedit, menghapus, atau export data customer dari Supabase.
     try {
       exportToPDF(getFilteredClients(), exportColumns, 'Daftar Customer', `Daftar_Customer_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor PDF Selesai", {
@@ -291,7 +360,9 @@ export default function CustomerPage() {
       });
 
       const user = useAuthStore.getState().user;
+      // Kalau data user tersedia, lanjutkan proses yang membutuhkan akun login.
       if (user) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Daftar Customer (PDF) berhasil diunduh' });
         window.dispatchEvent(new CustomEvent('refreshNotifications'));
       }
@@ -304,6 +375,7 @@ export default function CustomerPage() {
     }
   };
 
+  // handleExportPDF menampilkan UI untuk halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   return (
     <>
       <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
@@ -373,6 +445,7 @@ export default function CustomerPage() {
                             <CustomSelect 
                               options={[
                                 { value: "all", label: "Semua Kota" },
+                                // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman customer.
                                 ...uniqueCities.map(city => ({ value: city, label: city }))
                               ]}
                               value={filterCity}
@@ -451,6 +524,7 @@ export default function CustomerPage() {
                   </TableCell>
                 </TableRow>
               ) : (
+                // filter ini menyisakan data halaman customer yang cocok dengan pencarian, status, role, atau tanggal aktif.
                 paginatedClients.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>
@@ -543,14 +617,18 @@ export default function CustomerPage() {
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
+            {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman customer. */}
             {getPageNumbers().map((p, idx) => {
+              // Kondisi if (p === "ellipsis-start" || p === "ellipsis-end") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman customer.
               if (p === "ellipsis-start" || p === "ellipsis-end") {
+                // handleExportPDF menampilkan UI untuk halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
                 return (
                   <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
                     ...
                   </span>
                 );
               }
+              // handleExportPDF menampilkan UI untuk halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
               return (
                 <Button
                   key={`page-${p}`}
@@ -753,6 +831,7 @@ export default function CustomerPage() {
                       <span className="text-gray-500 block mb-1">Alamat</span>
                       <p className="text-[#151D48] leading-tight">
                         {selectedClient.address}<br/>
+                        {/* filter(Boolean) membuang nilai kosong, misalnya nomor telepon/email yang tidak ada, sebelum teks digabung. */}
                         {[selectedClient.city, selectedClient.province, selectedClient.postal_code].filter(Boolean).join(', ')}
                       </p>
                     </div>
@@ -787,6 +866,7 @@ export default function CustomerPage() {
                             <TableCell colSpan={4} className="text-center py-6 text-gray-500">Belum ada invoice untuk customer ini.</TableCell>
                           </TableRow>
                         ) : (
+                          // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman customer.
                           clientInvoices.map((inv) => (
                             <TableRow key={inv.id}>
                               <TableCell className="font-medium text-[#5C67F2]">{inv.invoice_number}</TableCell>

@@ -1,15 +1,26 @@
 "use client";
 
+// Import React hook yang dipakai halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect } from "react";
+// Import Link supaya menu/tombol di halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import ikon yang dipakai halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { Filter1Icon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, HelpIcon, ArrowDownIcon, CloseIcon } from "@astraicons/react/bold";
+// Import ikon yang dipakai halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { SearchIcon } from "@astraicons/react/linear";
+// Import komponen UI reusable supaya halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+// Import komponen UI reusable supaya halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Modal } from "@/components/ui/Modal";
+// Import komponen UI reusable supaya halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import komponen UI reusable supaya halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+// Import komponen UI reusable supaya halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman daftar pengeluaran.
 import { 
   Table, 
   TableBody, 
@@ -18,18 +29,29 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/Table";
+// Import helper database yang dipakai halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya untuk mengambil atau menyimpan data Supabase.
 import { getExpense, deleteExpense, updateExpense, getCategories, Expense, Category } from "@/lib/db";
+// Import helper database yang dipakai halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya untuk mengambil atau menyimpan data Supabase.
 import { createAuditLog } from "@/lib/db/users";
+// Import authStore supaya halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import Sonner untuk menampilkan toast sukses/error di halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
 import { toast } from "sonner";
+// Import utility project supaya halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
+// Import uploadFile supaya halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya bisa mengirim lampiran ke Supabase Storage.
 import { uploadFile } from "@/lib/storage";
+// Import helper export supaya daftar pengeluaran bisa diunduh sebagai PDF/Excel sesuai filter tanggal, kategori, dan pencarian aktif.
 import { exportToExcel, exportToPDF } from "@/lib/export";
+// Import ikon yang dipakai halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+// PengeluaranPage menampilkan data expense, menghitung ringkasan, menjalankan filter, dan membuka modal edit/hapus.
 export default function PengeluaranPage() {
+  // searchTerm menyimpan nilai search term yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [searchTerm, setSearchTerm] = useState("");
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [loading, setLoading] = useState(true);
   const user = useAuthStore(state => state.user);
   const role = useAuthStore(state => state.role);
@@ -38,10 +60,13 @@ export default function PengeluaranPage() {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
+  // itemsPerPage menyimpan nilai items per page yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // loadData mengambil data yang dibutuhkan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya dari Supabase lalu mengisi state halaman.
   const loadData = async () => {
     setLoading(true);
+    // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
     const [data, catsData] = await Promise.all([
       getExpense(),
       getCategories('expense')
@@ -51,22 +76,29 @@ export default function PengeluaranPage() {
     setLoading(false);
   };
 
+  // Effect ini mengambil data yang diperlukan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya saat halaman dibuka atau filter berubah.
   useEffect(() => {
     loadData();
   }, []);
 
+  // isDeleteModalOpen menyimpan nilai is delete modal open yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
+  // handleDeleteClick adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleDeleteClick = (id: string) => {
     setItemToDelete(id);
     setIsDeleteModalOpen(true);
   };
 
+  // confirmDelete menjalankan hapus data setelah user menyetujui modal konfirmasi.
   const confirmDelete = async () => {
+    // Kondisi if (!itemToDelete) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pengeluaran.
     if (!itemToDelete) return;
     
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await deleteExpense(itemToDelete);
+    // Kalau Supabase mengembalikan error atau data kosong, halaman daftar pengeluaran menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       alert("Gagal menghapus data: " + error.message);
     } else {
@@ -77,10 +109,13 @@ export default function PengeluaranPage() {
     setItemToDelete(null);
   };
 
+  // isDetailModalOpen menyimpan nilai is detail modal open yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  // isEditModalOpen menyimpan nilai is edit modal open yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
 
+  // editFormData menyimpan nilai edit form data yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [editFormData, setEditFormData] = useState({
     date: "",
     expense_type: "",
@@ -92,11 +127,16 @@ export default function PengeluaranPage() {
   });
   const [editAttachment, setEditAttachment] = useState<File | null>(null);
 
+  // isFilterDropdownOpen menyimpan nilai is filter dropdown open yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  // filterFrom menyimpan nilai filter from yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [filterFrom, setFilterFrom] = useState("");
+  // filterTo menyimpan nilai filter to yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [filterTo, setFilterTo] = useState("");
+  // filterCategoryId menyimpan nilai filter category id yang berubah saat user berinteraksi dengan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const [filterCategoryId, setFilterCategoryId] = useState("all");
 
+  // resetFilters mengembalikan filter invoice ke kondisi awal: semua status, tanpa pencarian, dan halaman pertama.
   const resetFilters = () => {
     setFilterFrom("");
     setFilterTo("");
@@ -104,11 +144,13 @@ export default function PengeluaranPage() {
     setIsFilterDropdownOpen(false);
   };
 
+  // handleView adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleView = (expense: Expense) => {
     setSelectedExpense(expense);
     setIsDetailModalOpen(true);
   };
 
+  // handleEdit adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleEdit = (expense: Expense) => {
     setSelectedExpense(expense);
     setEditFormData({
@@ -124,20 +166,26 @@ export default function PengeluaranPage() {
     setIsEditModalOpen(true);
   };
 
+  // submitEdit menyimpan perubahan dari modal edit lalu memperbarui daftar data di halaman.
   const submitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Kondisi if (!selectedExpense) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pengeluaran.
     if (!selectedExpense) return;
     
     setLoading(true);
     let newAttachmentUrl = editFormData.attachment_url;
       
+    // Kondisi if (editAttachment) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pengeluaran.
     if (editAttachment) {
+      // await menunggu upload lampiran selesai agar invoice menyimpan URL file yang benar.
       const { url, error } = await uploadFile(editAttachment, 'uploads');
+      // Kalau Supabase mengembalikan error atau data kosong, halaman daftar pengeluaran menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
       if (!error && url) {
         newAttachmentUrl = url;
       }
     }
 
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await updateExpense(selectedExpense.id, {
       date: editFormData.date,
       expense_type: editFormData.expense_type,
@@ -149,6 +197,7 @@ export default function PengeluaranPage() {
     });
     setLoading(false);
 
+    // Kalau Supabase mengembalikan error atau data kosong, halaman daftar pengeluaran menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       toast.error("Gagal memperbarui data: " + error.message);
     } else {
@@ -159,14 +208,18 @@ export default function PengeluaranPage() {
     }
   };
 
+  // getFilteredExpenses mengambil atau menghitung data yang dibutuhkan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const getFilteredExpenses = () => {
+    // getFilteredExpenses mengembalikan hasil untuk halaman daftar pengeluaran, sesuai data yang dihitung tepat sebelum baris return ini.
     return expenses.filter(row => {
+      // Bagian matchesSearch menyimpan logika yang dipakai di bawahnya.
       const matchesSearch = (row.expense_type || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
                             (row.reference_number || "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchesDateFrom = filterFrom ? row.date >= filterFrom : true;
       const matchesDateTo = filterTo ? row.date <= filterTo : true;
       const matchesCategory = filterCategoryId === "all" ? true : row.category_id === filterCategoryId;
       
+      // matchesCategory mengembalikan hasil untuk halaman daftar pengeluaran, sesuai data yang dihitung tepat sebelum baris return ini.
       return matchesSearch && matchesDateFrom && matchesDateTo && matchesCategory;
     });
   };
@@ -179,14 +232,17 @@ export default function PengeluaranPage() {
   const filteredExpenses = getFilteredExpenses();
   const totalItems = filteredExpenses.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  // Bagian startIndex menyimpan logika yang dipakai di bawahnya.
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedExpenses = filteredExpenses.slice(startIndex, endIndex);
 
+  // getPageNumbers mengambil atau menghitung data yang dibutuhkan halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
     
+    // Kondisi if (totalPages <= maxVisible) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pengeluaran.
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -197,12 +253,14 @@ export default function PengeluaranPage() {
       let start = Math.max(2, currentPage - 1);
       let end = Math.min(totalPages - 1, currentPage + 1);
       
+      // Kondisi if (currentPage <= 3) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pengeluaran.
       if (currentPage <= 3) {
         end = 4;
       } else if (currentPage >= totalPages - 2) {
         start = totalPages - 3;
       }
       
+      // Kondisi if (start > 2) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pengeluaran.
       if (start > 2) {
         pages.push("ellipsis-start");
       }
@@ -211,6 +269,7 @@ export default function PengeluaranPage() {
         pages.push(i);
       }
       
+      // Kondisi if (end < totalPages - 1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pengeluaran.
       if (end < totalPages - 1) {
         pages.push("ellipsis-end");
       }
@@ -218,6 +277,7 @@ export default function PengeluaranPage() {
       pages.push(totalPages);
     }
     
+    // maxVisible mengembalikan hasil untuk halaman daftar pengeluaran, sesuai data yang dihitung tepat sebelum baris return ini.
     return pages;
   };
 
@@ -230,7 +290,9 @@ export default function PengeluaranPage() {
     { header: 'Status', key: 'status', width: 12 }
   ];
 
+  // handleExportExcel menangani aksi user di halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya, seperti klik tombol, submit form, atau perubahan input.
   const handleExportExcel = async () => {
+    // try ini membaca, menyimpan, mengedit, menghapus, atau export data pengeluaran dari Supabase.
     try {
       exportToExcel(getFilteredExpenses(), exportColumns, `Pengeluaran_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor Excel Selesai", {
@@ -238,7 +300,9 @@ export default function PengeluaranPage() {
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
       
+      // Kalau data user tersedia, lanjutkan proses yang membutuhkan akun login.
       if (user) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Laporan Pengeluaran (Excel) berhasil diunduh' });
         window.dispatchEvent(new CustomEvent('refreshNotifications'));
       }
@@ -250,8 +314,10 @@ export default function PengeluaranPage() {
     }
   };
 
+  // handleExportPDF menangani aksi user di halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya, seperti klik tombol, submit form, atau perubahan input.
   const handleExportPDF = async () => {
     toast.info("Sedang menyiapkan PDF...");
+    // try ini membaca, menyimpan, mengedit, menghapus, atau export data pengeluaran dari Supabase.
     try {
       exportToPDF(getFilteredExpenses(), exportColumns, 'Laporan Pengeluaran', `Laporan_Pengeluaran_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor PDF Selesai", {
@@ -259,7 +325,9 @@ export default function PengeluaranPage() {
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
 
+      // Kalau data user tersedia, lanjutkan proses yang membutuhkan akun login.
       if (user) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Laporan Pengeluaran (PDF) berhasil diunduh' });
         window.dispatchEvent(new CustomEvent('refreshNotifications'));
       }
@@ -272,6 +340,7 @@ export default function PengeluaranPage() {
     }
   };
 
+  // handleExportPDF menampilkan UI untuk halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
   return (
     <>
       <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
@@ -352,6 +421,7 @@ export default function PengeluaranPage() {
                             <CustomSelect 
                               options={[
                                 { value: "all", label: "Semua Kategori" },
+                                // map ini membuat pilihan kategori income/expense dari daftar kategori aktif.
                                 ...categories.map(c => ({ value: c.id, label: c.name }))
                               ]}
                               value={filterCategoryId}
@@ -420,6 +490,7 @@ export default function PengeluaranPage() {
                   </TableCell>
                 </TableRow>
               ) : (
+                // filter ini menyisakan data halaman daftar pengeluaran yang cocok dengan pencarian, status, role, atau tanggal aktif.
                 paginatedExpenses.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-[#151D48]">{new Date(row.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
@@ -512,14 +583,18 @@ export default function PengeluaranPage() {
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
+            {/* filter ini menyisakan data halaman daftar pengeluaran yang cocok dengan pencarian, status, role, atau tanggal aktif. */}
             {getPageNumbers().map((p, idx) => {
+              // Kondisi if (p === "ellipsis-start" || p === "ellipsis-end") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pengeluaran.
               if (p === "ellipsis-start" || p === "ellipsis-end") {
+                // handleExportPDF menampilkan UI untuk halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
                 return (
                   <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
                     ...
                   </span>
                 );
               }
+              // handleExportPDF menampilkan UI untuk halaman daftar pengeluaran untuk filter, edit, hapus, dan export biaya.
               return (
                 <Button
                   key={`page-${p}`}
@@ -680,6 +755,7 @@ export default function PengeluaranPage() {
               <label className="block text-sm font-medium text-[#151D48] mb-1.5">Kategori</label>
               <CustomSelect 
                 placeholder="Pilih Kategori"
+                // map ini membuat pilihan kategori income/expense dari daftar kategori aktif.
                 options={categories.map(c => ({ value: c.id, label: c.name }))}
                 value={editFormData.category_id}
                 onChange={val => setEditFormData({...editFormData, category_id: val})}
@@ -705,6 +781,7 @@ export default function PengeluaranPage() {
                         type="file" 
                         className="sr-only" 
                         onChange={e => {
+                          // Kalau user memilih file dari input lampiran, simpan file itu ke state attachment.
                           if (e.target.files && e.target.files[0]) {
                             setEditAttachment(e.target.files[0]);
                           }

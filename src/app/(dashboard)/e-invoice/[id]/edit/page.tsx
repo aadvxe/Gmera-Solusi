@@ -1,20 +1,36 @@
 "use client";
 
+// Import React hook yang dipakai form edit invoice yang memuat data lama lalu menyimpan perubahan, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect } from "react";
+// Import Link supaya menu/tombol di form edit invoice yang memuat data lama lalu menyimpan perubahan bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import alat navigasi Next.js supaya form edit invoice yang memuat data lama lalu menyimpan perubahan bisa pindah halaman atau membaca route aktif.
 import { useRouter, useParams } from "next/navigation";
+// Import ikon yang dipakai form edit invoice yang memuat data lama lalu menyimpan perubahan untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ArrowLeftIcon, SaveIcon, PlusIcon, TrashIcon, Document1Icon, TruckIcon, CalculatorIcon, CheckCircleIcon } from "@astraicons/react/bold";
+// Import komponen UI reusable supaya form edit invoice yang memuat data lama lalu menyimpan perubahan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya form edit invoice yang memuat data lama lalu menyimpan perubahan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import helper database yang dipakai form edit invoice yang memuat data lama lalu menyimpan perubahan untuk mengambil atau menyimpan data Supabase.
 import { getClients, getInvoiceById, updateInvoiceWithItems, Client } from "@/lib/db";
+// Import komponen UI reusable supaya form edit invoice yang memuat data lama lalu menyimpan perubahan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+// Import Sonner untuk menampilkan toast sukses/error di form edit invoice yang memuat data lama lalu menyimpan perubahan.
 import { toast } from "sonner";
+// Import utility project supaya form edit invoice yang memuat data lama lalu menyimpan perubahan bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
+// Import komponen UI reusable supaya form edit invoice yang memuat data lama lalu menyimpan perubahan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+// Import komponen UI reusable supaya form edit invoice yang memuat data lama lalu menyimpan perubahan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import uploadFile supaya form edit invoice yang memuat data lama lalu menyimpan perubahan bisa mengirim lampiran ke Supabase Storage.
 import { uploadFile } from "@/lib/storage";
+// Import helper database yang dipakai form edit invoice yang memuat data lama lalu menyimpan perubahan untuk mengambil atau menyimpan data Supabase.
 import { createAuditLog } from "@/lib/db/users";
+// Import authStore supaya form edit invoice yang memuat data lama lalu menyimpan perubahan bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Interface ini menjelaskan field yang dipakai form edit invoice yang memuat data lama lalu menyimpan perubahan supaya data form/database tidak salah bentuk.
 interface InvoiceItem {
   id: number;
   name: string;
@@ -23,52 +39,75 @@ interface InvoiceItem {
   price: number;
 }
 
+// splitAddress memecah alamat panjang menjadi beberapa bagian supaya muat rapi di tampilan invoice.
 function splitAddress(addressStr: string) {
+  // Kondisi if (!addressStr) return { line1: "", line2: "" }; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
   if (!addressStr) return { line1: "", line2: "" };
-  const normalized = addressStr.replace(/\r\n/g, "\n");
+  const normalized = addressStr.replace(/\n/g, "\n");
   const lastNewlineIndex = normalized.lastIndexOf("\n");
+  // Kondisi if (lastNewlineIndex !== -1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
   if (lastNewlineIndex !== -1) {
     const line1 = normalized.substring(0, lastNewlineIndex).trim();
     const line2 = normalized.substring(lastNewlineIndex + 1).trim();
+    // splitAddress mengirim dua baris alamat agar preview invoice bisa menata alamat customer dengan rapi.
     return { line1, line2 };
   }
   const lastCommaIndex = normalized.lastIndexOf(",");
+  // Kondisi if (lastCommaIndex === -1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
   if (lastCommaIndex === -1) {
+    // splitAddress mengirim dua baris alamat agar preview invoice bisa menata alamat customer dengan rapi.
     return { line1: normalized, line2: "" };
   }
   const line1 = normalized.substring(0, lastCommaIndex + 1).trim();
   const line2 = normalized.substring(lastCommaIndex + 1).trim();
+  // splitAddress mengirim dua baris alamat agar preview invoice bisa menata alamat customer dengan rapi.
   return { line1, line2 };
 }
 
+// EditInvoicePage memuat invoice lama, mengisi form edit, lalu menyimpan perubahan invoice dan itemnya.
 export default function EditInvoicePage() {
   const router = useRouter();
   const params = useParams();
   const user = useAuthStore(state => state.user);
   const invoiceId = params.id as string;
   
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [loading, setLoading] = useState(true);
+  // saving menyimpan nilai saving yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [saving, setSaving] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
 
   // Form State
   const [invoiceNumber, setInvoiceNumber] = useState("");
+  // invoiceDate menyimpan nilai invoice date yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [invoiceDate, setInvoiceDate] = useState("");
+  // dueDate menyimpan nilai due date yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [dueDate, setDueDate] = useState("");
+  // clientId menyimpan nilai client id yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [clientId, setClientId] = useState("");
+  // shippingMethod menyimpan nilai shipping method yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [shippingMethod, setShippingMethod] = useState("");
+  // trackingNumber menyimpan nilai tracking number yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [trackingNumber, setTrackingNumber] = useState("");
+  // estimatedArrival menyimpan nilai estimated arrival yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [estimatedArrival, setEstimatedArrival] = useState("");
+  // notes menyimpan nilai notes yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [notes, setNotes] = useState("");
 
   const [items, setItems] = useState<InvoiceItem[]>([]);
   
+  // shippingCost menyimpan nilai shipping cost yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [shippingCost, setShippingCost] = useState(0);
+  // shippingAddress menyimpan nilai shipping address yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [shippingAddress, setShippingAddress] = useState("");
+  // discountAmount menyimpan nilai discount amount yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [discountAmount, setDiscountAmount] = useState(0);
+  // taxRate menyimpan nilai tax rate yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [taxRate, setTaxRate] = useState(11); // 11% PPN
+  // applyTax menyimpan nilai apply tax yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [applyTax, setApplyTax] = useState(true);
   
+  // status menyimpan nilai status yang berubah saat user berinteraksi dengan form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const [status, setStatus] = useState("unpaid");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [existingAttachmentUrl, setExistingAttachmentUrl] = useState<string | null>(null);
@@ -78,10 +117,14 @@ export default function EditInvoicePage() {
     description: ""
   });
 
+  // Effect ini mengambil data yang diperlukan form edit invoice yang memuat data lama lalu menyimpan perubahan saat halaman dibuka atau filter berubah.
   useEffect(() => {
+    // fetchData mengambil data yang dibutuhkan form edit invoice yang memuat data lama lalu menyimpan perubahan dari Supabase lalu mengisi state halaman.
     const fetchData = async () => {
       setLoading(true);
+      // try ini membaca atau menyimpan data invoice dari Supabase sesuai aksi user di halaman invoice.
       try {
+        // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
         const [clientsData, invoiceData] = await Promise.all([
           getClients(),
           getInvoiceById(invoiceId)
@@ -89,6 +132,7 @@ export default function EditInvoicePage() {
         
         setClients(clientsData);
         
+        // Kondisi if (invoiceData) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
         if (invoiceData) {
           setInvoiceNumber(invoiceData.invoice_number);
           setInvoiceDate(invoiceData.invoice_date);
@@ -104,6 +148,7 @@ export default function EditInvoicePage() {
           setShippingAddress(invoiceData.shipping_address || "");
           setDiscountAmount(invoiceData.discount_amount || 0);
           
+          // Kondisi if (invoiceData.tax_rate && invoiceData.tax_rate > 0) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
           if (invoiceData.tax_rate && invoiceData.tax_rate > 0) {
             setApplyTax(true);
             setTaxRate(invoiceData.tax_rate);
@@ -113,7 +158,9 @@ export default function EditInvoicePage() {
           
           setStatus(invoiceData.status);
 
+          // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
           if (invoiceData.invoice_items && invoiceData.invoice_items.length > 0) {
+            // map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel.
             setItems(invoiceData.invoice_items.map((item: any) => ({
               id: item.id,
               name: item.description,
@@ -135,6 +182,7 @@ export default function EditInvoicePage() {
       }
     };
     
+    // Kondisi if (invoiceId) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
     if (invoiceId) {
       fetchData();
     }
@@ -145,8 +193,11 @@ export default function EditInvoicePage() {
 
   const { line1, line2 } = splitAddress(selectedClient?.address || "");
   const addressLine2Parts = [];
+  // Kondisi if (selectedClient?.city) addressLine2Parts.push(selectedClient.city); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
   if (selectedClient?.city) addressLine2Parts.push(selectedClient.city);
+  // Kondisi if (selectedClient?.province) addressLine2Parts.push(selectedClient.province); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
   if (selectedClient?.province) addressLine2Parts.push(selectedClient.province);
+  // Kondisi if (selectedClient?.postal_code) addressLine2Parts.push(selectedClient.postal_code); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
   if (selectedClient?.postal_code) addressLine2Parts.push(selectedClient.postal_code);
   const cityProvincePostal = addressLine2Parts.join(", ");
 
@@ -164,65 +215,87 @@ export default function EditInvoicePage() {
 
 
 
+  // addItem menambah satu baris barang/jasa kosong supaya user bisa memasukkan item invoice berikutnya.
   const addItem = () => {
     setItems([...items, { id: Date.now(), name: "", qty: "", unit: "Pcs", price: 0 }]);
   };
 
+  // removeItem menghapus atau menonaktifkan data yang dipilih user.
   const removeItem = (id: number) => {
+    // Kalau invoice masih punya lebih dari satu item, user boleh menghapus baris item yang dipilih.
     if (items.length > 1) {
+      // filter ini membuang item invoice yang id-nya dipilih user untuk dihapus dari form.
       setItems(items.filter(item => item.id !== id));
     }
   };
 
+  // updateItem menyimpan perubahan data yang diedit dari form edit invoice yang memuat data lama lalu menyimpan perubahan.
   const updateItem = (id: number, field: keyof InvoiceItem, value: any) => {
+    // map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel.
     setItems(items.map(item => {
+      // Kalau item invoice ini adalah baris yang sedang diedit, hanya baris itu yang diganti nilainya.
       if (item.id === id) {
+        // Baris item yang sedang diedit dikembalikan dengan field baru, sementara isi lain tetap sama.
         return { ...item, [field]: value };
       }
+      // Item lain dikembalikan apa adanya supaya perubahan hanya terjadi pada baris yang dipilih.
       return item;
     }));
   };
 
+  // handleSubmit menangani aksi user di form edit invoice yang memuat data lama lalu menyimpan perubahan, seperti klik tombol, submit form, atau perubahan input.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Kalau customer belum dipilih, proses simpan invoice dihentikan dan modal peringatan ditampilkan.
     if (!clientId) {
       setWarningModal({
         isOpen: true,
         title: "Pilih Customer",
         description: "Silakan pilih customer terlebih dahulu sebelum menyimpan invoice."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
+    // Kalau jatuh tempo belum diisi, invoice tidak disimpan karena tanggal bayar wajib ada.
     if (!dueDate) {
       setWarningModal({
         isOpen: true,
         title: "Tentukan Jatuh Tempo",
         description: "Silakan tentukan tanggal jatuh tempo terlebih dahulu sebelum menyimpan invoice."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
+    // Kalau jatuh tempo lebih awal dari tanggal invoice, form menolak data supaya invoice tidak keliru.
     if (dueDate && invoiceDate && dueDate < invoiceDate) {
       setWarningModal({
         isOpen: true,
         title: "Tanggal Jatuh Tempo Tidak Valid",
         description: "Tanggal jatuh tempo tidak boleh lebih awal dari tanggal terbit invoice."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
+    // Kalau ada item tanpa nama, qty, atau harga valid, invoice tidak disimpan.
     if (items.some(i => !i.name || !i.qty || Number(i.qty) <= 0 || i.price <= 0)) {
       setWarningModal({
         isOpen: true,
         title: "Barang / Jasa Tidak Valid",
         description: "Pastikan semua barang/jasa memiliki deskripsi, jumlah (qty), dan harga yang valid sebelum menyimpan invoice."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
 
     setSaving(true);
+    // try ini menyimpan invoice, item invoice, lampiran, audit log, lalu mengarahkan user kembali ke daftar invoice.
     try {
       let attachmentUrl = existingAttachmentUrl;
+      // Kalau user memilih lampiran, file diupload dulu sebelum invoice disimpan.
       if (attachment) {
+        // await menunggu upload lampiran selesai agar invoice menyimpan URL file yang benar.
         const { url, error } = await uploadFile(attachment, 'uploads');
+        // Kalau Supabase mengembalikan error atau data kosong, form edit invoice menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
         if (!error && url) {
           attachmentUrl = url;
         } else {
@@ -254,6 +327,7 @@ export default function EditInvoicePage() {
         attachment_url: attachmentUrl,
       };
 
+      // map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel.
       const itemsData = items.map(item => ({
         description: item.name,
         quantity: Number(item.qty) || 0,
@@ -262,8 +336,10 @@ export default function EditInvoicePage() {
         total_price: (Number(item.qty) || 0) * item.price
       }));
 
+      // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
       const { error } = await updateInvoiceWithItems(invoiceId, invoiceData, itemsData);
       
+      // Kalau Supabase mengembalikan error atau data kosong, form edit invoice menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
       if (error) {
         console.error(error);
         toast.error(`Gagal memperbarui invoice: ${error.message}`);
@@ -275,6 +351,7 @@ export default function EditInvoicePage() {
 
         // Add to Audit Log & Refresh Notifications
         if (user) {
+          // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
           await createAuditLog(user.id, 'update', 'E-Invoice', invoiceId as string, null, { 
             description: `Invoice ${invoiceNumber} berhasil diperbarui` 
           });
@@ -295,10 +372,13 @@ export default function EditInvoicePage() {
     }
   };
 
+  // Kondisi if (loading) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
   if (loading) {
+    // handleSubmit menampilkan potongan UI yang dipakai di form edit invoice yang memuat data lama lalu menyimpan perubahan.
     return <div className="p-10 text-center text-gray-500">Memuat data invoice...</div>;
   }
 
+  // handleSubmit menampilkan UI untuk form edit invoice yang memuat data lama lalu menyimpan perubahan.
   return (
     <form className="max-w-5xl mx-auto space-y-6 pb-20" onSubmit={handleSubmit}>
       {/* Header */}
@@ -336,6 +416,7 @@ export default function EditInvoicePage() {
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Customer <span className="text-danger">*</span></label>
                 <CustomSelect 
                   placeholder="Pilih Customer"
+                  // map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase.
                   options={clients.map(c => ({ value: c.id, label: c.name }))}
                   value={clientId}
                   onChange={setClientId}
@@ -430,6 +511,7 @@ export default function EditInvoicePage() {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel. */}
                   {items.map((item, index) => (
                     <tr key={item.id} className="border-b border-border border-dashed last:border-0">
                       <td className="px-2 py-3">
@@ -623,6 +705,7 @@ export default function EditInvoicePage() {
                           type="file" 
                           className="sr-only" 
                           onChange={e => {
+                            // Kalau user memilih file dari input lampiran, simpan file itu ke state attachment.
                             if (e.target.files && e.target.files[0]) {
                               setAttachment(e.target.files[0]);
                             }

@@ -1,34 +1,55 @@
 "use client";
 
+// Import React hook yang dipakai halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect } from "react";
+// Import ikon yang dipakai halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { DocumentDownloadIcon, Document1Icon, ArrowUpIcon, ArrowDownIcon, WalletIcon, CalenderIcon, HelpIcon, MarginIcon, NegativeMarginIcon } from "@astraicons/react/bold";
+// Import komponen UI reusable supaya halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import MetricCard untuk menampilkan angka laporan seperti pendapatan, pengeluaran, dan laba dalam kartu ringkasan.
 import { MetricCard } from "@/components/dashboard/MetricCard";
+// Import FinancialChart untuk menggambar grafik pendapatan dan pengeluaran pada laporan.
 import { FinancialChart } from "@/components/dashboard/FinancialChart";
+// Import komponen UI reusable supaya halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+// Import helper database yang dipakai halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export untuk mengambil atau menyimpan data Supabase.
 import { getFinancialReport, getReportChartData, getAccountingReportsData } from "@/lib/db";
+// Import helper database yang dipakai halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export untuk mengambil atau menyimpan data Supabase.
 import { getCompanyProfile } from "@/lib/db/users";
+// Import utility project supaya halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatCurrency } from "@/lib/utils";
+// Import helper export supaya halaman laporan bisa membuat PDF/Excel dari ringkasan pendapatan, pengeluaran, laba, dan transaksi pada rentang tanggal aktif.
 import { exportToExcel, exportToPDF } from "@/lib/export";
+// Import helper database yang dipakai halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export untuk mengambil atau menyimpan data Supabase.
 import { createAuditLog } from "@/lib/db/users";
+// Import authStore supaya halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import Sonner untuk menampilkan toast sukses/error di halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export.
 import { toast } from "sonner";
 
 const SHOW_LABA_RUGI = false; // Toggle to true to show the Laba Rugi button/card in the future
 
+// LaporanPage mengambil transaksi pada rentang tanggal lalu menyiapkan ringkasan dan file export laporan.
 export default function LaporanPage() {
+  // periodFrom menyimpan nilai period from yang berubah saat user berinteraksi dengan halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export.
   const [periodFrom, setPeriodFrom] = useState("2026-01-01");
+  // periodTo menyimpan nilai period to yang berubah saat user berinteraksi dengan halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export.
   const [periodTo, setPeriodTo] = useState("2026-12-31");
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export.
   const [loading, setLoading] = useState(true);
   const user = useAuthStore(state => state.user);
 
+  // summary menyimpan nilai summary yang berubah saat user berinteraksi dengan halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export.
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, netProfit: 0 });
   const [chartData, setChartData] = useState<any[]>([]);
   const [rawTransactions, setRawTransactions] = useState<any[]>([]);
+  // companyName menyimpan nilai company name yang berubah saat user berinteraksi dengan halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export.
   const [companyName, setCompanyName] = useState("PT GMERA SOLUSI");
 
+  // loadData mengambil data yang dibutuhkan halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export dari Supabase lalu mengisi state halaman.
   const loadData = async () => {
     setLoading(true);
+    // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
     const [reportSummary, reportChart, raw, company] = await Promise.all([
       getFinancialReport(periodFrom, periodTo),
       getReportChartData(periodFrom, periodTo),
@@ -39,20 +60,25 @@ export default function LaporanPage() {
     setSummary(reportSummary);
     setChartData(reportChart);
     setRawTransactions(raw);
+    // Kondisi if (company?.company_name) setCompanyName(company.company_name); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman laporan.
     if (company?.company_name) setCompanyName(company.company_name);
     setLoading(false);
   };
 
+  // Effect ini mengambil data yang diperlukan halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export saat halaman dibuka atau filter berubah.
   useEffect(() => {
     loadData();
   }, []);
 
+  // handleApply adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleApply = () => {
     loadData();
   };
 
+  // handleExport menangani aksi user di halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export, seperti klik tombol, submit form, atau perubahan input.
   const handleExport = async (type: 'transaksi' | 'bukubesar' | 'labarugi', format: 'pdf' | 'excel') => {
     toast.info(`Sedang menyiapkan ekspor ${type.toUpperCase()}...`);
+    // try ini mengambil data laporan dari Supabase lalu menyiapkan ringkasan, grafik, atau file export.
     try {
       const pFormat = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' });
       const p = `${pFormat.format(new Date(periodFrom))} - ${pFormat.format(new Date(periodTo))}`;
@@ -61,6 +87,7 @@ export default function LaporanPage() {
       let cols: any[] = [];
       let title = "";
 
+      // Kondisi if (type === 'transaksi') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman laporan.
       if (type === 'transaksi') {
         title = "Laporan Transaksi";
         cols = [
@@ -70,6 +97,7 @@ export default function LaporanPage() {
           { header: 'Kategori', key: 'category', width: 15 },
           { header: 'Nominal', key: 'amount', isCurrency: true, width: 20 },
         ];
+        // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman laporan.
         data = rawTransactions.map(t => ({
           ...t,
           type: t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
@@ -86,10 +114,14 @@ export default function LaporanPage() {
           { header: 'Saldo', key: 'saldo', isCurrency: true, width: 20 },
         ];
         let runningBalance = 0;
+        // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman laporan.
         data = rawTransactions.map(t => {
+          // Kondisi if (t.type === 'income') runningBalance += t.amount; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman laporan.
           if (t.type === 'income') runningBalance += t.amount;
+          // Kondisi else runningBalance -= t.amount; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman laporan.
           else runningBalance -= t.amount;
 
+          // handleExport mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
           return {
             date: t.date,
             description: t.title + (t.description ? ` - ${t.description}` : ''),
@@ -108,21 +140,25 @@ export default function LaporanPage() {
 
         // Group by category for Pendapatan
         const pendapatanGroup: Record<string, number> = {};
+        // filter ini menyisakan data halaman laporan yang cocok dengan pencarian, status, role, atau tanggal aktif.
         rawTransactions.filter(t => t.type === 'income').forEach(t => {
           pendapatanGroup[t.category] = (pendapatanGroup[t.category] || 0) + t.amount;
         });
 
         // Group by category for Pengeluaran
         const pengeluaranGroup: Record<string, number> = {};
+        // filter ini menyisakan data halaman laporan yang cocok dengan pencarian, status, role, atau tanggal aktif.
         rawTransactions.filter(t => t.type === 'expense').forEach(t => {
           pengeluaranGroup[t.category] = (pengeluaranGroup[t.category] || 0) + t.amount;
         });
 
+        // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman laporan.
         const incomeItems = Object.keys(pendapatanGroup).map(k => ({
           keterangan: k,
           total: pendapatanGroup[k]
         }));
 
+        // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman laporan.
         const expenseItems = Object.keys(pengeluaranGroup).map(k => ({
           keterangan: k,
           total: pengeluaranGroup[k]
@@ -139,6 +175,7 @@ export default function LaporanPage() {
         ];
       }
 
+      // Kondisi if (format === 'pdf') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman laporan.
       if (format === 'pdf') {
         exportToPDF(data, cols, title, `${title.replace(/\s/g, '_')}_${periodFrom}_${periodTo}`, companyName, p, type === 'labarugi');
       } else {
@@ -149,7 +186,9 @@ export default function LaporanPage() {
         description: `${title} berhasil diunduh dalam format ${format.toUpperCase()}.`,
       });
 
+      // Kalau data user tersedia, lanjutkan proses yang membutuhkan akun login.
       if (user) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         await createAuditLog(user.id, 'create', 'Export', null, null, { description: `${title} (${periodFrom} - ${periodTo}) (${format.toUpperCase()}) berhasil diunduh` });
         window.dispatchEvent(new CustomEvent('refreshNotifications'));
       }
@@ -161,6 +200,7 @@ export default function LaporanPage() {
     }
   };
 
+  // handleExport menampilkan UI untuk halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export.
   return (
     <div className="space-y-6 pb-12">
       {/* Header & Filter */}

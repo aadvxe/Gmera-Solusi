@@ -1,3 +1,4 @@
+// Import createClient Supabase untuk membuat koneksi browser lama memakai URL dan anon key dari env.
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;

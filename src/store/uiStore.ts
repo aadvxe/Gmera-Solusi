@@ -1,5 +1,7 @@
+// Import create dari Zustand untuk membuat store kecil yang menyimpan state global aplikasi.
 import { create } from 'zustand';
 
+// Interface ini menjelaskan field yang dipakai store Zustand lama untuk status sidebar terbuka/tertutup supaya data form/database tidak salah bentuk.
 interface UIState {
   isSidebarOpen: boolean;
   toggleSidebar: () => void;

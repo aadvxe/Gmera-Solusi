@@ -1,55 +1,78 @@
 "use client";
 
+// Import React hook yang dipakai halaman preview invoice yang sudah tersimpan dan siap dicetak/export, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect } from "react";
+// Import Link supaya menu/tombol di halaman preview invoice yang sudah tersimpan dan siap dicetak/export bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import alat navigasi Next.js supaya halaman preview invoice yang sudah tersimpan dan siap dicetak/export bisa pindah halaman atau membaca route aktif.
 import { useParams } from "next/navigation";
+// Import ikon yang dipakai halaman preview invoice yang sudah tersimpan dan siap dicetak/export untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ArrowLeftIcon, DocumentDownloadIcon, EmailIcon, PrinterIcon, CheckCircleIcon, HelpIcon, ArrowDownIcon } from "@astraicons/react/bold";
+// Import komponen UI reusable supaya halaman preview invoice yang sudah tersimpan dan siap dicetak/export memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import helper database yang dipakai halaman preview invoice yang sudah tersimpan dan siap dicetak/export untuk mengambil atau menyimpan data Supabase.
 import { getInvoiceById, getCompanyProfile, CompanyProfile, Invoice } from "@/lib/db";
+// Import helper database yang dipakai halaman preview invoice yang sudah tersimpan dan siap dicetak/export untuk mengambil atau menyimpan data Supabase.
 import { createAuditLog } from "@/lib/db/users";
+// Import authStore supaya halaman preview invoice yang sudah tersimpan dan siap dicetak/export bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import Sonner untuk menampilkan toast sukses/error di halaman preview invoice yang sudah tersimpan dan siap dicetak/export.
 import { toast } from "sonner";
+// Import utility project supaya halaman preview invoice yang sudah tersimpan dan siap dicetak/export bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatCurrency } from "@/lib/utils";
 
 /** Accounting number: 1.234.567,00 */
 function fmtNum(v: number): string {
+  // fmtAccounting mengubah angka menjadi format Indonesia dengan dua desimal untuk laporan akuntansi.
   return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 }
 
+// splitAddress memecah alamat panjang menjadi beberapa bagian supaya muat rapi di tampilan invoice.
 function splitAddress(addressStr: string) {
+  // Kondisi if (!addressStr) return { line1: "", line2: "" }; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
   if (!addressStr) return { line1: "", line2: "" };
-  const normalized = addressStr.replace(/\r\n/g, "\n");
+  const normalized = addressStr.replace(/\n/g, "\n");
   const lastNewlineIndex = normalized.lastIndexOf("\n");
+  // Kondisi if (lastNewlineIndex !== -1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
   if (lastNewlineIndex !== -1) {
     const line1 = normalized.substring(0, lastNewlineIndex).trim();
     const line2 = normalized.substring(lastNewlineIndex + 1).trim();
+    // splitAddress mengirim dua baris alamat agar preview invoice bisa menata alamat customer dengan rapi.
     return { line1, line2 };
   }
   const lastCommaIndex = normalized.lastIndexOf(",");
+  // Kondisi if (lastCommaIndex === -1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
   if (lastCommaIndex === -1) {
+    // splitAddress mengirim dua baris alamat agar preview invoice bisa menata alamat customer dengan rapi.
     return { line1: normalized, line2: "" };
   }
   const line1 = normalized.substring(0, lastCommaIndex + 1).trim();
   const line2 = normalized.substring(lastCommaIndex + 1).trim();
+  // splitAddress mengirim dua baris alamat agar preview invoice bisa menata alamat customer dengan rapi.
   return { line1, line2 };
 }
 
+// Interface ini menjelaskan field yang dipakai halaman preview invoice yang sudah tersimpan dan siap dicetak/export supaya data form/database tidak salah bentuk.
 interface PageData {
   pageNumber: number;
   items: any[];
   isLastPage: boolean;
 }
 
+// getPages mengambil atau menghitung data yang dibutuhkan halaman preview invoice yang sudah tersimpan dan siap dicetak/export.
 function getPages(itemsList: any[]): PageData[] {
+  // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
   if (!itemsList || itemsList.length === 0) {
+    // getPages mengembalikan hasil untuk halaman detail invoice, sesuai data yang dihitung tepat sebelum baris return ini.
     return [{ pageNumber: 1, items: [], isLastPage: true }];
   }
   const pages: PageData[] = [];
-  let remaining = [...itemsList];
+  const remaining = [...itemsList];
   let pageNum = 1;
   while (remaining.length > 0) {
     const isFirst = pageNum === 1;
     const limitWithSummary = 3;
+    // Kalau pemanggil memberi batas jumlah data, query Supabase dibatasi supaya tidak mengambil terlalu banyak baris.
     if (remaining.length <= limitWithSummary) {
       pages.push({
         pageNumber: pageNum,
@@ -60,6 +83,7 @@ function getPages(itemsList: any[]): PageData[] {
     }
     const limitNoSummary = 5;
     let itemsToTake = limitNoSummary;
+    // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
     if (remaining.length - itemsToTake < 1) {
       itemsToTake = remaining.length - 1;
     }
@@ -70,27 +94,35 @@ function getPages(itemsList: any[]): PageData[] {
     });
     pageNum++;
   }
+  // limitNoSummary mengembalikan hasil untuk halaman detail invoice, sesuai data yang dihitung tepat sebelum baris return ini.
   return pages;
 }
 
+// DetailInvoicePage mengambil invoice berdasarkan id lalu menyusunnya sebagai preview dokumen invoice.
 export default function DetailInvoicePage() {
   const params = useParams();
   const invoiceId = params.id as string;
   
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan halaman preview invoice yang sudah tersimpan dan siap dicetak/export.
   const [loading, setLoading] = useState(true);
   const user = useAuthStore(state => state.user);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [company, setCompany] = useState<CompanyProfile | null>(null);
 
+  // Effect ini mengambil data yang diperlukan halaman preview invoice yang sudah tersimpan dan siap dicetak/export saat halaman dibuka atau filter berubah.
   useEffect(() => {
+    // fetchData mengambil data yang dibutuhkan halaman preview invoice yang sudah tersimpan dan siap dicetak/export dari Supabase lalu mengisi state halaman.
     const fetchData = async () => {
       setLoading(true);
+      // try ini membaca atau menyimpan data invoice dari Supabase sesuai aksi user di halaman invoice.
       try {
+        // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
         const [invData, compData] = await Promise.all([
           getInvoiceById(invoiceId),
           getCompanyProfile()
         ]);
         
+        // Kondisi if (!invData) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
         if (!invData) {
           toast.error("Invoice tidak ditemukan");
         } else {
@@ -105,13 +137,16 @@ export default function DetailInvoicePage() {
       }
     };
     
+    // Kondisi if (invoiceId) fetchData(); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
     if (invoiceId) fetchData();
   }, [invoiceId]);
 
   // Auto-download if ?download=true is in URL
   useEffect(() => {
+    // Kondisi if (!loading && invoice && typeof window !== 'undefined') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
     if (!loading && invoice && typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
+      // Kondisi if (urlParams.get('download') === 'true') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
       if (urlParams.get('download') === 'true') {
         // Remove the query param to prevent re-triggering if user refreshes
         const newUrl = window.location.pathname;
@@ -125,15 +160,20 @@ export default function DetailInvoicePage() {
     }
   }, [loading, invoice]);
 
+  // handlePrint adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handlePrint = () => {
     window.print();
   };
 
+  // Kondisi if (loading) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
   if (loading) {
+    // fetchData menampilkan potongan UI yang dipakai di halaman preview invoice yang sudah tersimpan dan siap dicetak/export.
     return <div className="p-10 text-center text-gray-500">Memuat data invoice...</div>;
   }
 
+  // Kondisi if (!invoice) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
   if (!invoice) {
+    // fetchData menampilkan UI untuk halaman preview invoice yang sudah tersimpan dan siap dicetak/export.
     return (
       <div className="p-10 text-center">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Invoice tidak ditemukan</h2>
@@ -145,8 +185,11 @@ export default function DetailInvoicePage() {
   }
   const { line1, line2 } = splitAddress(invoice.client_address || "");
   const addressLine2Parts = [];
+  // Kondisi if (invoice.clients?.city) addressLine2Parts.push(invoice.clients.city); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
   if (invoice.clients?.city) addressLine2Parts.push(invoice.clients.city);
+  // Kondisi if (invoice.clients?.province) addressLine2Parts.push(invoice.clients.province); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
   if (invoice.clients?.province) addressLine2Parts.push(invoice.clients.province);
+  // Kondisi if (invoice.clients?.postal_code) addressLine2Parts.push(invoice.clients.postal_code); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman detail invoice.
   if (invoice.clients?.postal_code) addressLine2Parts.push(invoice.clients.postal_code);
   const cityProvincePostal = addressLine2Parts.join(", ");
 
@@ -155,6 +198,7 @@ export default function DetailInvoicePage() {
     ? `${line2} ${cityProvincePostal}`.trim() 
     : cityProvincePostal;
 
+  // fetchData menampilkan UI untuk halaman preview invoice yang sudah tersimpan dan siap dicetak/export.
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20 print:pb-0 print:space-y-0 print:max-w-none print:block">
       {/* Header Actions — hidden when printing */}
@@ -193,6 +237,7 @@ export default function DetailInvoicePage() {
            Invoice Document — This is what BOTH print and PDF capture render.
            It must be borderless/clean so the PDF doesn't get extra whitespace.
           ═══════════════════════════════════════════════════════════════════ */}
+      {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman detail invoice. */}
       {getPages(invoice.invoice_items || []).map((page) => (
         <div
           key={page.pageNumber}
@@ -265,6 +310,7 @@ export default function DetailInvoicePage() {
                 {clientAddressLine1 && <p className="text-[10px] text-gray-600 max-w-md">{clientAddressLine1}</p>}
                 {clientAddressLine2 && <p className="text-[10px] text-gray-600 max-w-md">{clientAddressLine2}</p>}
                 {(invoice.client_phone || invoice.client_email) && (
+                  // filter(Boolean) membuang nilai kosong, misalnya nomor telepon/email yang tidak ada, sebelum teks digabung.
                   <p className="text-[9px] text-gray-600">{[invoice.client_phone, invoice.client_email].filter(Boolean).join(' • ')}</p>
                 )}
               </div>
@@ -282,6 +328,7 @@ export default function DetailInvoicePage() {
                   </tr>
                 </thead>
                 <tbody className="text-gray-700">
+                  {/* map ini membuat satu baris tabel invoice untuk setiap item barang/jasa pada halaman preview. */}
                   {page.items.map((item: any, idx: number) => (
                     <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8F9FF]'} style={{ borderBottom: '1px solid #eee' }}>
                       <td className="px-3 py-1">{item.description}</td>

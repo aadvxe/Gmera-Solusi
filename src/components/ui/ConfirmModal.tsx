@@ -1,9 +1,13 @@
 "use client";
 
+// Import React hook yang dipakai modal konfirmasi untuk aksi berisiko seperti logout atau hapus data, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React from "react";
+// Import Modal sebagai wadah overlay yang dipakai ConfirmModal untuk dialog konfirmasi.
 import { Modal } from "./Modal";
+// Import ikon yang dipakai modal konfirmasi untuk aksi berisiko seperti logout atau hapus data untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { CloseCircleIcon, PricingAlertIcon, HelpIcon } from "@astraicons/react/bold";
 
+// Interface ini menjelaskan field yang dipakai modal konfirmasi untuk aksi berisiko seperti logout atau hapus data supaya data form/database tidak salah bentuk.
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,6 +21,7 @@ interface ConfirmModalProps {
   isLoading?: boolean;
 }
 
+// ConfirmModal menampilkan pertanyaan sebelum aksi penting benar-benar dijalankan.
 export function ConfirmModal({
   isOpen,
   onClose,
@@ -29,6 +34,7 @@ export function ConfirmModal({
   isHelp = false,
   isLoading = false,
 }: ConfirmModalProps) {
+  // ConfirmModal menampilkan UI untuk modal konfirmasi untuk aksi berisiko seperti logout atau hapus data.
   return (
     <Modal isOpen={isOpen} onClose={isLoading ? () => {} : onClose}>
       <div className="bg-surface rounded-2xl w-full max-w-md p-6 shadow-xl border border-border">

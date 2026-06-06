@@ -1,10 +1,16 @@
 "use client";
 
+// Import React hook yang dipakai sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React from "react";
+// Import Link supaya menu/tombol di sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import alat navigasi Next.js supaya sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout bisa pindah halaman atau membaca route aktif.
 import { usePathname, useRouter } from "next/navigation";
+// Import context sidebar supaya sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout bisa membuka, menutup, atau membaca status menu kiri.
 import { useSidebar } from "./SidebarContext";
+// Import authStore supaya sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh Sidebar.
 import { 
   HomeIcon,
   WalletIcon,
@@ -15,8 +21,11 @@ import {
   SettingsIcon,
   Logout2Icon
 } from "@astraicons/react/bold";
+// Import ikon yang dipakai sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ChevronLeftIcon } from "@astraicons/react/linear";
+// Import createClient untuk membuka koneksi Supabase dari browser saat sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout perlu membaca/menyimpan data.
 import { createClient } from "@/utils/supabase/client";
+// Import komponen UI reusable supaya sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 const NAV_ITEMS = [
@@ -28,6 +37,7 @@ const NAV_ITEMS = [
   { icon: GroupIcon, label: "Customer", href: "/customer", roles: ["super_admin", "finance_manager", "accounting_staff", "sales_staff"] },
 ];
 
+// Sidebar membuat menu kiri berdasarkan role user dan mengatur proses logout dari dashboard.
 export function Sidebar() {
   const { isOpen, toggleSidebar, closeSidebar } = useSidebar();
   const pathname = usePathname();
@@ -36,12 +46,16 @@ export function Sidebar() {
   const setUser = useAuthStore((state) => state.setUser);
   const setRole = useAuthStore((state) => state.setRole);
   const role: string = user?.user_metadata?.role || "viewer";
+  // isLogoutModalOpen menentukan apakah modal konfirmasi logout sedang tampil.
   const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
+  // isLoggingOut menandai proses logout sedang berjalan agar tombol tidak diklik berkali-kali.
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
+  // handleLogout menangani aksi user di sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout, seperti klik tombol, submit form, atau perubahan input.
   const handleLogout = async () => {
     setIsLoggingOut(true);
     const supabase = createClient();
+    // await menunggu respons Supabase selesai sebelum kode memakai data atau error yang dikembalikan.
     await supabase.auth.signOut();
     document.cookie = "mock_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     setUser(null);
@@ -49,11 +63,15 @@ export function Sidebar() {
     router.push("/login");
   };
 
+  // filter ini menyisakan menu/halaman yang boleh dilihat oleh role user saat ini.
   const filteredNavItems = NAV_ITEMS.filter(item => item.roles.includes(role));
+  // closeOnMobile menutup sidebar hanya saat layout sedang mobile agar area konten tidak tertutup menu.
   const closeOnMobile = () => {
+    // Kondisi if (window.innerWidth < 1024) closeSidebar(); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di Sidebar.
     if (window.innerWidth < 1024) closeSidebar();
   };
 
+  // handleLogout menampilkan UI untuk sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout.
   return (
     <>
       {isOpen && (
@@ -89,10 +107,12 @@ export function Sidebar() {
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-4 space-y-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {/* map ini membuat baris tabel dari data Sidebar yang sudah difilter dan dipaginasi. */}
         {filteredNavItems.map((item) => {
           const isActive = pathname === item.href || (pathname === '/' && item.href === '/beranda');
           const Icon = item.icon;
           
+          // handleLogout menampilkan UI untuk sidebar navigasi yang menyesuaikan menu dengan role user dan menyediakan logout.
           return (
             <Link 
               key={item.href} 

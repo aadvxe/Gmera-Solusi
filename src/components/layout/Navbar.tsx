@@ -1,26 +1,46 @@
 "use client";
 
+// Import React hook yang dipakai navbar yang menampilkan search, notifikasi realtime, profil, dan logout, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useEffect, useState, useRef } from "react";
+// Import alat navigasi Next.js supaya navbar yang menampilkan search, notifikasi realtime, profil, dan logout bisa pindah halaman atau membaca route aktif.
 import { useRouter } from "next/navigation";
+// Import Link supaya menu/tombol di navbar yang menampilkan search, notifikasi realtime, profil, dan logout bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import ikon yang dipakai navbar yang menampilkan search, notifikasi realtime, profil, dan logout untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { NotificationIcon, ChevronDownIcon, Profile1Icon, SettingsIcon, Logout2Icon, StatusUpIcon, ArrowDownIcon, DocumentIcon, PricingAlertIcon, CalenderIcon, DocumentDownloadIcon, Download2Icon, CloseIcon as CloseCircleIcon, MenuIcon } from "@astraicons/react/bold";
+// Import authStore supaya navbar yang menampilkan search, notifikasi realtime, profil, dan logout bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import helper database yang dipakai navbar yang menampilkan search, notifikasi realtime, profil, dan logout untuk mengambil atau menyimpan data Supabase.
 import { getRecentActivities } from "@/lib/db";
+// Import createClient untuk membuka koneksi Supabase dari browser saat navbar yang menampilkan search, notifikasi realtime, profil, dan logout perlu membaca/menyimpan data.
 import { createClient } from "@/utils/supabase/client";
+// Import komponen UI reusable supaya navbar yang menampilkan search, notifikasi realtime, profil, dan logout memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Modal } from "@/components/ui/Modal";
+// Import komponen UI reusable supaya navbar yang menampilkan search, notifikasi realtime, profil, dan logout memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+// Import context sidebar supaya navbar yang menampilkan search, notifikasi realtime, profil, dan logout bisa membuka, menutup, atau membaca status menu kiri.
 import { useSidebar } from "./SidebarContext";
+// Import komponen UI reusable supaya navbar yang menampilkan search, notifikasi realtime, profil, dan logout memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { SearchDropdown } from "@/components/ui/SearchDropdown";
 
+// Navbar menampilkan pencarian, notifikasi realtime, profil user, modal semua notifikasi, dan tombol logout.
 export function Navbar() {
+  // greeting menyimpan nilai greeting yang berubah saat user berinteraksi dengan navbar yang menampilkan search, notifikasi realtime, profil, dan logout.
   const [greeting, setGreeting] = useState("Selamat Pagi");
+  // isNotifOpen menentukan apakah dropdown notifikasi sedang terbuka.
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  // isProfileOpen menentukan apakah dropdown profil user sedang terbuka.
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  // isMobileSearchOpen menentukan apakah panel search mobile sedang terbuka.
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  // isLogoutModalOpen menentukan apakah modal konfirmasi logout sedang tampil.
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  // isLoggingOut menandai proses logout sedang berjalan agar tombol tidak diklik berkali-kali.
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  // isSeeAllOpen menentukan apakah modal semua notifikasi sedang dibuka.
   const [isSeeAllOpen, setIsSeeAllOpen] = useState(false);
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
+  // triggerReappear memicu animasi kecil pada reminder yang tetap muncul setelah notifikasi ditandai dibaca.
   const [triggerReappear, setTriggerReappear] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -44,23 +64,31 @@ export function Navbar() {
 
   const [notifications, setNotifications] = useState<any[]>([]);
 
+  // Effect ini mengambil notifikasi awal lalu berlangganan perubahan Supabase agar ikon lonceng update otomatis.
   useEffect(() => {
+    // fetchNotifications mengambil data yang dibutuhkan navbar yang menampilkan search, notifikasi realtime, profil, dan logout dari Supabase lalu mengisi state halaman.
     const fetchNotifications = async () => {
+      // try ini menjalankan operasi utama fetchNotifications yang berhubungan dengan Supabase, upload, export, atau update state.
       try {
+        // await menunggu proses async selesai sebelum Navbar melanjutkan langkah berikutnya.
         const activities = await getRecentActivities(30);
         
         // Use localStorage as the single source of truth for cleared time
         const lastCleared = localStorage.getItem('last_cleared_notifications');
         
         let filtered = activities;
+        // Kondisi if (!isAdmin) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di Navbar.
         if (!isAdmin) {
+          // filter ini menyisakan data Navbar yang cocok dengan pencarian, status, role, atau tanggal aktif.
           filtered = filtered.filter(a => a.type !== 'system');
         }
         
         setAllNotifications(filtered);
         
+        // Kondisi if (lastCleared) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di Navbar.
         if (lastCleared) {
           const clearedTime = new Date(lastCleared).getTime();
+          // filter ini menyisakan data Navbar yang cocok dengan pencarian, status, role, atau tanggal aktif.
           const newOnly = filtered.filter(a => a.type === 'reminder' || new Date(a.date).getTime() > clearedTime);
           setNotifications(newOnly.slice(0, 5));
         } else {
@@ -73,6 +101,7 @@ export function Navbar() {
 
     fetchNotifications();
 
+    // handleRefresh adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
     const handleRefresh = () => fetchNotifications();
     window.addEventListener('refreshNotifications', handleRefresh);
     
@@ -102,6 +131,7 @@ export function Navbar() {
       )
       .subscribe();
     
+    // fetchNotifications menampilkan UI untuk navbar yang menampilkan search, notifikasi realtime, profil, dan logout.
     return () => {
       window.removeEventListener('refreshNotifications', handleRefresh);
       supabase.removeChannel(channel);
@@ -109,6 +139,7 @@ export function Navbar() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasPrivilege, role]);
 
+  // clearNotifications menandai notifikasi navbar sebagai sudah dibaca lalu mengosongkan badge lonceng.
   const clearNotifications = async () => {
     const now = new Date().toISOString();
     localStorage.setItem('last_cleared_notifications', now);
@@ -128,26 +159,38 @@ export function Navbar() {
     }).catch(err => console.error('Failed to sync cleared time:', err));
   };
 
+  // Effect ini menutup dropdown/modal kecil ketika user klik area di luar komponennya.
   useEffect(() => {
     const hour = new Date().getHours();
+    // Kalau jam lokal masih pagi, sapaan dashboard/navbar diatur ke Selamat Pagi.
     if (hour >= 5 && hour < 12) setGreeting("Selamat Pagi");
+    // Kalau jam lokal masuk siang, sapaan dashboard/navbar diatur ke Selamat Siang.
     else if (hour >= 12 && hour < 15) setGreeting("Selamat Siang");
+    // Kalau jam lokal masuk sore, sapaan dashboard/navbar diatur ke Selamat Sore.
     else if (hour >= 15 && hour < 19) setGreeting("Selamat Sore");
+    // Kondisi else setGreeting("Selamat Malam"); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di Navbar.
     else setGreeting("Selamat Malam");
   }, []);
 
+  // Effect ini menutup dropdown/modal kecil ketika user klik area di luar komponennya.
   useEffect(() => {
+    // handleClickOutside berjalan saat user klik area luar komponen; jika kliknya di luar, dropdown atau kalender akan ditutup.
     function handleClickOutside(event: MouseEvent) {
+      // Kondisi if (notifRef.current && !notifRef.current.contains(event.target as Node)) setIsNotifOpen(false); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di Navbar.
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) setIsNotifOpen(false);
+      // Kondisi if (profileRef.current && !profileRef.current.contains(event.target as Node)) setIsProfileOpen(false); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di Navbar.
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) setIsProfileOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
+    // clearNotifications menampilkan UI untuk navbar yang menampilkan search, notifikasi realtime, profil, dan logout.
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // handleLogout menangani aksi user di navbar yang menampilkan search, notifikasi realtime, profil, dan logout, seperti klik tombol, submit form, atau perubahan input.
   const handleLogout = async () => {
     setIsLoggingOut(true);
     const supabase = createClient();
+    // await menunggu respons Supabase selesai sebelum kode memakai data atau error yang dikembalikan.
     await supabase.auth.signOut();
     document.cookie = "mock_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     setUser(null);
@@ -157,6 +200,7 @@ export function Navbar() {
 
 
 
+  // handleLogout menampilkan UI untuk navbar yang menampilkan search, notifikasi realtime, profil, dan logout.
   return (
     <>
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between gap-3 bg-white px-4 sm:h-20 sm:px-6">
@@ -235,6 +279,7 @@ export function Navbar() {
                 </div>
                 <div className="max-h-[300px] overflow-y-auto scrollbar-none">
                   {notifications.length > 0 ? (
+                    // map ini membuat baris notifikasi dari aktivitas terbaru yang masuk ke navbar.
                     notifications.map((n: any) => (
                       <div 
                         key={n.id} 
@@ -393,6 +438,7 @@ export function Navbar() {
         <div className="overflow-y-auto flex-1">
           <div className="p-4 sm:p-6 space-y-6">
             {allNotifications.length > 0 ? (
+              // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh Navbar.
               allNotifications.map((n: any, idx, arr) => (
                 <div key={`${n.id}-${idx}`} className="flex gap-4 relative">
                   {/* Timeline Line */}

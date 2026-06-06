@@ -1,12 +1,20 @@
 "use client";
 
+// Import React hook yang dipakai halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useEffect, useState } from "react";
+// Import ikon yang dipakai halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { DocumentDownloadIcon, StatusUpIcon, ArrowDownIcon, WalletIcon, DocumentIcon, ArrowUpRightIcon, CloseIcon, ChartIcon, SettingsIcon, CalenderIcon } from "@astraicons/react/bold";
+// Import komponen UI reusable supaya halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import komponen UI reusable supaya halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ChartWrapper } from "@/components/ui/ChartWrapper";
+// Import komponen UI reusable supaya halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Modal } from "@/components/ui/Modal";
+// Import authStore supaya halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import helper database yang dipakai halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru untuk mengambil atau menyimpan data Supabase.
 import { getDashboardSummary } from "@/lib/db";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman beranda.
 import {
   LineChart,
   Line,
@@ -23,33 +31,43 @@ import {
   Pie,
   Cell
 } from "recharts";
+// Import helper database yang dipakai halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru untuk mengambil atau menyimpan data Supabase.
 import { getDashboardChartData, getTopClientsStats, getRecentActivities, getDashboardYearlyData } from "@/lib/db";
 
+// formatCompactCurrency mengubah data mentah menjadi teks yang mudah dibaca user di halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
 const formatCompactCurrency = (value: number) => {
   const absValue = Math.abs(value);
   const sign = value < 0 ? "-" : "";
   
+  // Kondisi if (absValue >= 1000000) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
   if (absValue >= 1000000) {
+    // sign mengembalikan hasil untuk halaman beranda, sesuai data yang dihitung tepat sebelum baris return ini.
     return `${sign}${(absValue / 1000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Jt`;
   } else if (absValue >= 1000) {
+    // sign mengembalikan hasil untuk halaman beranda, sesuai data yang dihitung tepat sebelum baris return ini.
     return `${sign}${(absValue / 1000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} k`;
   }
+  // sign mengembalikan hasil untuk halaman beranda, sesuai data yang dihitung tepat sebelum baris return ini.
   return `${sign}${absValue.toLocaleString('id-ID')}`;
 };
 
 // Tooltip Components
 const CustomTooltip = ({ active, payload, label, hideHeader }: any) => {
+  // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
   if (active && payload && payload.length) {
+    // formatCompactCurrency menampilkan UI untuk halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
     return (
       <div className="bg-white p-3 px-4 border border-gray-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
         {!hideHeader && label && <p className="font-bold text-[#151D48] mb-2 border-b border-gray-50 pb-1.5">{label}</p>}
         <div className="space-y-1.5">
+          {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
           {payload.map((entry: any, index: number) => {
             // Mapping label names to be more readable
             const displayName = entry.name === 'current' || entry.name === 'laba' ? 'Laba Bersih' 
               : entry.name === 'last' ? 'Laba (Bulan Lalu)' 
               : entry.name;
             
+            // formatCompactCurrency menampilkan UI untuk halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
             return (
               <div key={index} className="flex items-center justify-between gap-6 text-sm">
                 <div className="flex items-center gap-2">
@@ -66,11 +84,15 @@ const CustomTooltip = ({ active, payload, label, hideHeader }: any) => {
       </div>
     );
   }
+  // displayName berhenti di sini karena syarat lanjut belum terpenuhi.
   return null;
 };
 
+// CustomPieTooltip adalah komponen React; komponen ini menghasilkan bagian tampilan yang bisa dipakai di halaman.
 const CustomPieTooltip = ({ active, payload }: any) => {
+  // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
   if (active && payload && payload.length) {
+    // formatCompactCurrency menampilkan UI untuk halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
     return (
       <div className="bg-white p-3 border border-gray-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
         <div className="flex items-center justify-between gap-4 text-sm">
@@ -83,24 +105,35 @@ const CustomPieTooltip = ({ active, payload }: any) => {
       </div>
     );
   }
+  // CustomPieTooltip berhenti di sini karena syarat lanjut belum terpenuhi.
   return null;
 };
 
+// DashboardPage mengambil data ringkasan keuangan lalu menampilkannya sebagai kartu, grafik, aktivitas, dan daftar invoice.
 export default function DashboardPage() {
+  // renderComparison membuat label naik/turun dari persentase perubahan KPI di beranda.
   const renderComparison = (current: number, previous: number) => {
+    // Kondisi if (previous === 0) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
     if (previous === 0) {
+      // Kondisi if (current > 0) return <span className="text-[#76c893] font-semibold">+100% vs bulan lalu</span>; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
       if (current > 0) return <span className="text-[#76c893] font-semibold">+100% vs bulan lalu</span>;
+      // DashboardPage menampilkan potongan UI yang dipakai di halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
       return <span className="text-gray-400 font-medium">0% vs bulan lalu</span>;
     }
     const diff = current - previous;
+    // Bagian percent menyimpan logika yang dipakai di bawahnya.
     const percent = (diff / previous) * 100;
     const sign = percent > 0 ? "+" : "";
     const color = percent > 0 ? "text-[#76c893] font-semibold" : percent < 0 ? "text-[#f08a5d] font-semibold" : "text-gray-400 font-medium";
+    // DashboardPage menampilkan potongan UI yang dipakai di halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
     return <span className={color}>{sign}{percent.toFixed(1)}% vs bulan lalu</span>;
   };
 
+  // greeting menyimpan nilai greeting yang berubah saat user berinteraksi dengan halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
   const [greeting, setGreeting] = useState("Selamat Pagi");
+  // periodeKas menyimpan nilai periode kas yang berubah saat user berinteraksi dengan halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
   const [periodeKas, setPeriodeKas] = useState("Bulan Ini");
+  // isAktivitasModalOpen menyimpan nilai is aktivitas modal open yang berubah saat user berinteraksi dengan halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
   const [isAktivitasModalOpen, setIsAktivitasModalOpen] = useState(false);
   const [summary, setSummary] = useState<any>(null);
   const [chartData, setChartData] = useState<any[]>([]);
@@ -112,6 +145,7 @@ export default function DashboardPage() {
   // Period filter states
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
   const [periodOptions, setPeriodOptions] = useState<{ value: string, label: string }[]>([]);
+  // isLoading menandai proses sedang berjalan supaya tombol bisa dibuat disabled atau layar loading muncul.
   const [isLoading, setIsLoading] = useState(true);
 
   const getDisplayName = useAuthStore((state) => state.getDisplayName);
@@ -120,15 +154,21 @@ export default function DashboardPage() {
   // Set greeting based on time of day
   useEffect(() => {
     const hour = new Date().getHours();
+    // Kalau jam lokal masih pagi, sapaan dashboard/navbar diatur ke Selamat Pagi.
     if (hour >= 5 && hour < 12) setGreeting("Selamat Pagi");
+    // Kalau jam lokal masuk siang, sapaan dashboard/navbar diatur ke Selamat Siang.
     else if (hour >= 12 && hour < 15) setGreeting("Selamat Siang");
+    // Kalau jam lokal masuk sore, sapaan dashboard/navbar diatur ke Selamat Sore.
     else if (hour >= 15 && hour < 19) setGreeting("Selamat Sore");
+    // Kondisi else setGreeting("Selamat Malam"); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
     else setGreeting("Selamat Malam");
   }, []);
 
   // Initialize selected period and available period options
   useEffect(() => {
+    // initializePeriod memilih periode default dashboard berdasarkan tanggal hari ini.
     const initializePeriod = async () => {
+      // await menunggu respons Supabase selesai sebelum kode memakai data atau error yang dikembalikan.
       const { createClient } = await import('@/utils/supabase/client');
       const supabase = createClient();
       const now = new Date();
@@ -138,6 +178,7 @@ export default function DashboardPage() {
       let defaultYear = currentYear;
       let defaultMonth = currentMonth;
 
+      // try ini mengambil ringkasan dashboard, grafik, aktivitas terbaru, dan invoice belum bayar dari Supabase.
       try {
         // Query to find the latest transaction date to set smart default active month
         const [latestIncome, latestExpense] = await Promise.all([
@@ -148,6 +189,7 @@ export default function DashboardPage() {
         const incomeDate = latestIncome.data?.[0]?.date;
         const expenseDate = latestExpense.data?.[0]?.date;
         let latestDate = null;
+        // Kondisi if (incomeDate && expenseDate) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
         if (incomeDate && expenseDate) {
           latestDate = incomeDate > expenseDate ? incomeDate : expenseDate;
         } else if (incomeDate) {
@@ -156,7 +198,9 @@ export default function DashboardPage() {
           latestDate = expenseDate;
         }
 
+        // Kondisi if (latestDate) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
         if (latestDate) {
+          // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda.
           const [y, m] = latestDate.split('-').map(Number);
           defaultYear = y;
           defaultMonth = m;
@@ -171,6 +215,7 @@ export default function DashboardPage() {
         const oldestIncomeDate = oldestIncome.data?.[0]?.date;
         const oldestExpenseDate = oldestExpense.data?.[0]?.date;
         let oldestDate = null;
+        // Kondisi if (oldestIncomeDate && oldestExpenseDate) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
         if (oldestIncomeDate && oldestExpenseDate) {
           oldestDate = oldestIncomeDate < oldestExpenseDate ? oldestIncomeDate : oldestExpenseDate;
         } else if (oldestIncomeDate) {
@@ -181,7 +226,9 @@ export default function DashboardPage() {
 
         let startYear = currentYear;
         let startMonth = currentMonth;
+        // Kondisi if (oldestDate) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
         if (oldestDate) {
+          // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda.
           const [y, m] = oldestDate.split('-').map(Number);
           startYear = y;
           startMonth = m;
@@ -206,6 +253,7 @@ export default function DashboardPage() {
             label: `${monthNames[loopMonth - 1]} ${loopYear}`
           });
           loopMonth++;
+          // Kondisi if (loopMonth > 12) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
           if (loopMonth > 12) {
             loopMonth = 1;
             loopYear++;
@@ -229,11 +277,15 @@ export default function DashboardPage() {
 
   // Fetch dashboard data when active period selection changes
   useEffect(() => {
+    // Kondisi if (!selectedPeriod) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
     if (!selectedPeriod) return;
 
+    // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda.
     const [year, month] = selectedPeriod.split('-').map(Number);
 
+    // loadData mengambil data yang dibutuhkan halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru dari Supabase lalu mengisi state halaman.
     const loadData = async () => {
+      // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
       const [data, cData, clients, activities, yData] = await Promise.all([
         getDashboardSummary(year, month),
         getDashboardChartData(year, month),
@@ -249,6 +301,7 @@ export default function DashboardPage() {
       setChartData(cData);
       setYearlyData(yData);
       
+      // map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase.
       setTopClients(clients.map((c, i) => ({
         id: String(i + 1).padStart(2, '0'),
         name: c.name,
@@ -256,6 +309,7 @@ export default function DashboardPage() {
         color: c.color
       })));
 
+      // map ini membuat satu baris aktivitas terbaru untuk kartu dashboard.
       setAktivitasTerbaru(activities.map(act => ({
         id: act.id,
         title: act.title,
@@ -264,6 +318,7 @@ export default function DashboardPage() {
         type: act.type
       })));
 
+      // Kondisi if (data) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
       if (data) {
         setInvoiceDonutData([
           { name: 'Lunas', value: data.paidInvoices, color: '#76c893' },
@@ -276,6 +331,7 @@ export default function DashboardPage() {
     loadData();
   }, [selectedPeriod]);
 
+  // loadData menampilkan UI untuk halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
   return (
     <div className="space-y-6">
       
@@ -437,6 +493,7 @@ export default function DashboardPage() {
           <ChartWrapper height={180}>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={(() => {
+                // Kondisi if (periodeKas === "Minggu Ini") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
                 if (periodeKas === "Minggu Ini") {
                   const now = new Date();
                   const dayOfWeek = now.getDay();
@@ -444,11 +501,13 @@ export default function DashboardPage() {
                   monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
                   
                   const weekDays = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+                  // loadData mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
                   return weekDays.map((dayName, index) => {
                     const date = new Date(monday);
                     date.setDate(monday.getDate() + index);
                     const dayNum = date.getDate();
                     const dayData = chartData.find(d => parseInt(d.name) === dayNum);
+                    // loadData mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
                     return {
                       name: dayName,
                       pendapatan: dayData?.pendapatan || 0,
@@ -457,9 +516,12 @@ export default function DashboardPage() {
                     };
                   });
                 }
+                // Kondisi if (periodeKas === "Tahun Ini") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
                 if (periodeKas === "Tahun Ini") {
+                  // loadData mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
                   return yearlyData;
                 }
+                // loadData mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
                 return chartData;
               })()} barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -550,6 +612,7 @@ export default function DashboardPage() {
                     dataKey="value"
                     stroke="none"
                   >
+                    {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
                     {invoiceDonutData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -601,6 +664,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
+                {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
                 {topClients.map((client) => (
                   <tr key={client.id} className="border-b border-gray-50 last:border-0">
                     <td className="py-4 text-gray-500">{client.id}</td>
@@ -639,6 +703,7 @@ export default function DashboardPage() {
           </div>
           
           <div className="space-y-6">
+            {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
             {aktivitasTerbaru.map((activity, idx) => (
               <div key={activity.id} className="flex gap-4 relative">
                 {/* Timeline Line */}
@@ -691,6 +756,7 @@ export default function DashboardPage() {
           
           <div className="overflow-y-auto flex-1">
             <div className="p-6 space-y-6">
+              {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
               {aktivitasTerbaru.map((activity, idx, arr) => (
                 <div key={`${activity.id}-${idx}`} className="flex gap-4 relative">
                   {idx !== arr.length - 1 && (

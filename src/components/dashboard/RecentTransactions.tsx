@@ -1,7 +1,11 @@
+// Import React hook yang dipakai kartu aktivitas terbaru dari income, expense, dan invoice, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React from "react";
+// Import ikon yang dipakai kartu aktivitas terbaru dari income, expense, dan invoice untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ArrowRightIcon, WalletIcon, DocumentIcon, Document1Icon } from "@astraicons/react/bold";
+// Import Link supaya menu/tombol di kartu aktivitas terbaru dari income, expense, dan invoice bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
 
+// Interface ini menjelaskan field yang dipakai kartu aktivitas terbaru dari income, expense, dan invoice supaya data form/database tidak salah bentuk.
 interface Transaction {
   id: string;
   title: string;
@@ -11,11 +15,14 @@ interface Transaction {
   description: string;
 }
 
+// Interface ini menjelaskan field yang dipakai kartu aktivitas terbaru dari income, expense, dan invoice supaya data form/database tidak salah bentuk.
 interface RecentTransactionsProps {
   transactions: Transaction[];
 }
 
+// RecentTransactions mengubah daftar aktivitas terbaru menjadi baris-baris ringkas di dashboard.
 export function RecentTransactions({ transactions }: RecentTransactionsProps) {
+  // getIcon mengambil atau menghitung data yang dibutuhkan kartu aktivitas terbaru dari income, expense, dan invoice.
   const getIcon = (type: string) => {
     switch (type) {
       case "income": return <WalletIcon className="w-[18px] h-[18px] text-success" />;
@@ -25,6 +32,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
     }
   };
 
+  // getIconBg mengambil atau menghitung data yang dibutuhkan kartu aktivitas terbaru dari income, expense, dan invoice.
   const getIconBg = (type: string) => {
     switch (type) {
       case "income": return "bg-success/10";
@@ -34,6 +42,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
     }
   };
 
+  // getIconBg menampilkan UI untuk kartu aktivitas terbaru dari income, expense, dan invoice.
   return (
     <div className="bg-surface rounded-xl border border-border shadow-sm flex flex-col h-full">
       <div className="p-6 border-b border-border">
@@ -43,6 +52,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
       </div>
 
       <div className="p-4 flex-1 flex flex-col gap-3">
+        {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh RecentTransactions. */}
         {transactions.map((tx) => (
           <div key={tx.id} className="flex items-start gap-4 p-2 rounded-lg hover:bg-background transition-colors">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${getIconBg(tx.type)}`}>
