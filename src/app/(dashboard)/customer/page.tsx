@@ -44,17 +44,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function CustomerPage() {
   const role = useAuthStore(state => state.role);
 
-  // Kondisi ini mengecek role agar menu/fitur yang tampil sesuai hak akses user.
-  if (role === 'viewer') {
-    // CustomerPage menampilkan UI untuk halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white rounded-2xl shadow-sm border border-gray-100">
-        <h2 className="text-xl font-bold text-text-primary mb-2">Akses Ditolak</h2>
-        <p className="text-sm text-text-secondary">Anda tidak memiliki hak akses untuk membuka halaman Customer.</p>
-      </div>
-    );
-  }
-
   // searchTerm menyimpan nilai search term yang berubah saat user berinteraksi dengan halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
   const [searchTerm, setSearchTerm] = useState("");
   const [clients, setClients] = useState<(Client & { stats?: { totalInvoices: number, unpaidAmount: number } })[]>([]);
@@ -375,7 +364,18 @@ export default function CustomerPage() {
     }
   };
 
-  // handleExportPDF menampilkan UI untuk halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan.
+  // Kalau role user adalah viewer, semua hook di atas tetap sudah dipanggil dulu, lalu halaman menampilkan pesan akses ditolak.
+  if (role === 'viewer') {
+    // CustomerPage menampilkan UI akses ditolak untuk viewer, karena role ini hanya boleh melihat area dashboard tertentu.
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold text-text-primary mb-2">Akses Ditolak</h2>
+        <p className="text-sm text-text-secondary">Anda tidak memiliki hak akses untuk membuka halaman Customer.</p>
+      </div>
+    );
+  }
+
+  // CustomerPage menampilkan UI utama daftar customer setelah role dinyatakan boleh membuka halaman ini.
   return (
     <>
       <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
