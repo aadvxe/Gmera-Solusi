@@ -1,6 +1,9 @@
+// Import React untuk forwardRef dan tipe elemen table, thead, tbody, tr, th, dan td.
 import * as React from "react"
+// Import utility project agar Table.tsx bisa menggabungkan class Tailwind atau format Rupiah dengan helper yang sama.
 import { cn } from "@/lib/utils"
 
+// Komponen Table meneruskan ref ke elemen HTML asli, jadi komponen lain tetap bisa mengakses elemennya.
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
@@ -15,6 +18,7 @@ const Table = React.forwardRef<
 ))
 Table.displayName = "Table"
 
+// Komponen TableHeader meneruskan ref ke elemen HTML asli, jadi komponen lain tetap bisa mengakses elemennya.
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
@@ -23,6 +27,7 @@ const TableHeader = React.forwardRef<
 ))
 TableHeader.displayName = "TableHeader"
 
+// Komponen TableBody meneruskan ref ke elemen HTML asli, jadi komponen lain tetap bisa mengakses elemennya.
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
@@ -35,6 +40,7 @@ const TableBody = React.forwardRef<
 ))
 TableBody.displayName = "TableBody"
 
+// Komponen TableRow meneruskan ref ke elemen HTML asli, jadi komponen lain tetap bisa mengakses elemennya.
 const TableRow = React.forwardRef<
   HTMLTableRowElement,
   React.HTMLAttributes<HTMLTableRowElement>
@@ -50,6 +56,7 @@ const TableRow = React.forwardRef<
 ))
 TableRow.displayName = "TableRow"
 
+// Komponen TableHead meneruskan ref ke elemen HTML asli, jadi komponen lain tetap bisa mengakses elemennya.
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
@@ -65,6 +72,7 @@ const TableHead = React.forwardRef<
 ))
 TableHead.displayName = "TableHead"
 
+// Komponen TableCell meneruskan ref ke elemen HTML asli, jadi komponen lain tetap bisa mengakses elemennya.
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>

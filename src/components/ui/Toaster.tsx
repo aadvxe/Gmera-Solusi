@@ -1,9 +1,13 @@
 "use client";
 
+// Import Sonner untuk menampilkan toast sukses/error di pengaturan tampilan toast notifikasi Sonner.
 import { Toaster as SonnerToaster } from "sonner";
+// Import ikon yang dipakai pengaturan tampilan toast notifikasi Sonner untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { StatusUpIcon, ArrowDownIcon, DocumentIcon, SettingsIcon, HelpIcon } from "@astraicons/react/bold";
 
+// Toaster mengatur tampilan pop-up notifikasi seperti sukses, error, info, dan warning.
 export function Toaster() {
+  // Toaster menampilkan UI untuk pengaturan tampilan toast notifikasi Sonner.
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `

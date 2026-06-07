@@ -1,8 +1,12 @@
 "use client";
 
+// Import React hook yang dipakai dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect, useRef, useCallback } from "react";
+// Import alat navigasi Next.js supaya dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice bisa pindah halaman atau membaca route aktif.
 import { useRouter } from "next/navigation";
+// Import ikon yang dipakai dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { SearchIcon } from "@astraicons/react/linear";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh SearchDropdown.
 import {
   HomeIcon,
   WalletIcon,
@@ -17,7 +21,9 @@ import {
   EyeIcon,
   EditIcon,
 } from "@astraicons/react/bold";
+// Import helper database yang dipakai dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice untuk mengambil atau menyimpan data Supabase.
 import { globalSearch, type SearchResult } from "@/lib/db/search";
+// Import authStore supaya dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
 
 // ─── Icon resolver ────────────────────────────────────────────────────────────
@@ -33,15 +39,24 @@ function ResultIcon({ type, className }: { type: SearchResult["type"]; className
   }
 }
 
+// PageIcon memilih icon yang cocok untuk shortcut halaman di hasil pencarian.
 function PageIcon({ href, className }: { href: string; className?: string }) {
   const cls = className ?? "w-4 h-4";
+  // Kondisi if (href.startsWith("/beranda")) return <HomeIcon className={cls} />; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
   if (href.startsWith("/beranda"))     return <HomeIcon      className={cls} />;
+  // Kondisi if (href.startsWith("/pendapatan")) return <WalletIcon className={cls} />; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
   if (href.startsWith("/pendapatan"))  return <WalletIcon    className={cls} />;
+  // Kondisi if (href.startsWith("/pengeluaran")) return <ArrowDownIcon className={cls} />; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
   if (href.startsWith("/pengeluaran")) return <ArrowDownIcon  className={cls} />;
+  // Kondisi if (href.startsWith("/e-invoice")) return <Document1Icon className={cls} />; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
   if (href.startsWith("/e-invoice"))   return <Document1Icon  className={cls} />;
+  // Kondisi if (href.startsWith("/laporan")) return <ChartIcon className={cls} />; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
   if (href.startsWith("/laporan"))     return <ChartIcon      className={cls} />;
+  // Kondisi if (href.startsWith("/customer")) return <GroupIcon className={cls} />; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
   if (href.startsWith("/customer"))    return <GroupIcon      className={cls} />;
+  // Kondisi if (href.startsWith("/pengaturan")) return <SettingsIcon className={cls} />; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
   if (href.startsWith("/pengaturan"))  return <SettingsIcon   className={cls} />;
+  // Komponen ini menampilkan potongan UI yang dipakai di dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice.
   return <HomeIcon className={cls} />;
 }
 
@@ -62,11 +77,14 @@ const STATUS_COLORS: Record<string, string> = {
 
 // ─── Highlight matching text ──────────────────────────────────────────────────
 function Highlight({ text, query }: { text: string; query: string }) {
+  // Kalau teks pencarian cocok dengan nama/nomor/keterangan data, item itu masuk hasil pencarian.
   if (!query.trim()) return <>{text}</>;
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
   const parts = text.split(regex);
+  // Komponen ini menampilkan UI untuk dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice.
   return (
     <>
+      {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh SearchDropdown. */}
       {parts.map((part, i) =>
         regex.test(part) ? (
           <mark key={i} className="bg-[#5C67F2]/15 text-[#5C67F2] rounded px-0.5 font-semibold not-italic">
@@ -89,7 +107,9 @@ type GroupedResults = {
   expense:  SearchResult[];
 };
 
+// flattenResults mengubah hasil pencarian yang masih berkelompok menjadi satu daftar agar keyboard bisa berpindah antar hasil dengan mudah.
 function flattenResults(groups: GroupedResults): SearchResult[] {
+  // flattenResults mengembalikan nilai yang dibutuhkan oleh SearchDropdown.
   return [
     ...groups.pages,
     ...groups.invoices,
@@ -101,8 +121,10 @@ function flattenResults(groups: GroupedResults): SearchResult[] {
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 function Skeleton() {
+  // Komponen ini menampilkan UI untuk dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice.
   return (
     <div className="p-3 space-y-3">
+      {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh SearchDropdown. */}
       {[1, 2, 3].map((i) => (
         <div key={i} className="flex items-center gap-3 px-1">
           <div className="w-8 h-8 rounded-xl bg-gray-100 animate-pulse shrink-0" />
@@ -132,6 +154,7 @@ function ResultItem({
   onClick: () => void;
   onMouseEnter: () => void;
 }) {
+  // Komponen ini menampilkan UI untuk dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice.
   return (
     <button
       type="button"
@@ -220,6 +243,7 @@ function InvoiceActions({
   invoiceId: string;
   onNavigate: (href: string) => void;
 }) {
+  // Komponen ini menampilkan UI untuk dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice.
   return (
     <div className="flex gap-2 px-3 pb-2 pt-1 bg-[#5C67F2]/8 rounded-b-xl border-t border-[#5C67F2]/10">
       <button
@@ -266,15 +290,19 @@ function GroupSection({
   onExpand?: (id: string | null) => void;
   onNavigate?: (href: string) => void;
 }) {
+  // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
   if (results.length === 0) return null;
   const isInvoiceGroup = results[0]?.type === "invoice";
+  // Komponen ini menampilkan UI untuk dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice.
   return (
     <div>
       <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
         {label}
       </p>
+      {/* map ini membuat item hasil pencarian yang bisa diklik menuju halaman terkait. */}
       {results.map((r, i) => {
         const isExpanded = isInvoiceGroup && expandedId === r.id;
+        // Komponen ini menampilkan UI untuk dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice.
         return (
           <div key={r.id} className="rounded-xl overflow-hidden mb-0.5">
             <ResultItem
@@ -283,6 +311,7 @@ function GroupSection({
               isActive={activeIdx === baseIdx + i}
               isExpanded={isExpanded}
               onClick={() => {
+                // Kondisi if (isInvoiceGroup && onExpand) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
                 if (isInvoiceGroup && onExpand) {
                   // Toggle expand; collapse if same item clicked again
                   onExpand(isExpanded ? null : r.id);
@@ -311,11 +340,16 @@ interface SearchDropdownProps {
   autoFocus?: boolean;
 }
 
+// SearchDropdown menjalankan pencarian global dengan jeda ketik, navigasi keyboard, dan tombol cepat untuk invoice.
 export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: SearchDropdownProps) {
+  // query menyimpan kata kunci pencarian yang sedang diketik user.
   const [query, setQuery] = useState("");
   const [groups, setGroups] = useState<GroupedResults | null>(null);
+  // isLoading menandai proses sedang berjalan supaya tombol bisa dibuat disabled atau layar loading muncul.
   const [isLoading, setIsLoading] = useState(false);
+  // isOpen menentukan apakah panel/dropdown/modal sedang terbuka di layar.
   const [isOpen, setIsOpen] = useState(false);
+  // activeIdx menyimpan posisi hasil pencarian yang sedang dipilih lewat keyboard.
   const [activeIdx, setActiveIdx] = useState(-1);
   const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
 
@@ -328,6 +362,7 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
 
   // Auto-focus in mobile overlay
   useEffect(() => {
+    // Kondisi if (autoFocus && inputRef.current) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
     if (autoFocus && inputRef.current) {
       inputRef.current.focus();
     }
@@ -335,21 +370,28 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
 
   // Click-outside to close (desktop)
   useEffect(() => {
+    // Kondisi if (mobile) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
     if (mobile) return;
+    // handler adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
     const handler = (e: MouseEvent) => {
+      // Kondisi if (containerRef.current && !containerRef.current.contains(e.target as Node)) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
         setActiveIdx(-1);
       }
     };
     document.addEventListener("mousedown", handler);
+    // SearchDropdown menampilkan UI untuk dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice.
     return () => document.removeEventListener("mousedown", handler);
   }, [mobile]);
 
+  // Callback ini membuat fungsi pemilih hasil pencarian tetap stabil saat SearchDropdown dirender ulang.
   const doSearch = useCallback(
     async (q: string) => {
       setIsLoading(true);
+      // try ini menjalankan pencarian global ke Supabase berdasarkan teks yang diketik user.
       try {
+        // await menunggu proses async selesai sebelum SearchDropdown melanjutkan langkah berikutnya.
         const result = await globalSearch(q, role);
         setGroups(result);
       } catch {
@@ -362,6 +404,7 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
     [role]
   );
 
+  // handleChange adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setQuery(val);
@@ -369,15 +412,19 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
     setActiveIdx(-1);
     setExpandedInvoiceId(null);
 
+    // Kondisi if (debounceRef.current) clearTimeout(debounceRef.current); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => doSearch(val), 200);
   };
 
+  // handleFocus adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleFocus = () => {
     setIsOpen(true);
+    // Kalau teks pencarian cocok dengan nama/nomor/keterangan data, item itu masuk hasil pencarian.
     if (groups === null) doSearch(query);
   };
 
+  // handleSelect adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleSelect = (r: SearchResult) => {
     router.push(r.href);
     setIsOpen(false);
@@ -387,6 +434,7 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
     onCloseMobile?.();
   };
 
+  // handleNavigate adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleNavigate = (href: string) => {
     router.push(href);
     setIsOpen(false);
@@ -396,6 +444,7 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
     onCloseMobile?.();
   };
 
+  // handleClear adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleClear = () => {
     setQuery("");
     setGroups(null);
@@ -405,10 +454,12 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Kondisi ini menentukan apakah panel/modal/dropdown perlu ditampilkan atau disembunyikan.
     if (!isOpen || !groups) return;
     const flat = flattenResults(groups);
     const total = flat.length;
 
+    // Kondisi if (e.key === "ArrowDown") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setActiveIdx((prev) => (prev + 1) % total);
@@ -417,6 +468,7 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
       setActiveIdx((prev) => (prev - 1 + total) % total);
     } else if (e.key === "Enter") {
       e.preventDefault();
+      // Kondisi if (activeIdx >= 0 && flat[activeIdx]) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di SearchDropdown.
       if (activeIdx >= 0 && flat[activeIdx]) {
         handleSelect(flat[activeIdx]);
       }
@@ -555,6 +607,7 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
             <p className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
               Halaman
             </p>
+            {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh SearchDropdown. */}
             {groups?.pages.map((p, i) => (
               <ResultItem
                 key={p.id}
@@ -573,6 +626,7 @@ export function SearchDropdown({ mobile = false, onCloseMobile, autoFocus }: Sea
 
   // ── Mobile layout ───────────────────────────────────────────────────────────
   if (mobile) {
+    // SearchDropdown menampilkan UI untuk dropdown pencarian global yang mengelompokkan hasil dan memberi aksi cepat invoice.
     return (
       <div className="flex flex-col gap-3 w-full">
         {inputEl}

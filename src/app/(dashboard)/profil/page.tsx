@@ -1,12 +1,19 @@
 "use client";
 
+// Import React hook yang dipakai halaman profil user yang sedang login, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState } from "react";
+// Import Sonner untuk menampilkan toast sukses/error di halaman profil user yang sedang login.
 import { toast } from "sonner";
+// Import ikon yang dipakai halaman profil user yang sedang login untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { Profile1Icon, EditIcon, SaveIcon, LockIcon, EyeIcon, EyeSlashIcon } from "@astraicons/react/bold";
+// Import komponen UI reusable supaya halaman profil user yang sedang login memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya halaman profil user yang sedang login memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import authStore supaya halaman profil user yang sedang login bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore, MOCK_PROFILES, ROLE_LABELS } from "@/store/authStore";
 
+// ProfilPage menampilkan dan memperbarui data profil user yang sedang login.
 export default function ProfilPage() {
   const user = useAuthStore((state) => state.user);
   const getDisplayName = useAuthStore((state) => state.getDisplayName);
@@ -17,22 +24,32 @@ export default function ProfilPage() {
   const roleLabel = getRoleLabel();
   const initials = getInitials();
 
+  // isEditing menyimpan nilai is editing yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [isEditing, setIsEditing] = useState(false);
+  // isSaving menyimpan nilai is saving yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [isSaving, setIsSaving] = useState(false);
+  // showCurrentPwd menyimpan nilai show current pwd yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+  // showNewPwd menyimpan nilai show new pwd yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [showNewPwd, setShowNewPwd] = useState(false);
+  // showConfirmPwd menyimpan nilai show confirm pwd yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
   // Profile form state
   const [name, setName] = useState(displayName);
+  // phone menyimpan nilai phone yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [phone, setPhone] = useState("+62 812-0000-0001");
+  // department menyimpan nilai department yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [department, setDepartment] = useState("Keuangan");
 
   // Password form state
   const [currentPwd, setCurrentPwd] = useState("");
+  // newPwd menyimpan nilai new pwd yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [newPwd, setNewPwd] = useState("");
+  // confirmPwd menyimpan nilai confirm pwd yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [confirmPwd, setConfirmPwd] = useState("");
 
+  // handleSaveProfile adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -43,14 +60,19 @@ export default function ProfilPage() {
     }, 800);
   };
 
+  // handleChangePassword adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault();
+    // Kondisi if (newPwd !== confirmPwd) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman profil.
     if (newPwd !== confirmPwd) {
       toast.error("Password baru dan konfirmasi tidak cocok.");
+      // handleChangePassword berhenti di sini karena syarat lanjut belum terpenuhi.
       return;
     }
+    // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
     if (newPwd.length < 8) {
       toast.error("Password baru minimal 8 karakter.");
+      // handleChangePassword berhenti di sini karena syarat lanjut belum terpenuhi.
       return;
     }
     setIsSaving(true);
@@ -71,6 +93,7 @@ export default function ProfilPage() {
   const userRole = user?.user_metadata?.role || "viewer";
   const roleColor = roleColorMap[userRole] || "bg-gray-100 text-gray-600";
 
+  // ProfilPage menampilkan UI untuk halaman profil user yang sedang login.
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
       <div>
@@ -258,6 +281,7 @@ export default function ProfilPage() {
 
                   {newPwd.length > 0 && (
                     <div className="flex gap-2">
+                      {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman profil. */}
                       {[newPwd.length >= 8, /[A-Z]/.test(newPwd), /[0-9]/.test(newPwd)].map((ok, i) => (
                         <span key={i} className={`text-xs px-2 py-1 rounded-full font-medium ${ok ? 'bg-success/10 text-success' : 'bg-border text-text-muted'}`}>
                           {["Min. 8 karakter", "Huruf kapital", "Angka"][i]}

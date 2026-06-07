@@ -1,22 +1,39 @@
 "use client";
 
+// Import React hook yang dipakai form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect } from "react";
+// Import Link supaya menu/tombol di form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import alat navigasi Next.js supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru bisa pindah halaman atau membaca route aktif.
 import { useRouter } from "next/navigation";
+// Import ikon yang dipakai form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ArrowLeftIcon, SaveIcon, PlusIcon, TrashIcon, Document1Icon, TruckIcon, CalculatorIcon, CheckCircleIcon, PrinterIcon, CloseIcon } from "@astraicons/react/bold";
+// Import komponen UI reusable supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import helper database yang dipakai form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru untuk mengambil atau menyimpan data Supabase.
 import { getClients, createInvoiceWithItems, Client, getCompanyProfile, CompanyProfile } from "@/lib/db";
+// Import komponen UI reusable supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Modal } from "@/components/ui/Modal";
+// Import komponen UI reusable supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+// Import utility project supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
+// Import komponen UI reusable supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+// Import komponen UI reusable supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import uploadFile supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru bisa mengirim lampiran ke Supabase Storage.
 import { uploadFile } from "@/lib/storage";
+// Import Sonner untuk menampilkan toast sukses/error di form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
 import { toast } from "sonner";
+// Import helper database yang dipakai form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru untuk mengambil atau menyimpan data Supabase.
 import { createAuditLog } from "@/lib/db/users";
+// Import authStore supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
 
+// Interface ini menjelaskan field yang dipakai form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru supaya data form/database tidak salah bentuk.
 interface InvoiceItem {
   id: number;
   name: string;
@@ -25,40 +42,52 @@ interface InvoiceItem {
   price: number;
 }
 
+// splitAddress memecah alamat panjang menjadi beberapa bagian supaya muat rapi di tampilan invoice.
 function splitAddress(addressStr: string) {
+  // Kondisi if (!addressStr) return { line1: "", line2: "" }; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form buat invoice.
   if (!addressStr) return { line1: "", line2: "" };
-  const normalized = addressStr.replace(/\r\n/g, "\n");
+  const normalized = addressStr.replace(/\n/g, "\n");
   const lastNewlineIndex = normalized.lastIndexOf("\n");
+  // Kondisi if (lastNewlineIndex !== -1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form buat invoice.
   if (lastNewlineIndex !== -1) {
     const line1 = normalized.substring(0, lastNewlineIndex).trim();
     const line2 = normalized.substring(lastNewlineIndex + 1).trim();
+    // splitAddress mengirim dua baris alamat agar preview invoice bisa menata alamat customer dengan rapi.
     return { line1, line2 };
   }
   const lastCommaIndex = normalized.lastIndexOf(",");
+  // Kondisi if (lastCommaIndex === -1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form buat invoice.
   if (lastCommaIndex === -1) {
+    // splitAddress mengirim dua baris alamat agar preview invoice bisa menata alamat customer dengan rapi.
     return { line1: normalized, line2: "" };
   }
   const line1 = normalized.substring(0, lastCommaIndex + 1).trim();
   const line2 = normalized.substring(lastCommaIndex + 1).trim();
+  // splitAddress mengirim dua baris alamat agar preview invoice bisa menata alamat customer dengan rapi.
   return { line1, line2 };
 }
 
+// Interface ini menjelaskan field yang dipakai form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru supaya data form/database tidak salah bentuk.
 interface PageData {
   pageNumber: number;
   items: any[];
   isLastPage: boolean;
 }
 
+// getPages mengambil atau menghitung data yang dibutuhkan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
 function getPages(itemsList: any[]): PageData[] {
+  // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
   if (!itemsList || itemsList.length === 0) {
+    // getPages mengembalikan hasil untuk form buat invoice, sesuai data yang dihitung tepat sebelum baris return ini.
     return [{ pageNumber: 1, items: [], isLastPage: true }];
   }
   const pages: PageData[] = [];
-  let remaining = [...itemsList];
+  const remaining = [...itemsList];
   let pageNum = 1;
   while (remaining.length > 0) {
     const isFirst = pageNum === 1;
     const limitWithSummary = 3;
+    // Kalau pemanggil memberi batas jumlah data, query Supabase dibatasi supaya tidak mengambil terlalu banyak baris.
     if (remaining.length <= limitWithSummary) {
       pages.push({
         pageNumber: pageNum,
@@ -69,6 +98,7 @@ function getPages(itemsList: any[]): PageData[] {
     }
     const limitNoSummary = 5;
     let itemsToTake = limitNoSummary;
+    // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
     if (remaining.length - itemsToTake < 1) {
       itemsToTake = remaining.length - 1;
     }
@@ -79,37 +109,53 @@ function getPages(itemsList: any[]): PageData[] {
     });
     pageNum++;
   }
+  // limitNoSummary mengembalikan hasil untuk form buat invoice, sesuai data yang dihitung tepat sebelum baris return ini.
   return pages;
 }
 
+// BuatInvoicePage mengubah input customer dan item barang menjadi invoice baru yang disimpan bersama item-itemnya.
 export default function BuatInvoicePage() {
   const router = useRouter();
   const user = useAuthStore(state => state.user);
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
 
   // Form State
   const [invoiceNumber, setInvoiceNumber] = useState(`INV-${Date.now().toString().slice(-6)}`);
+  // invoiceDate menyimpan nilai invoice date yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  // dueDate menyimpan nilai due date yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [dueDate, setDueDate] = useState("");
+  // clientId menyimpan nilai client id yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [clientId, setClientId] = useState("");
+  // shippingMethod menyimpan nilai shipping method yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [shippingMethod, setShippingMethod] = useState("");
+  // trackingNumber menyimpan nilai tracking number yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [trackingNumber, setTrackingNumber] = useState("");
+  // estimatedArrival menyimpan nilai estimated arrival yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [estimatedArrival, setEstimatedArrival] = useState("");
+  // notes menyimpan nilai notes yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [notes, setNotes] = useState("Terima kasih atas pembelian produk kami. Pembayaran harap ditransfer ke rekening BCA 7642276754 a.n PT GMera Solusi");
 
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: 1, name: "", qty: "", unit: "Pcs", price: 0 }
   ]);
   
+  // shippingCost menyimpan nilai shipping cost yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [shippingCost, setShippingCost] = useState(0);
+  // shippingAddress menyimpan nilai shipping address yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [shippingAddress, setShippingAddress] = useState("");
+  // discountAmount menyimpan nilai discount amount yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [discountAmount, setDiscountAmount] = useState(0);
+  // taxRate menyimpan nilai tax rate yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [taxRate, setTaxRate] = useState(11); // 11% PPN
+  // applyTax menyimpan nilai apply tax yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [applyTax, setApplyTax] = useState(true);
   const [attachment, setAttachment] = useState<File | null>(null);
   
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+  // isPreviewOpen menyimpan nilai is preview open yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [warningModal, setWarningModal] = useState<{ isOpen: boolean; title: string; description: string }>({
     isOpen: false,
@@ -117,8 +163,11 @@ export default function BuatInvoicePage() {
     description: ""
   });
 
+  // Effect ini mengambil data yang diperlukan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru saat halaman dibuka atau filter berubah.
   useEffect(() => {
+    // fetchData mengambil data yang dibutuhkan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru dari Supabase lalu mengisi state halaman.
     const fetchData = async () => {
+      // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
       const [clientsData, companyData] = await Promise.all([
         getClients(),
         getCompanyProfile()
@@ -134,8 +183,11 @@ export default function BuatInvoicePage() {
 
   const { line1, line2 } = splitAddress(selectedClient?.address || "");
   const addressLine2Parts = [];
+  // Kondisi if (selectedClient?.city) addressLine2Parts.push(selectedClient.city); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form buat invoice.
   if (selectedClient?.city) addressLine2Parts.push(selectedClient.city);
+  // Kondisi if (selectedClient?.province) addressLine2Parts.push(selectedClient.province); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form buat invoice.
   if (selectedClient?.province) addressLine2Parts.push(selectedClient.province);
+  // Kondisi if (selectedClient?.postal_code) addressLine2Parts.push(selectedClient.postal_code); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form buat invoice.
   if (selectedClient?.postal_code) addressLine2Parts.push(selectedClient.postal_code);
   const cityProvincePostal = addressLine2Parts.join(", ");
 
@@ -151,65 +203,87 @@ export default function BuatInvoicePage() {
 
 
 
+  // addItem menambah satu baris barang/jasa kosong supaya user bisa memasukkan item invoice berikutnya.
   const addItem = () => {
     setItems([...items, { id: Date.now(), name: "", qty: "", unit: "Pcs", price: 0 }]);
   };
 
+  // removeItem menghapus atau menonaktifkan data yang dipilih user.
   const removeItem = (id: number) => {
+    // Kalau invoice masih punya lebih dari satu item, user boleh menghapus baris item yang dipilih.
     if (items.length > 1) {
+      // filter ini membuang item invoice yang id-nya dipilih user untuk dihapus dari form.
       setItems(items.filter(item => item.id !== id));
     }
   };
 
+  // updateItem menyimpan perubahan data yang diedit dari form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const updateItem = (id: number, field: keyof InvoiceItem, value: any) => {
+    // map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel.
     setItems(items.map(item => {
+      // Kalau item invoice ini adalah baris yang sedang diedit, hanya baris itu yang diganti nilainya.
       if (item.id === id) {
+        // Baris item yang sedang diedit dikembalikan dengan field baru, sementara isi lain tetap sama.
         return { ...item, [field]: value };
       }
+      // Item lain dikembalikan apa adanya supaya perubahan hanya terjadi pada baris yang dipilih.
       return item;
     }));
   };
 
+  // handleSubmit menangani aksi user di form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru, seperti klik tombol, submit form, atau perubahan input.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Kalau customer belum dipilih, proses simpan invoice dihentikan dan modal peringatan ditampilkan.
     if (!clientId) {
       setWarningModal({
         isOpen: true,
         title: "Pilih Customer",
         description: "Silakan pilih customer terlebih dahulu sebelum menyimpan invoice."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
+    // Kalau jatuh tempo belum diisi, invoice tidak disimpan karena tanggal bayar wajib ada.
     if (!dueDate) {
       setWarningModal({
         isOpen: true,
         title: "Tentukan Jatuh Tempo",
         description: "Silakan tentukan tanggal jatuh tempo terlebih dahulu sebelum menyimpan invoice."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
+    // Kalau jatuh tempo lebih awal dari tanggal invoice, form menolak data supaya invoice tidak keliru.
     if (dueDate && invoiceDate && dueDate < invoiceDate) {
       setWarningModal({
         isOpen: true,
         title: "Tanggal Jatuh Tempo Tidak Valid",
         description: "Tanggal jatuh tempo tidak boleh lebih awal dari tanggal terbit invoice."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
+    // Kalau ada item tanpa nama, qty, atau harga valid, invoice tidak disimpan.
     if (items.some(i => !i.name || !i.qty || Number(i.qty) <= 0 || i.price <= 0)) {
       setWarningModal({
         isOpen: true,
         title: "Barang / Jasa Tidak Valid",
         description: "Pastikan semua barang/jasa memiliki deskripsi, jumlah (qty), dan harga yang valid sebelum menyimpan invoice."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
 
     setLoading(true);
+    // try ini menyimpan invoice, item invoice, lampiran, audit log, lalu mengarahkan user kembali ke daftar invoice.
     try {
       let attachmentUrl = null;
+      // Kalau user memilih lampiran, file diupload dulu sebelum invoice disimpan.
       if (attachment) {
+        // await menunggu upload lampiran selesai agar invoice menyimpan URL file yang benar.
         const { url, error } = await uploadFile(attachment, 'uploads');
+        // Kalau Supabase mengembalikan error atau data kosong, form buat invoice menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
         if (!error && url) {
           attachmentUrl = url;
         } else {
@@ -242,6 +316,7 @@ export default function BuatInvoicePage() {
         created_by: null // Handled by RLS
       };
 
+      // map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel.
       const itemsData = items.map(item => ({
         description: item.name,
         quantity: Number(item.qty) || 0,
@@ -250,8 +325,10 @@ export default function BuatInvoicePage() {
         total_price: (Number(item.qty) || 0) * item.price
       }));
 
+      // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
       const { error } = await createInvoiceWithItems(invoiceData, itemsData);
       
+      // Kalau Supabase mengembalikan error atau data kosong, form buat invoice menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
       if (error) {
         console.error(error);
         toast.error(`Gagal membuat invoice: ${error.message}`);
@@ -263,6 +340,7 @@ export default function BuatInvoicePage() {
 
         // Add to Audit Log & Refresh Notifications
         if (user) {
+          // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
           await createAuditLog(user.id, 'create', 'E-Invoice', null, null, { 
             description: `Invoice ${invoiceNumber} berhasil dibuat` 
           });
@@ -283,42 +361,52 @@ export default function BuatInvoicePage() {
     }
   };
 
+  // handleOpenPreview adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleOpenPreview = () => {
+    // Kalau customer belum dipilih, proses simpan invoice dihentikan dan modal peringatan ditampilkan.
     if (!clientId) {
       setWarningModal({
         isOpen: true,
         title: "Pilih Customer",
         description: "Silakan pilih customer terlebih dahulu sebelum melihat pratinjau."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
+    // Kalau jatuh tempo belum diisi, invoice tidak disimpan karena tanggal bayar wajib ada.
     if (!dueDate) {
       setWarningModal({
         isOpen: true,
         title: "Tentukan Jatuh Tempo",
         description: "Silakan tentukan tanggal jatuh tempo terlebih dahulu sebelum melihat pratinjau."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
+    // Kalau jatuh tempo lebih awal dari tanggal invoice, form menolak data supaya invoice tidak keliru.
     if (dueDate && invoiceDate && dueDate < invoiceDate) {
       setWarningModal({
         isOpen: true,
         title: "Tanggal Jatuh Tempo Tidak Valid",
         description: "Tanggal jatuh tempo tidak boleh lebih awal dari tanggal terbit invoice."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
+    // Kalau ada item tanpa nama, qty, atau harga valid, invoice tidak disimpan.
     if (items.some(i => !i.name || i.price <= 0)) {
       setWarningModal({
         isOpen: true,
         title: "Barang / Jasa Tidak Valid",
         description: "Pastikan semua barang/jasa memiliki deskripsi dan harga yang valid sebelum melihat pratinjau."
       });
+      // Proses invoice berhenti di sini karena validasi form belum lolos atau data yang dibutuhkan belum lengkap.
       return;
     }
     setIsPreviewOpen(true);
   };
 
+  // handleSubmit menampilkan UI untuk form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   return (
     <form className="max-w-5xl mx-auto space-y-6 pb-20" onSubmit={handleSubmit}>
       {/* Header */}
@@ -356,6 +444,7 @@ export default function BuatInvoicePage() {
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Customer <span className="text-danger">*</span></label>
                 <CustomSelect 
                   placeholder="Pilih Customer"
+                  // map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase.
                   options={clients.map(c => ({ value: c.id, label: c.name }))}
                   value={clientId}
                   onChange={setClientId}
@@ -396,6 +485,7 @@ export default function BuatInvoicePage() {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* map ini mengubah setiap item invoice di form menjadi data item yang siap disimpan ke Supabase atau ditampilkan di tabel. */}
                   {items.map((item, index) => (
                     <tr key={item.id} className="border-b border-border border-dashed last:border-0">
                       <td className="px-2 py-3">
@@ -540,6 +630,7 @@ export default function BuatInvoicePage() {
                         type="file" 
                         className="sr-only" 
                         onChange={e => {
+                          // Kalau user memilih file dari input lampiran, simpan file itu ke state attachment.
                           if (e.target.files && e.target.files[0]) {
                             setAttachment(e.target.files[0]);
                           }
@@ -662,6 +753,7 @@ export default function BuatInvoicePage() {
                           type="file" 
                           className="sr-only" 
                           onChange={e => {
+                            // Kalau user memilih file dari input lampiran, simpan file itu ke state attachment.
                             if (e.target.files && e.target.files[0]) {
                               setAttachment(e.target.files[0]);
                             }
@@ -787,6 +879,7 @@ export default function BuatInvoicePage() {
                       {selectedClientAddressLine1 && <p className="text-[10px] text-gray-600 max-w-md">{selectedClientAddressLine1}</p>}
                       {selectedClientAddressLine2 && <p className="text-[10px] text-gray-600 max-w-md">{selectedClientAddressLine2}</p>}
                       {(selectedClient?.phone || selectedClient?.email) && (
+                        // filter(Boolean) membuang nilai kosong, misalnya nomor telepon/email yang tidak ada, sebelum teks digabung.
                         <p className="text-[9px] text-gray-600">{[selectedClient.phone, selectedClient.email].filter(Boolean).join(' • ')}</p>
                       )}
                     </div>
@@ -804,6 +897,7 @@ export default function BuatInvoicePage() {
                         </tr>
                       </thead>
                       <tbody className="text-gray-700">
+                        {/* map ini membuat satu baris tabel invoice untuk setiap item barang/jasa pada halaman preview. */}
                         {page.items.map((item: any, idx: number) => (
                           <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8F9FF]'} style={{ borderBottom: '1px solid #eee' }}>
                             <td className="px-3 py-1">{item.name || '-'}</td>

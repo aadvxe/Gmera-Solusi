@@ -1,14 +1,18 @@
 "use client";
 
+// Import React hook yang dipakai kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useMemo } from "react";
+// import Recharts dipakai untuk membuat grafik di dashboard/laporan.
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
+// Interface ini menjelaskan field yang dipakai kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan supaya data form/database tidak salah bentuk.
 interface RawDataPoint {
   dateStr: string;
   income: number;
   expense: number;
 }
 
+// Interface ini menjelaskan field yang dipakai kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan supaya data form/database tidak salah bentuk.
 interface FinancialChartProps {
   title: string;
   icon?: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
@@ -18,11 +22,15 @@ interface FinancialChartProps {
   total: string;
 }
 
+// CustomTooltip adalah komponen React; komponen ini menghasilkan bagian tampilan yang bisa dipakai di halaman.
 const CustomTooltip = ({ active, payload, label }: any) => {
+  // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
   if (active && payload && payload.length) {
+    // Komponen ini menampilkan UI untuk kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan.
     return (
       <div className="bg-white p-3 px-4 border border-gray-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
         <div className="space-y-1.5">
+          {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh FinancialChart. */}
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center justify-between gap-6 text-sm">
               <div className="flex items-center gap-2">
@@ -40,17 +48,22 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       </div>
     );
   }
+  // CustomTooltip berhenti di sini karena syarat lanjut belum terpenuhi.
   return null;
 };
 
+// FinancialChart mengubah data transaksi menjadi grafik batang sesuai periode yang dipilih user.
 export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color, total }: FinancialChartProps) {
   const [period, setPeriod] = useState<"Harian" | "Mingguan" | "Bulanan">("Harian");
 
+  // Memo ini menghitung data turunan untuk kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan hanya saat inputnya berubah, supaya render tidak melakukan hitungan yang sama terus.
   const groupedData = useMemo(() => {
+    // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
     if (!rawData.length) return [];
 
     const result: { name: string; value: number }[] = [];
 
+    // Kondisi if (period === "Harian") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di FinancialChart.
     if (period === "Harian") {
       rawData.forEach(d => {
         const dateObj = new Date(d.dateStr);
@@ -69,6 +82,7 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
         sum += rawData[i][dataKey];
         count++;
         
+        // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
         if (count === 7 || i === rawData.length - 1) {
           result.push({
             name: `M${weekNum} (${currentWeekStart.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })})`,
@@ -77,6 +91,7 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
           sum = 0;
           count = 0;
           weekNum++;
+          // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
           if (i + 1 < rawData.length) {
             currentWeekStart = new Date(rawData[i + 1].dateStr);
           }
@@ -96,24 +111,30 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
       });
     }
 
+    // monthKey mengembalikan nilai yang dibutuhkan oleh FinancialChart.
     return result;
   }, [rawData, period, dataKey]);
 
   // Calculate average based on grouped data
   const averageValue = groupedData.length > 0 
+    // reduce ini menjumlahkan nominal transaksi untuk ringkasan angka di kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan.
     ? groupedData.reduce((acc, curr) => acc + curr.value, 0) / groupedData.length 
     : 0;
 
   const absAverage = Math.abs(averageValue);
   const averageText = `Rp ${absAverage >= 1000000 ? (averageValue / 1000000).toFixed(1) + 'jt' : (averageValue / 1000).toFixed(0) + 'k'} / ${period === 'Harian' ? 'hr' : period === 'Mingguan' ? 'mgg' : 'bln'}`;
 
+  // formatCurrency mengubah angka menjadi format mata uang Indonesia lengkap dengan Rp.
   const formatCurrency = (value: number) => {
     const absValue = Math.abs(value);
     const sign = value < 0 ? "-" : "";
+    // Kondisi if (absValue >= 1000000) return `Rp ${sign}${(absValue / 1000000).toFixed(0)}jt`; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di FinancialChart.
     if (absValue >= 1000000) return `Rp ${sign}${(absValue / 1000000).toFixed(0)}jt`;
+    // sign mengembalikan nilai yang dibutuhkan oleh FinancialChart.
     return `Rp ${sign}${(absValue / 1000).toFixed(0)}k`;
   };
 
+  // formatCurrency menampilkan UI untuk kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan.
   return (
     <div className="bg-surface rounded-xl p-6 border border-border shadow-sm flex flex-col">
       <div className="flex items-center justify-between mb-6">
@@ -122,6 +143,7 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
           {title}
         </h3>
         <div className="flex bg-background rounded-lg p-1">
+          {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh FinancialChart. */}
           {["Harian", "Mingguan", "Bulanan"].map((p) => (
             <button
               key={p}

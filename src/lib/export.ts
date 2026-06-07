@@ -1,17 +1,22 @@
-// @ts-ignore
+// Import library export yang dipakai helper export PDF dan Excel untuk laporan/invoice untuk membuat file laporan yang bisa diunduh.
 import * as XLSX from 'xlsx-js-style';
+// Import library export yang dipakai helper export PDF dan Excel untuk laporan/invoice untuk membuat file laporan yang bisa diunduh.
 import { jsPDF } from 'jspdf';
+// Import library export yang dipakai helper export PDF dan Excel untuk laporan/invoice untuk membuat file laporan yang bisa diunduh.
 import autoTable from 'jspdf-autotable';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function resolveKey(row: any, key: string): any {
+  // Kalau key kolom export bukan data bertingkat seperti client.name, ambil nilainya langsung dari baris data.
   if (!key.includes('.')) return row[key];
+  // resolveKey menelusuri key bertingkat seperti client.name sampai menemukan nilai yang akan masuk ke export.
   return key.split('.').reduce((obj, k) => (obj ? obj[k] : undefined), row);
 }
 
 /** Accounting-style number: 1.234.567,00 */
 function fmtAccounting(val: number): string {
+  // fmtAccounting mengubah angka menjadi format Indonesia dengan dua desimal untuk laporan akuntansi.
   return new Intl.NumberFormat('id-ID', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -20,9 +25,12 @@ function fmtAccounting(val: number): string {
 
 /** Format a date string to dd/MM/yyyy */
 function fmtDate(val: any): string {
+  // Kalau tanggal/nilai kosong, helper export mengosongkan sel supaya file tidak menampilkan tanggal palsu.
   if (!val) return '';
   const d = new Date(val);
+  // Kalau nilai tanggal tidak bisa dibaca JavaScript, tampilkan teks aslinya agar data laporan tidak hilang.
   if (isNaN(d.getTime())) return String(val);
+  // fmtDate mengubah tanggal menjadi format Indonesia agar kolom tanggal di export mudah dibaca.
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
@@ -50,9 +58,13 @@ export function exportToExcel(
   const sortedData = [...data].sort((a, b) => {
     const dateA = a.date || a.invoice_date || a.created_at || "";
     const dateB = b.date || b.invoice_date || b.created_at || "";
+    // Kalau dua baris sama-sama tidak punya tanggal, urutannya dibiarkan tetap.
     if (!dateA && !dateB) return 0;
+    // Kalau baris pertama tidak punya tanggal, taruh di belakang baris yang punya tanggal.
     if (!dateA) return 1;
+    // Kalau baris kedua tidak punya tanggal, taruh baris pertama lebih dulu.
     if (!dateB) return -1;
+    // Sorter export mengurutkan baris dari tanggal paling awal ke paling baru.
     return new Date(dateA).getTime() - new Date(dateB).getTime();
   });
 
@@ -67,36 +79,50 @@ export function exportToExcel(
       
       // Strip accounting layout prefix markers
       if (typeof val === 'string') {
+        // Kalau baris accounting ditandai sebagai header, hapus penanda HDR sebelum masuk ke file Excel/PDF.
         if (val.startsWith('HDR: ')) val = val.replace('HDR: ', '');
+        // Kalau baris accounting ditandai SUB, teks SUB dibuang lalu barisnya dipakai sebagai subjudul laporan.
         else if (val.startsWith('SUB: ')) val = val.replace('SUB: ', '');
+        // Kalau baris accounting ditandai FTR, teks FTR dibuang lalu barisnya dipakai sebagai footer/total laporan.
         else if (val.startsWith('FTR: ')) val = val.replace('FTR: ', '');
       }
 
+      // Kalau kolom adalah nominal uang, simpan sebagai angka supaya Excel bisa menghitung dan memformatnya.
       if (col.isCurrency && typeof val === 'number') {
         cells.push(val);                       // keep as number for Excel
       } else if (col.isDate || col.key === 'date' || col.key.includes('_date')) {
         cells.push(fmtDate(val));
       } else {
         let strVal = val ?? '';
+        // Kalau nilai sel berupa teks, export boleh merapikan label status sebelum dimasukkan ke Excel/PDF.
         if (typeof strVal === 'string') {
+          // Kalau status invoice dari database bernilai paid, ubah labelnya menjadi Paid di file export.
           if (strVal === 'paid') strVal = 'Paid';
+          // Kalau status invoice pending, export menulis label Pending agar statusnya mudah dibaca.
           else if (strVal === 'pending') strVal = 'Pending';
+          // Kalau status transaksi lunas, export menulis label Lunas dalam bahasa Indonesia.
           else if (strVal === 'lunas') strVal = 'Lunas';
+          // Kalau status transaksi belum bayar, export menulis label Belum Bayar.
           else if (strVal === 'belum bayar') strVal = 'Belum Bayar';
         }
         cells.push(strVal);
       }
     });
+    // Setiap hasil map ini adalah satu baris Excel yang sudah berisi nomor, tanggal, nominal, dan status yang rapi.
     return cells;
   });
 
   // ── totals row for currency columns ───────────────────────────────────────
   const totalsRow: any[] = isAccountingLayout ? [] : [''];
+  // Kalau export memakai layout standar, tambahkan nomor baris dan baris TOTAL; layout accounting tidak memakai tambahan ini.
   if (!isAccountingLayout) {
     columns.forEach((col, i) => {
+      // Kalau kolom adalah nominal uang, simpan sebagai angka supaya Excel bisa menghitung dan memformatnya.
       if (col.isCurrency) {
+        // reduce ini menggabungkan daftar data menjadi satu nilai ringkasan yang dibutuhkan helper export PDF dan Excel untuk laporan/invoice.
         const sum = sortedData.reduce((acc, row) => {
           const v = resolveKey(row, col.key);
+          // reduce ini menambahkan nominal kolom uang ke total bawah tabel Excel.
           return acc + (typeof v === 'number' ? v : 0);
         }, 0);
         totalsRow.push(sum);
@@ -117,9 +143,11 @@ export function exportToExcel(
 
   // column widths
   const colWidths: XLSX.ColInfo[] = isAccountingLayout
+    // map ini membuat header/kolom export berdasarkan konfigurasi kolom laporan.
     ? columns.map(col => ({ wch: col.width ?? (col.isCurrency ? 20 : 18) }))
     : [
         { wch: 5 }, // No.
+        // map ini membuat header/kolom export berdasarkan konfigurasi kolom laporan.
         ...columns.map(col => ({ wch: col.width ?? (col.isCurrency ? 20 : 18) })),
       ];
   ws['!cols'] = colWidths;
@@ -128,12 +156,17 @@ export function exportToExcel(
   const hdrRows = new Set<number>();
   const subRows = new Set<number>();
   const ftrRows = new Set<number>();
+  // Kalau export memakai layout accounting, header/subjudul/footer diberi style khusus supaya laporan lebih mirip format akuntansi.
   if (isAccountingLayout) {
     sortedData.forEach((row, idx) => {
       const val = resolveKey(row, columns[0].key);
+      // Kondisi if (typeof val === 'string') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
       if (typeof val === 'string') {
+        // Kalau baris accounting ditandai sebagai header, hapus penanda HDR sebelum masuk ke file Excel/PDF.
         if (val.startsWith('HDR: ')) hdrRows.add(idx + 1);
+        // Kalau baris accounting ditandai SUB, teks SUB dibuang lalu barisnya dipakai sebagai subjudul laporan.
         else if (val.startsWith('SUB: ')) subRows.add(idx + 1);
+        // Kalau baris accounting ditandai FTR, teks FTR dibuang lalu barisnya dipakai sebagai footer/total laporan.
         else if (val.startsWith('FTR: ')) ftrRows.add(idx + 1);
       }
     });
@@ -147,6 +180,7 @@ export function exportToExcel(
     for (let C = 0; C <= range.e.c; C++) {
       const cellAddr = XLSX.utils.encode_cell({ r: R, c: C });
       const cell = ws[cellAddr];
+      // Kondisi if (!cell) continue; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
       if (!cell) continue;
 
       // Define default premium cell style
@@ -168,6 +202,7 @@ export function exportToExcel(
       const col = columns[colIndex];
       const isCurrencyCol = col?.isCurrency;
 
+      // Kalau export memakai layout standar, tambahkan nomor baris dan baris TOTAL; layout accounting tidak memakai tambahan ini.
       if (!isAccountingLayout && isFirstCol) {
         cellStyle.alignment.horizontal = 'center';
       } else if (isCurrencyCol) {
@@ -240,6 +275,7 @@ export function exportToExcel(
         
         // Format Status strings green/red
         const valStr = String(cell.v || '').trim();
+        // Kondisi if (valStr === 'Paid' || valStr === 'Lunas') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
         if (valStr === 'Paid' || valStr === 'Lunas') {
           cellStyle.font.color = { rgb: '16A34A' };
           cellStyle.font.bold = true;
@@ -281,9 +317,13 @@ export function exportToPDF(
   const sortedData = [...data].sort((a, b) => {
     const dateA = a.date || a.invoice_date || a.created_at || "";
     const dateB = b.date || b.invoice_date || b.created_at || "";
+    // Kalau dua baris sama-sama tidak punya tanggal, urutannya dibiarkan tetap.
     if (!dateA && !dateB) return 0;
+    // Kalau baris pertama tidak punya tanggal, taruh di belakang baris yang punya tanggal.
     if (!dateA) return 1;
+    // Kalau baris kedua tidak punya tanggal, taruh baris pertama lebih dulu.
     if (!dateB) return -1;
+    // Sorter export mengurutkan baris dari tanggal paling awal ke paling baru.
     return new Date(dateA).getTime() - new Date(dateB).getTime();
   });
 
@@ -318,6 +358,7 @@ export function exportToPDF(
   doc.setTextColor(...gray);
 
   let currentY = 26;
+  // Kondisi if (periode) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
   if (periode) {
     doc.text(`Periode: ${periode}`, 14, currentY);
     currentY += 4;
@@ -345,7 +386,7 @@ export function exportToPDF(
     const cells: string[] = isAccountingLayout ? [] : [String(idx + 1)];
     columns.forEach(col => {
       const rawVal = resolveKey(row, col.key);
-      let val = rawVal;
+      const val = rawVal;
       
       // Keep special styling markers for hook later
       if (typeof val === 'string' && (val.startsWith('HDR: ') || val.startsWith('SUB: ') || val.startsWith('FTR: '))) {
@@ -353,28 +394,38 @@ export function exportToPDF(
         // Actually, autoTable draws what we put in the cell. If we strip it here, the hook can't find it. 
         // We MUST put it in the cell, then strip it in `didParseCell`.
       }
+      // Kalau kolom adalah nominal uang, simpan sebagai angka supaya Excel bisa menghitung dan memformatnya.
       if (col.isCurrency && typeof val === 'number') {
         cells.push(fmtAccounting(val));
       } else if (col.isDate || col.key === 'date' || col.key.includes('_date')) {
         cells.push(fmtDate(val));
       } else {
         let strVal = String(val ?? '');
+        // Kalau status invoice dari database bernilai paid, ubah labelnya menjadi Paid di file export.
         if (strVal === 'paid') strVal = 'Paid';
+        // Kalau status invoice pending, export menulis label Pending agar statusnya mudah dibaca.
         else if (strVal === 'pending') strVal = 'Pending';
+        // Kalau status transaksi lunas, export menulis label Lunas dalam bahasa Indonesia.
         else if (strVal === 'lunas') strVal = 'Lunas';
+        // Kalau status transaksi belum bayar, export menulis label Belum Bayar.
         else if (strVal === 'belum bayar') strVal = 'Belum Bayar';
         cells.push(strVal);
       }
     });
+    // Setiap hasil map ini adalah satu baris Excel yang sudah berisi nomor, tanggal, nominal, dan status yang rapi.
     return cells;
   });
 
   const totalsRow: string[] = isAccountingLayout ? [] : [''];
+  // Kalau export memakai layout standar, tambahkan nomor baris dan baris TOTAL; layout accounting tidak memakai tambahan ini.
   if (!isAccountingLayout) {
     columns.forEach((col, i) => {
+      // Kalau kolom adalah nominal uang, simpan sebagai angka supaya Excel bisa menghitung dan memformatnya.
       if (col.isCurrency) {
+        // reduce ini menggabungkan daftar data menjadi satu nilai ringkasan yang dibutuhkan helper export PDF dan Excel untuk laporan/invoice.
         const sum = sortedData.reduce((acc, row) => {
           const v = resolveKey(row, col.key);
+          // reduce ini menambahkan nominal kolom uang ke total bawah tabel Excel.
           return acc + (typeof v === 'number' ? v : 0);
         }, 0);
         totalsRow.push(fmtAccounting(sum));
@@ -388,6 +439,7 @@ export function exportToPDF(
 
   // ── Column styles ─────────────────────────────────────────────────────────
   const colStyles: Record<number, any> = {};
+  // Kalau export memakai layout standar, tambahkan nomor baris dan baris TOTAL; layout accounting tidak memakai tambahan ini.
   if (!isAccountingLayout) {
     colStyles[0] = { halign: 'center', cellWidth: 10 }; // No.
   }
@@ -427,10 +479,12 @@ export function exportToPDF(
     columnStyles: colStyles,
     // Style the totals row (last row) and specific texts
     didParseCell: (hookData: any) => {
+      // Kondisi if (hookData.section === 'body') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
       if (hookData.section === 'body') {
         const rowData = hookData.row.raw as string[];
         const firstColText = rowData[0] || '';
         
+        // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
         if (!isAccountingLayout && hookData.row.index === body.length) {
           // Default Totals row
           hookData.cell.styles.fontStyle = 'bold';
@@ -447,6 +501,7 @@ export function exportToPDF(
             hookData.cell.styles.fontStyle = 'bold';
             hookData.cell.styles.lineWidth = 0.15;
             hookData.cell.styles.lineColor = [200, 200, 210];
+            // Kondisi if (hookData.column.index === 0) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
             if (hookData.column.index === 0) {
               hookData.cell.text = [(hookData.cell.raw as string).replace('HDR: ', '')];
             } else {
@@ -458,6 +513,7 @@ export function exportToPDF(
             hookData.cell.styles.fontStyle = 'bold';
             hookData.cell.styles.lineWidth = 0.15;
             hookData.cell.styles.lineColor = [200, 200, 210];
+            // Kondisi if (hookData.column.index === 0) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
             if (hookData.column.index === 0) {
               hookData.cell.text = [(hookData.cell.raw as string).replace('SUB: ', '')];
             }
@@ -467,6 +523,7 @@ export function exportToPDF(
             hookData.cell.styles.fontStyle = 'bold';
             hookData.cell.styles.lineWidth = 0.15;
             hookData.cell.styles.lineColor = [200, 200, 210];
+            // Kondisi if (hookData.column.index === 0) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
             if (hookData.column.index === 0) {
               hookData.cell.text = [(hookData.cell.raw as string).replace('FTR: ', '')];
             }
@@ -474,6 +531,7 @@ export function exportToPDF(
         } else {
           // Format specific texts (only for non-accounting layouts to avoid collision)
           const textStr = String(hookData.cell.raw || '').toLowerCase().trim();
+          // Kondisi if (textStr === 'paid' || textStr === 'lunas' || textStr === 'pemasukan') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
           if (textStr === 'paid' || textStr === 'lunas' || textStr === 'pemasukan') {
             hookData.cell.styles.textColor = [22, 163, 74]; // professional medium green
             hookData.cell.styles.fontStyle = 'bold';
@@ -487,6 +545,7 @@ export function exportToPDF(
     didDrawPage: () => {
       // Page footer
       const totalPages = (doc.internal as any).getNumberOfPages();
+      // Bagian currentPage menyimpan logika yang dipakai di bawahnya.
       const currentPage = (doc.internal as any).getCurrentPageInfo().pageNumber;
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);

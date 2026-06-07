@@ -1,21 +1,36 @@
 "use client";
 
+// Import React hook yang dipakai form tambah pengeluaran untuk menyimpan biaya baru, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect } from "react";
+// Import Link supaya menu/tombol di form tambah pengeluaran untuk menyimpan biaya baru bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import alat navigasi Next.js supaya form tambah pengeluaran untuk menyimpan biaya baru bisa pindah halaman atau membaca route aktif.
 import { useRouter } from "next/navigation";
+// Import ikon yang dipakai form tambah pengeluaran untuk menyimpan biaya baru untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ArrowLeftIcon, SaveIcon, CloudUploadIcon } from "@astraicons/react/bold";
+// Import komponen UI reusable supaya form tambah pengeluaran untuk menyimpan biaya baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya form tambah pengeluaran untuk menyimpan biaya baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import komponen UI reusable supaya form tambah pengeluaran untuk menyimpan biaya baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+// Import komponen UI reusable supaya form tambah pengeluaran untuk menyimpan biaya baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import helper database yang dipakai form tambah pengeluaran untuk menyimpan biaya baru untuk mengambil atau menyimpan data Supabase.
 import { getCategories, getPaymentMethods, createExpense, Category, PaymentMethod } from "@/lib/db";
+// Import uploadFile supaya form tambah pengeluaran untuk menyimpan biaya baru bisa mengirim lampiran ke Supabase Storage.
 import { uploadFile } from "@/lib/storage";
+// Import Sonner untuk menampilkan toast sukses/error di form tambah pengeluaran untuk menyimpan biaya baru.
 import { toast } from "sonner";
+// Import utility project supaya form tambah pengeluaran untuk menyimpan biaya baru bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatRupiah, parseRupiah } from "@/lib/utils";
 
+// TambahPengeluaranPage menyimpan pengeluaran baru, termasuk kategori, metode pembayaran, item, dan lampiran.
 export default function TambahPengeluaranPage() {
   const router = useRouter();
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [loading, setLoading] = useState(false);
+  // amountDisplay menyimpan nilai amount display yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [amountDisplay, setAmountDisplay] = useState("");
   
   // Data for dropdowns
@@ -24,17 +39,27 @@ export default function TambahPengeluaranPage() {
   
   // Form State
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  // vendor menyimpan nilai vendor yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [vendor, setVendor] = useState("");
+  // categoryId menyimpan nilai category id yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [categoryId, setCategoryId] = useState("");
+  // paymentMethodId menyimpan nilai payment method id yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [paymentMethodId, setPaymentMethodId] = useState("");
+  // status menyimpan nilai status yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [status, setStatus] = useState("paid");
+  // amount menyimpan nilai amount yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [amount, setAmount] = useState(0);
+  // notes menyimpan nilai notes yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [notes, setNotes] = useState("");
+  // refNumber menyimpan nilai ref number yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [refNumber, setRefNumber] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
 
+  // Effect ini mengambil data yang diperlukan form tambah pengeluaran untuk menyimpan biaya baru saat halaman dibuka atau filter berubah.
   useEffect(() => {
+    // fetchData mengambil data yang dibutuhkan form tambah pengeluaran untuk menyimpan biaya baru dari Supabase lalu mengisi state halaman.
     const fetchData = async () => {
+      // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
       const [catsData, paymentData] = await Promise.all([
         getCategories('expense'),
         getPaymentMethods()
@@ -42,12 +67,15 @@ export default function TambahPengeluaranPage() {
       setCategories(catsData);
       setPaymentMethods(paymentData);
       
+      // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
       if (catsData.length > 0) setCategoryId(catsData[0].id);
+      // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
       if (paymentData.length > 0) setPaymentMethodId(paymentData[0].id);
     };
     fetchData();
   }, []);
 
+  // handleAmountChange adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     const parsed = parseRupiah(raw);
@@ -55,16 +83,23 @@ export default function TambahPengeluaranPage() {
     setAmountDisplay(parsed > 0 ? formatRupiah(parsed) : raw === "0" ? "0" : "");
   };
 
+  // handleSubmit menangani aksi user di form tambah pengeluaran untuk menyimpan biaya baru, seperti klik tombol, submit form, atau perubahan input.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Kalau nominal kosong atau nol, formatter menampilkan nilai kosong/0 sesuai kebutuhan kartu ringkasan.
     if (!amount || amount <= 0) return alert("Jumlah pengeluaran harus lebih dari 0");
+    // Kondisi if (!vendor) return alert("Masukkan Nama Vendor / Tujuan"); membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form tambah pengeluaran.
     if (!vendor) return alert("Masukkan Nama Vendor / Tujuan");
     
     setLoading(true);
+    // try ini membaca, menyimpan, mengedit, menghapus, atau export data pengeluaran dari Supabase.
     try {
       let attachmentUrl = null;
+      // Kalau user memilih lampiran, file diupload dulu sebelum invoice disimpan.
       if (attachment) {
+        // await menunggu upload lampiran selesai agar invoice menyimpan URL file yang benar.
         const { url, error } = await uploadFile(attachment, 'uploads');
+        // Kalau Supabase mengembalikan error atau data kosong, form tambah pengeluaran menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
         if (error) {
           toast.error("Gagal mengunggah file. Pastikan bucket 'uploads' sudah ada di Supabase.");
         } else {
@@ -72,6 +107,7 @@ export default function TambahPengeluaranPage() {
         }
       }
 
+      // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
       await createExpense({
         date,
         expense_type: vendor,
@@ -94,6 +130,7 @@ export default function TambahPengeluaranPage() {
     }
   };
 
+  // handleSubmit menampilkan UI untuk form tambah pengeluaran untuk menyimpan biaya baru.
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -137,6 +174,7 @@ export default function TambahPengeluaranPage() {
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Kategori <span className="text-danger">*</span></label>
                 <CustomSelect 
                   placeholder="Pilih Kategori"
+                  // map ini membuat pilihan kategori income/expense dari daftar kategori aktif.
                   options={categories.map(c => ({ value: c.id, label: c.name }))}
                   value={categoryId}
                   onChange={setCategoryId}
@@ -187,6 +225,7 @@ export default function TambahPengeluaranPage() {
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Metode Pembayaran</label>
                 <CustomSelect 
                   placeholder="Pilih Metode Pembayaran"
+                  // map ini membuat pilihan metode pembayaran dari data master pembayaran.
                   options={paymentMethods.map(p => ({ value: p.id, label: p.name }))}
                   value={paymentMethodId}
                   onChange={setPaymentMethodId}
@@ -222,6 +261,7 @@ export default function TambahPengeluaranPage() {
                         type="file" 
                         className="sr-only" 
                         onChange={e => {
+                          // Kalau user memilih file dari input lampiran, simpan file itu ke state attachment.
                           if (e.target.files && e.target.files[0]) {
                             setAttachment(e.target.files[0]);
                           }

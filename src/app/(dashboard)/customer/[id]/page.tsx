@@ -1,11 +1,18 @@
 "use client";
 
+// Import React hook yang dipakai halaman detail customer yang saat ini masih memakai data contoh, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, use } from "react";
+// Import Link supaya menu/tombol di halaman detail customer yang saat ini masih memakai data contoh bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import ikon yang dipakai halaman detail customer yang saat ini masih memakai data contoh untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ArrowLeftIcon, EditIcon, CallIcon, EmailIcon, DocumentNextIcon, MoneyIcon } from "@astraicons/react/bold";
+// Import utility project supaya halaman detail customer yang saat ini masih memakai data contoh bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatCurrency } from "@/lib/utils";
+// Import komponen UI reusable supaya halaman detail customer yang saat ini masih memakai data contoh memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya halaman detail customer yang saat ini masih memakai data contoh memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/Table";
+// Import authStore supaya halaman detail customer yang saat ini masih memakai data contoh bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
 
 const MOCK_CLIENT_DETAIL = {
@@ -30,11 +37,14 @@ const MOCK_INVOICE_HISTORY = [
   { id: "INV-010", date: "10 Des 2025", total: 25000000, status: "Lunas" },
 ];
 
+// CustomerDetailPage menampilkan detail customer; saat ini datanya masih contoh sehingga belum membaca Supabase berdasarkan id.
 export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const role = useAuthStore(state => state.role);
 
+  // Kondisi ini mengecek role agar menu/fitur yang tampil sesuai hak akses user.
   if (role === 'viewer') {
+    // CustomerDetailPage menampilkan UI untuk halaman detail customer yang saat ini masih memakai data contoh.
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white rounded-2xl shadow-sm border border-gray-100">
         <h2 className="text-xl font-bold text-text-primary mb-2">Akses Ditolak</h2>
@@ -43,6 +53,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     );
   }
 
+  // CustomerDetailPage menampilkan UI untuk halaman detail customer yang saat ini masih memakai data contoh.
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
@@ -149,6 +160,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman customer. */}
                   {MOCK_INVOICE_HISTORY.map((inv) => (
                     <TableRow key={inv.id}>
                       <TableCell className="font-semibold text-text-primary">{inv.id}</TableCell>

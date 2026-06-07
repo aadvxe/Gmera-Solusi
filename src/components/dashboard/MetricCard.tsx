@@ -1,5 +1,7 @@
+// Import React hook yang dipakai kartu angka ringkasan seperti total pendapatan, pengeluaran, atau piutang, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React from "react";
 
+// Interface ini menjelaskan field yang dipakai kartu angka ringkasan seperti total pendapatan, pengeluaran, atau piutang supaya data form/database tidak salah bentuk.
 interface MetricCardProps {
   title: string;
   amount: string;
@@ -10,6 +12,7 @@ interface MetricCardProps {
   variant: "success" | "danger" | "info" | "warning";
 }
 
+// MetricCard menampilkan satu angka KPI beserta ikon, tren, dan label periodenya.
 export function MetricCard({ title, amount, trend, isPositive, period, icon: Icon, variant }: MetricCardProps) {
   const variantStyles = {
     success: { bg: "bg-success/10", text: "text-success", iconBg: "bg-success/20", iconColor: "text-success" },
@@ -20,6 +23,7 @@ export function MetricCard({ title, amount, trend, isPositive, period, icon: Ico
 
   const style = variantStyles[variant];
 
+  // MetricCard menampilkan UI untuk kartu angka ringkasan seperti total pendapatan, pengeluaran, atau piutang.
   return (
     <div className="bg-surface rounded-xl p-6 border border-border shadow-sm flex flex-col hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-4">

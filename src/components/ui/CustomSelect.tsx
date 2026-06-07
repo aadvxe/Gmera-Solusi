@@ -1,14 +1,19 @@
 "use client";
 
+// Import React hook yang dipakai select custom untuk memilih opsi di form dan filter, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useRef, useEffect } from "react";
+// Import ikon yang dipakai select custom untuk memilih opsi di form dan filter untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ChevronDownIcon } from "@astraicons/react/bold";
+// Import utility project supaya select custom untuk memilih opsi di form dan filter bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { cn } from "@/lib/utils";
 
+// Interface ini menjelaskan field yang dipakai select custom untuk memilih opsi di form dan filter supaya data form/database tidak salah bentuk.
 interface Option {
   value: string;
   label: string;
 }
 
+// Interface ini menjelaskan field yang dipakai select custom untuk memilih opsi di form dan filter supaya data form/database tidak salah bentuk.
 interface CustomSelectProps {
   options: Option[];
   value: string;
@@ -18,6 +23,7 @@ interface CustomSelectProps {
   triggerClassName?: string;
 }
 
+// CustomSelect menampilkan daftar opsi custom dan mengirim nilai yang dipilih ke form/filter.
 export function CustomSelect({
   options,
   value,
@@ -26,21 +32,27 @@ export function CustomSelect({
   className = "",
   triggerClassName = "",
 }: CustomSelectProps) {
+  // isOpen menentukan apakah panel/dropdown/modal sedang terbuka di layar.
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Effect ini menutup dropdown/modal kecil ketika user klik area di luar komponennya.
   useEffect(() => {
+    // handleClickOutside berjalan saat user klik area luar komponen; jika kliknya di luar, dropdown atau kalender akan ditutup.
     function handleClickOutside(event: MouseEvent) {
+      // Kondisi if (containerRef.current && !containerRef.current.contains(event.target as Node)) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di CustomSelect.
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
+    // CustomSelect menampilkan UI untuk select custom untuk memilih opsi di form dan filter.
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const selectedOption = options.find(opt => opt.value === value);
 
+  // CustomSelect menampilkan UI untuk select custom untuk memilih opsi di form dan filter.
   return (
     <div className={cn("relative", className)} ref={containerRef}>
       <button
@@ -63,6 +75,7 @@ export function CustomSelect({
             {options.length === 0 ? (
               <li className="px-3 py-2 text-sm text-gray-500 text-center italic">Tidak ada opsi</li>
             ) : (
+              // map ini membuat satu pilihan visual untuk setiap opsi yang tersedia di dropdown/select.
               options.map((option) => (
                 <li
                   key={option.value}

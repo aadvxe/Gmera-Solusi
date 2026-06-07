@@ -1,21 +1,33 @@
 "use client";
 
+// Import React hook yang dipakai form tambah customer untuk menyimpan pelanggan baru, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState } from "react";
+// Import alat navigasi Next.js supaya form tambah customer untuk menyimpan pelanggan baru bisa pindah halaman atau membaca route aktif.
 import { useRouter } from "next/navigation";
+// Import komponen UI reusable supaya form tambah customer untuk menyimpan pelanggan baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya form tambah customer untuk menyimpan pelanggan baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import ikon yang dipakai form tambah customer untuk menyimpan pelanggan baru untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ArrowLeftIcon } from "@astraicons/react/bold";
+// Import Sonner untuk menampilkan toast sukses/error di form tambah customer untuk menyimpan pelanggan baru.
 import { toast } from "sonner";
+// Import Link supaya menu/tombol di form tambah customer untuk menyimpan pelanggan baru bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
 
+// Import authStore supaya form tambah customer untuk menyimpan pelanggan baru bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
 
+// TambahCustomerPage mengumpulkan data customer baru lalu menyimpannya ke tabel clients.
 export default function TambahCustomerPage() {
   const router = useRouter();
+  // isSubmitting menyimpan nilai is submitting yang berubah saat user berinteraksi dengan form tambah customer untuk menyimpan pelanggan baru.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const role = useAuthStore(state => state.role);
 
+  // Kondisi ini mengecek role agar menu/fitur yang tampil sesuai hak akses user.
   if (role === 'viewer') {
+    // TambahCustomerPage menampilkan UI untuk form tambah customer untuk menyimpan pelanggan baru.
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-white rounded-2xl shadow-sm border border-gray-100">
         <h2 className="text-xl font-bold text-text-primary mb-2">Akses Ditolak</h2>
@@ -24,6 +36,7 @@ export default function TambahCustomerPage() {
     );
   }
 
+  // handleSubmit adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -36,6 +49,7 @@ export default function TambahCustomerPage() {
     }, 1000);
   };
 
+  // TambahCustomerPage menampilkan UI untuk form tambah customer untuk menyimpan pelanggan baru.
   return (
     <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
       <div className="p-6 border-b border-border flex items-center gap-4">

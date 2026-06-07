@@ -6728,108 +6728,126 @@ ALTER TABLE ONLY "storage"."vector_indexes"
 -- Name: audit_log_entries; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."audit_log_entries" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: flow_state; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."flow_state" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: identities; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."identities" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: instances; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."instances" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: mfa_amr_claims; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."mfa_amr_claims" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: mfa_challenges; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."mfa_challenges" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: mfa_factors; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."mfa_factors" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: one_time_tokens; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."one_time_tokens" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: refresh_tokens; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."refresh_tokens" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: saml_providers; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."saml_providers" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: saml_relay_states; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."saml_relay_states" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: schema_migrations; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."schema_migrations" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: sessions; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."sessions" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: sso_domains; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."sso_domains" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: sso_providers; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."sso_providers" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: users; Type: ROW SECURITY; Schema: auth; Owner: supabase_auth_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "auth"."users" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: audit_logs; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."audit_logs" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: clients auth_delete; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON "public"."clients" FOR DELETE TO "authenticated" USING (true);
 
 
@@ -6837,6 +6855,7 @@ CREATE POLICY "auth_delete" ON "public"."clients" FOR DELETE TO "authenticated" 
 -- Name: expense auth_delete; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON "public"."expense" FOR DELETE TO "authenticated" USING (true);
 
 
@@ -6844,6 +6863,7 @@ CREATE POLICY "auth_delete" ON "public"."expense" FOR DELETE TO "authenticated" 
 -- Name: expense_items auth_delete; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON "public"."expense_items" FOR DELETE TO "authenticated" USING (true);
 
 
@@ -6851,6 +6871,7 @@ CREATE POLICY "auth_delete" ON "public"."expense_items" FOR DELETE TO "authentic
 -- Name: income auth_delete; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON "public"."income" FOR DELETE TO "authenticated" USING (true);
 
 
@@ -6858,6 +6879,7 @@ CREATE POLICY "auth_delete" ON "public"."income" FOR DELETE TO "authenticated" U
 -- Name: income_items auth_delete; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON "public"."income_items" FOR DELETE TO "authenticated" USING (true);
 
 
@@ -6865,6 +6887,7 @@ CREATE POLICY "auth_delete" ON "public"."income_items" FOR DELETE TO "authentica
 -- Name: invoice_items auth_delete; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON "public"."invoice_items" FOR DELETE TO "authenticated" USING (true);
 
 
@@ -6872,6 +6895,7 @@ CREATE POLICY "auth_delete" ON "public"."invoice_items" FOR DELETE TO "authentic
 -- Name: invoices auth_delete; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete" ON "public"."invoices" FOR DELETE TO "authenticated" USING (true);
 
 
@@ -6879,6 +6903,7 @@ CREATE POLICY "auth_delete" ON "public"."invoices" FOR DELETE TO "authenticated"
 -- Name: categories auth_delete_cat; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_delete_cat" ON "public"."categories" FOR DELETE TO "authenticated" USING (true);
 
 
@@ -6886,6 +6911,7 @@ CREATE POLICY "auth_delete_cat" ON "public"."categories" FOR DELETE TO "authenti
 -- Name: audit_logs auth_insert; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON "public"."audit_logs" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -6893,6 +6919,7 @@ CREATE POLICY "auth_insert" ON "public"."audit_logs" FOR INSERT TO "authenticate
 -- Name: clients auth_insert; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON "public"."clients" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -6900,6 +6927,7 @@ CREATE POLICY "auth_insert" ON "public"."clients" FOR INSERT TO "authenticated" 
 -- Name: expense auth_insert; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON "public"."expense" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -6907,6 +6935,7 @@ CREATE POLICY "auth_insert" ON "public"."expense" FOR INSERT TO "authenticated" 
 -- Name: expense_items auth_insert; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON "public"."expense_items" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -6914,6 +6943,7 @@ CREATE POLICY "auth_insert" ON "public"."expense_items" FOR INSERT TO "authentic
 -- Name: income auth_insert; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON "public"."income" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -6921,6 +6951,7 @@ CREATE POLICY "auth_insert" ON "public"."income" FOR INSERT TO "authenticated" W
 -- Name: income_items auth_insert; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON "public"."income_items" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -6928,6 +6959,7 @@ CREATE POLICY "auth_insert" ON "public"."income_items" FOR INSERT TO "authentica
 -- Name: invoice_items auth_insert; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON "public"."invoice_items" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -6935,6 +6967,7 @@ CREATE POLICY "auth_insert" ON "public"."invoice_items" FOR INSERT TO "authentic
 -- Name: invoices auth_insert; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert" ON "public"."invoices" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -6942,6 +6975,7 @@ CREATE POLICY "auth_insert" ON "public"."invoices" FOR INSERT TO "authenticated"
 -- Name: categories auth_insert_cat; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_insert_cat" ON "public"."categories" FOR INSERT TO "authenticated" WITH CHECK (true);
 
 
@@ -6949,6 +6983,7 @@ CREATE POLICY "auth_insert_cat" ON "public"."categories" FOR INSERT TO "authenti
 -- Name: audit_logs auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."audit_logs" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -6956,6 +6991,7 @@ CREATE POLICY "auth_select" ON "public"."audit_logs" FOR SELECT TO "authenticate
 -- Name: categories auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."categories" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -6963,6 +6999,7 @@ CREATE POLICY "auth_select" ON "public"."categories" FOR SELECT TO "authenticate
 -- Name: clients auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."clients" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -6970,6 +7007,7 @@ CREATE POLICY "auth_select" ON "public"."clients" FOR SELECT TO "authenticated" 
 -- Name: company_profile auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."company_profile" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -6977,6 +7015,7 @@ CREATE POLICY "auth_select" ON "public"."company_profile" FOR SELECT TO "authent
 -- Name: couriers auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."couriers" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -6984,6 +7023,7 @@ CREATE POLICY "auth_select" ON "public"."couriers" FOR SELECT TO "authenticated"
 -- Name: expense auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."expense" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -6991,6 +7031,7 @@ CREATE POLICY "auth_select" ON "public"."expense" FOR SELECT TO "authenticated" 
 -- Name: expense_items auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."expense_items" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -6998,6 +7039,7 @@ CREATE POLICY "auth_select" ON "public"."expense_items" FOR SELECT TO "authentic
 -- Name: income auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."income" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -7005,6 +7047,7 @@ CREATE POLICY "auth_select" ON "public"."income" FOR SELECT TO "authenticated" U
 -- Name: income_items auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."income_items" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -7012,6 +7055,7 @@ CREATE POLICY "auth_select" ON "public"."income_items" FOR SELECT TO "authentica
 -- Name: invoice_items auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."invoice_items" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -7019,6 +7063,7 @@ CREATE POLICY "auth_select" ON "public"."invoice_items" FOR SELECT TO "authentic
 -- Name: invoices auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."invoices" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -7026,6 +7071,7 @@ CREATE POLICY "auth_select" ON "public"."invoices" FOR SELECT TO "authenticated"
 -- Name: payment_methods auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."payment_methods" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -7033,6 +7079,7 @@ CREATE POLICY "auth_select" ON "public"."payment_methods" FOR SELECT TO "authent
 -- Name: users auth_select; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_select" ON "public"."users" FOR SELECT TO "authenticated" USING (true);
 
 
@@ -7040,6 +7087,7 @@ CREATE POLICY "auth_select" ON "public"."users" FOR SELECT TO "authenticated" US
 -- Name: clients auth_update; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON "public"."clients" FOR UPDATE TO "authenticated" USING (true);
 
 
@@ -7047,6 +7095,7 @@ CREATE POLICY "auth_update" ON "public"."clients" FOR UPDATE TO "authenticated" 
 -- Name: company_profile auth_update; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON "public"."company_profile" FOR UPDATE TO "authenticated" USING (true);
 
 
@@ -7054,6 +7103,7 @@ CREATE POLICY "auth_update" ON "public"."company_profile" FOR UPDATE TO "authent
 -- Name: expense auth_update; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON "public"."expense" FOR UPDATE TO "authenticated" USING (true);
 
 
@@ -7061,6 +7111,7 @@ CREATE POLICY "auth_update" ON "public"."expense" FOR UPDATE TO "authenticated" 
 -- Name: income auth_update; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON "public"."income" FOR UPDATE TO "authenticated" USING (true);
 
 
@@ -7068,6 +7119,7 @@ CREATE POLICY "auth_update" ON "public"."income" FOR UPDATE TO "authenticated" U
 -- Name: invoices auth_update; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update" ON "public"."invoices" FOR UPDATE TO "authenticated" USING (true);
 
 
@@ -7075,6 +7127,7 @@ CREATE POLICY "auth_update" ON "public"."invoices" FOR UPDATE TO "authenticated"
 -- Name: categories auth_update_cat; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "auth_update_cat" ON "public"."categories" FOR UPDATE TO "authenticated" USING (true);
 
 
@@ -7082,66 +7135,77 @@ CREATE POLICY "auth_update_cat" ON "public"."categories" FOR UPDATE TO "authenti
 -- Name: categories; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."categories" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: clients; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."clients" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: company_profile; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."company_profile" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: couriers; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."couriers" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: expense; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."expense" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: expense_items; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."expense_items" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: income; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."income" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: income_items; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."income_items" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: invoice_items; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."invoice_items" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: invoices; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."invoices" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: users own_update; Type: POLICY; Schema: public; Owner: postgres
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "own_update" ON "public"."users" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = "id"));
 
 
@@ -7149,24 +7213,28 @@ CREATE POLICY "own_update" ON "public"."users" FOR UPDATE TO "authenticated" USI
 -- Name: payment_methods; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."payment_methods" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: users; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: messages; Type: ROW SECURITY; Schema: realtime; Owner: supabase_realtime_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "realtime"."messages" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: objects Allow Authenticated Users to Manage Uploads 1va6avm_0; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "Allow Authenticated Users to Manage Uploads 1va6avm_0" ON "storage"."objects" FOR SELECT TO "authenticated" USING (("bucket_id" = 'uploads'::"text"));
 
 
@@ -7174,6 +7242,7 @@ CREATE POLICY "Allow Authenticated Users to Manage Uploads 1va6avm_0" ON "storag
 -- Name: objects Allow Authenticated Users to Manage Uploads 1va6avm_1; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "Allow Authenticated Users to Manage Uploads 1va6avm_1" ON "storage"."objects" FOR INSERT TO "authenticated" WITH CHECK (("bucket_id" = 'uploads'::"text"));
 
 
@@ -7181,6 +7250,7 @@ CREATE POLICY "Allow Authenticated Users to Manage Uploads 1va6avm_1" ON "storag
 -- Name: objects Allow Authenticated Users to Manage Uploads 1va6avm_2; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "Allow Authenticated Users to Manage Uploads 1va6avm_2" ON "storage"."objects" FOR UPDATE TO "authenticated" USING (("bucket_id" = 'uploads'::"text"));
 
 
@@ -7188,6 +7258,7 @@ CREATE POLICY "Allow Authenticated Users to Manage Uploads 1va6avm_2" ON "storag
 -- Name: objects Allow Authenticated Users to Manage Uploads 1va6avm_3; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- Policy ini menentukan operasi apa yang boleh dilakukan user authenticated pada tabel terkait.
 CREATE POLICY "Allow Authenticated Users to Manage Uploads 1va6avm_3" ON "storage"."objects" FOR DELETE TO "authenticated" USING (("bucket_id" = 'uploads'::"text"));
 
 
@@ -7195,48 +7266,56 @@ CREATE POLICY "Allow Authenticated Users to Manage Uploads 1va6avm_3" ON "storag
 -- Name: buckets; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "storage"."buckets" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: buckets_analytics; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "storage"."buckets_analytics" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: buckets_vectors; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "storage"."buckets_vectors" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: migrations; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "storage"."migrations" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: objects; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "storage"."objects" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: s3_multipart_uploads; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "storage"."s3_multipart_uploads" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: s3_multipart_uploads_parts; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "storage"."s3_multipart_uploads_parts" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: vector_indexes; Type: ROW SECURITY; Schema: storage; Owner: supabase_storage_admin
 --
 
+-- RLS diaktifkan agar akses tabel ini bisa dikontrol oleh policy Supabase.
 ALTER TABLE "storage"."vector_indexes" ENABLE ROW LEVEL SECURITY;
 
 --

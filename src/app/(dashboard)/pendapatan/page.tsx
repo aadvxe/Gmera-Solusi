@@ -1,15 +1,26 @@
 "use client";
 
+// Import React hook yang dipakai halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect } from "react";
+// Import Link supaya menu/tombol di halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import ikon yang dipakai halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { Filter1Icon, PlusIcon, DocumentDownloadIcon, EyeIcon, EditIcon, TrashIcon, HelpIcon, ArrowDownIcon, CloseIcon } from "@astraicons/react/bold";
+// Import ikon yang dipakai halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { SearchIcon } from "@astraicons/react/linear";
+// Import komponen UI reusable supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+// Import komponen UI reusable supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Modal } from "@/components/ui/Modal";
+// Import komponen UI reusable supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import komponen UI reusable supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+// Import komponen UI reusable supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman daftar pendapatan.
 import { 
   Table, 
   TableBody, 
@@ -18,18 +29,29 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/Table";
+// Import helper database yang dipakai halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan untuk mengambil atau menyimpan data Supabase.
 import { getIncome, deleteIncome, updateIncome, getCategories, getClients, Income, Category, Client } from "@/lib/db";
+// Import helper database yang dipakai halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan untuk mengambil atau menyimpan data Supabase.
 import { createAuditLog } from "@/lib/db/users";
+// Import authStore supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import Sonner untuk menampilkan toast sukses/error di halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
 import { toast } from "sonner";
+// Import utility project supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
+// Import uploadFile supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan bisa mengirim lampiran ke Supabase Storage.
 import { uploadFile } from "@/lib/storage";
+// Import helper export supaya daftar pendapatan bisa diunduh sebagai PDF/Excel sesuai filter tanggal, kategori, dan pencarian aktif.
 import { exportToExcel, exportToPDF } from "@/lib/export";
+// Import ikon yang dipakai halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+// PendapatanPage menampilkan data income, menghitung ringkasan, menjalankan filter, dan membuka modal edit/hapus.
 export default function PendapatanPage() {
+  // searchTerm menyimpan nilai search term yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [searchTerm, setSearchTerm] = useState("");
   const [incomes, setIncomes] = useState<Income[]>([]);
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [loading, setLoading] = useState(true);
   const user = useAuthStore(state => state.user);
   const role = useAuthStore(state => state.role);
@@ -38,10 +60,13 @@ export default function PendapatanPage() {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
+  // itemsPerPage menyimpan nilai items per page yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // loadData mengambil data yang dibutuhkan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan dari Supabase lalu mengisi state halaman.
   const loadData = async () => {
     setLoading(true);
+    // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
     const [data, catsData, clientsData] = await Promise.all([
       getIncome(),
       getCategories('income'),
@@ -53,22 +78,29 @@ export default function PendapatanPage() {
     setLoading(false);
   };
 
+  // Effect ini mengambil data yang diperlukan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan saat halaman dibuka atau filter berubah.
   useEffect(() => {
     loadData();
   }, []);
 
+  // isDeleteModalOpen menyimpan nilai is delete modal open yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
+  // handleDeleteClick adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleDeleteClick = (id: string) => {
     setItemToDelete(id);
     setIsDeleteModalOpen(true);
   };
 
+  // confirmDelete menjalankan hapus data setelah user menyetujui modal konfirmasi.
   const confirmDelete = async () => {
+    // Kondisi if (!itemToDelete) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pendapatan.
     if (!itemToDelete) return;
     
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await deleteIncome(itemToDelete);
+    // Kalau Supabase mengembalikan error atau data kosong, halaman daftar pendapatan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       alert("Gagal menghapus data: " + error.message);
     } else {
@@ -79,10 +111,13 @@ export default function PendapatanPage() {
     setItemToDelete(null);
   };
 
+  // isDetailModalOpen menyimpan nilai is detail modal open yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  // isEditModalOpen menyimpan nilai is edit modal open yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState<Income | null>(null);
 
+  // editFormData menyimpan nilai edit form data yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [editFormData, setEditFormData] = useState({
     date: "",
     source: "",
@@ -95,11 +130,16 @@ export default function PendapatanPage() {
   });
   const [editAttachment, setEditAttachment] = useState<File | null>(null);
 
+  // isFilterDropdownOpen menyimpan nilai is filter dropdown open yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  // filterFrom menyimpan nilai filter from yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [filterFrom, setFilterFrom] = useState("");
+  // filterTo menyimpan nilai filter to yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [filterTo, setFilterTo] = useState("");
+  // filterCategoryId menyimpan nilai filter category id yang berubah saat user berinteraksi dengan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const [filterCategoryId, setFilterCategoryId] = useState("all");
 
+  // resetFilters mengembalikan filter invoice ke kondisi awal: semua status, tanpa pencarian, dan halaman pertama.
   const resetFilters = () => {
     setFilterFrom("");
     setFilterTo("");
@@ -107,11 +147,13 @@ export default function PendapatanPage() {
     setIsFilterDropdownOpen(false);
   };
 
+  // handleView adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleView = (income: Income) => {
     setSelectedIncome(income);
     setIsDetailModalOpen(true);
   };
 
+  // handleEdit adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleEdit = (income: Income) => {
     setSelectedIncome(income);
     const amt = income.amount || 0;
@@ -129,20 +171,26 @@ export default function PendapatanPage() {
     setIsEditModalOpen(true);
   };
 
+  // submitEdit menyimpan perubahan dari modal edit lalu memperbarui daftar data di halaman.
   const submitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Kondisi if (!selectedIncome) return; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pendapatan.
     if (!selectedIncome) return;
     
     setLoading(true);
     let newAttachmentUrl = editFormData.attachment_url;
       
+    // Kondisi if (editAttachment) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pendapatan.
     if (editAttachment) {
+      // await menunggu upload lampiran selesai agar invoice menyimpan URL file yang benar.
       const { url, error } = await uploadFile(editAttachment, 'uploads');
+      // Kalau Supabase mengembalikan error atau data kosong, halaman daftar pendapatan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
       if (!error && url) {
         newAttachmentUrl = url;
       }
     }
 
+    // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
     const { error } = await updateIncome(selectedIncome.id, {
       date: editFormData.date,
       source: editFormData.source,
@@ -154,6 +202,7 @@ export default function PendapatanPage() {
     });
     setLoading(false);
 
+    // Kalau Supabase mengembalikan error atau data kosong, halaman daftar pendapatan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
     if (error) {
       toast.error("Gagal memperbarui data: " + error.message);
     } else {
@@ -165,7 +214,9 @@ export default function PendapatanPage() {
     }
   };
 
+  // getFilteredIncomes mengambil atau menghitung data yang dibutuhkan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const getFilteredIncomes = () => {
+    // getFilteredIncomes mengembalikan hasil untuk halaman daftar pendapatan, sesuai data yang dihitung tepat sebelum baris return ini.
     return incomes.filter(row => {
       const matchesSearch = row.source.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             (row.reference_number || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -173,6 +224,7 @@ export default function PendapatanPage() {
       const matchesDateTo = filterTo ? row.date <= filterTo : true;
       const matchesCategory = filterCategoryId === "all" ? true : row.category_id === filterCategoryId;
       
+      // matchesCategory mengembalikan hasil untuk halaman daftar pendapatan, sesuai data yang dihitung tepat sebelum baris return ini.
       return matchesSearch && matchesDateFrom && matchesDateTo && matchesCategory;
     });
   };
@@ -185,14 +237,17 @@ export default function PendapatanPage() {
   const filteredIncomes = getFilteredIncomes();
   const totalItems = filteredIncomes.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  // Bagian startIndex menyimpan logika yang dipakai di bawahnya.
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedIncomes = filteredIncomes.slice(startIndex, endIndex);
 
+  // getPageNumbers mengambil atau menghitung data yang dibutuhkan halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   const getPageNumbers = () => {
     const pages = [];
     const maxVisible = 5;
     
+    // Kondisi if (totalPages <= maxVisible) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pendapatan.
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -203,12 +258,14 @@ export default function PendapatanPage() {
       let start = Math.max(2, currentPage - 1);
       let end = Math.min(totalPages - 1, currentPage + 1);
       
+      // Kondisi if (currentPage <= 3) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pendapatan.
       if (currentPage <= 3) {
         end = 4;
       } else if (currentPage >= totalPages - 2) {
         start = totalPages - 3;
       }
       
+      // Kondisi if (start > 2) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pendapatan.
       if (start > 2) {
         pages.push("ellipsis-start");
       }
@@ -217,6 +274,7 @@ export default function PendapatanPage() {
         pages.push(i);
       }
       
+      // Kondisi if (end < totalPages - 1) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pendapatan.
       if (end < totalPages - 1) {
         pages.push("ellipsis-end");
       }
@@ -224,6 +282,7 @@ export default function PendapatanPage() {
       pages.push(totalPages);
     }
     
+    // maxVisible mengembalikan hasil untuk halaman daftar pendapatan, sesuai data yang dihitung tepat sebelum baris return ini.
     return pages;
   };
 
@@ -236,7 +295,9 @@ export default function PendapatanPage() {
     { header: 'Status', key: 'status', width: 12 }
   ];
 
+  // handleExportExcel menangani aksi user di halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan, seperti klik tombol, submit form, atau perubahan input.
   const handleExportExcel = async () => {
+    // try ini membaca, menyimpan, mengedit, menghapus, atau export data pendapatan dari Supabase.
     try {
       exportToExcel(getFilteredIncomes(), exportColumns, `Pendapatan_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor Excel Selesai", {
@@ -244,7 +305,9 @@ export default function PendapatanPage() {
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
       
+      // Kalau data user tersedia, lanjutkan proses yang membutuhkan akun login.
       if (user) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Laporan Pendapatan (Excel) berhasil diunduh' });
         window.dispatchEvent(new CustomEvent('refreshNotifications'));
       }
@@ -256,8 +319,10 @@ export default function PendapatanPage() {
     }
   };
 
+  // handleExportPDF menangani aksi user di halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan, seperti klik tombol, submit form, atau perubahan input.
   const handleExportPDF = async () => {
     toast.info("Sedang menyiapkan PDF...");
+    // try ini membaca, menyimpan, mengedit, menghapus, atau export data pendapatan dari Supabase.
     try {
       exportToPDF(getFilteredIncomes(), exportColumns, 'Laporan Pendapatan', `Laporan_Pendapatan_${new Date().toISOString().slice(0,10)}`);
       toast("Ekspor PDF Selesai", {
@@ -265,7 +330,9 @@ export default function PendapatanPage() {
         icon: <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-[#5C67F2]/10 text-[#5C67F2]"><ArrowDownIcon className="w-5 h-5" /></div>,
       });
 
+      // Kalau data user tersedia, lanjutkan proses yang membutuhkan akun login.
       if (user) {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         await createAuditLog(user.id, 'create', 'Export', null, null, { description: 'Laporan Pendapatan (PDF) berhasil diunduh' });
         window.dispatchEvent(new CustomEvent('refreshNotifications'));
       }
@@ -278,6 +345,7 @@ export default function PendapatanPage() {
     }
   };
 
+  // handleExportPDF menampilkan UI untuk halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
   return (
     <>
       <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
@@ -358,6 +426,7 @@ export default function PendapatanPage() {
                             <CustomSelect 
                               options={[
                                 { value: "all", label: "Semua Kategori" },
+                                // map ini membuat pilihan kategori income/expense dari daftar kategori aktif.
                                 ...categories.map(c => ({ value: c.id, label: c.name }))
                               ]}
                               value={filterCategoryId}
@@ -426,6 +495,7 @@ export default function PendapatanPage() {
                   </TableCell>
                 </TableRow>
               ) : (
+                // filter ini menyisakan data halaman daftar pendapatan yang cocok dengan pencarian, status, role, atau tanggal aktif.
                 paginatedIncomes.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium text-[#151D48]">{new Date(row.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
@@ -518,14 +588,18 @@ export default function PendapatanPage() {
               <ChevronLeft className="w-4 h-4" />
             </Button>
             
+            {/* filter ini menyisakan data halaman daftar pendapatan yang cocok dengan pencarian, status, role, atau tanggal aktif. */}
             {getPageNumbers().map((p, idx) => {
+              // Kondisi if (p === "ellipsis-start" || p === "ellipsis-end") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman daftar pendapatan.
               if (p === "ellipsis-start" || p === "ellipsis-end") {
+                // handleExportPDF menampilkan UI untuk halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
                 return (
                   <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
                     ...
                   </span>
                 );
               }
+              // handleExportPDF menampilkan UI untuk halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan.
               return (
                 <Button
                   key={`page-${p}`}
@@ -656,6 +730,7 @@ export default function PendapatanPage() {
               <CustomSelect 
                 placeholder="Pilih Customer"
                 options={[
+                  // map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase.
                   ...clients.map(c => ({ value: c.name, label: c.name })),
                   { value: "Lainnya", label: "Lainnya" }
                 ]}
@@ -708,6 +783,7 @@ export default function PendapatanPage() {
               <label className="block text-sm font-medium text-[#151D48] mb-1.5">Kategori</label>
               <CustomSelect 
                 placeholder="Pilih Kategori"
+                // map ini membuat pilihan kategori income/expense dari daftar kategori aktif.
                 options={categories.map(c => ({ value: c.id, label: c.name }))}
                 value={editFormData.category_id}
                 onChange={val => setEditFormData({...editFormData, category_id: val})}
@@ -733,6 +809,7 @@ export default function PendapatanPage() {
                         type="file" 
                         className="sr-only" 
                         onChange={e => {
+                          // Kalau user memilih file dari input lampiran, simpan file itu ke state attachment.
                           if (e.target.files && e.target.files[0]) {
                             setEditAttachment(e.target.files[0]);
                           }

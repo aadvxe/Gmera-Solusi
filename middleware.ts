@@ -1,6 +1,9 @@
+// Import createServerClient untuk membuat Supabase client di middleware; client ini membaca cookie session dari request dan menulis cookie baru ke response.
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+// Import NextRequest dan NextResponse agar middleware bisa membaca URL/cookie request lalu mengirim response normal atau redirect.
 import { NextResponse, type NextRequest } from 'next/server'
 
+// middleware berjalan sebelum halaman dibuka untuk mengecek cookie Supabase, mengarahkan user yang belum login ke /login, dan menjaga cookie auth tetap ikut di response.
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -14,6 +17,7 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         get(name: string) {
+          // Supabase SSR meminta cookie auth lewat fungsi ini; middleware mengambil nilainya dari request user yang sedang dibuka.
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
@@ -50,6 +54,7 @@ export async function middleware(request: NextRequest) {
   ]
   const isProtected = protectedPaths.some(p => pathname.startsWith(p))
 
+  // Kalau user membuka halaman dashboard tanpa session valid, middleware menyiapkan redirect ke /login.
   if (isProtected && !user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('next', pathname)
@@ -59,6 +64,7 @@ export async function middleware(request: NextRequest) {
     response.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
     })
+    // Middleware mengirim response redirect yang sudah membawa cookie Supabase terbaru.
     return redirectResponse
   }
 
@@ -69,14 +75,17 @@ export async function middleware(request: NextRequest) {
     response.cookies.getAll().forEach((cookie) => {
       redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
     })
+    // Middleware mengirim response redirect yang sudah membawa cookie Supabase terbaru.
     return redirectResponse
   }
 
   // If root with no auth — go to login
   if (!user && pathname === '/') {
+    // Middleware mengirim redirect ke halaman login untuk pengunjung yang belum punya session.
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Middleware melanjutkan request normal karena user boleh membuka halaman yang diminta.
   return response
 }
 

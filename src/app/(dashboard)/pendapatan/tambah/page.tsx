@@ -1,21 +1,36 @@
 "use client";
 
+// Import React hook yang dipakai form tambah pendapatan untuk menyimpan pemasukan baru, misalnya untuk state, efek setelah render, atau referensi elemen.
 import React, { useState, useEffect, useRef } from "react";
+// Import Link supaya menu/tombol di form tambah pendapatan untuk menyimpan pemasukan baru bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import alat navigasi Next.js supaya form tambah pendapatan untuk menyimpan pemasukan baru bisa pindah halaman atau membaca route aktif.
 import { useRouter } from "next/navigation";
+// Import Sonner untuk menampilkan toast sukses/error di form tambah pendapatan untuk menyimpan pemasukan baru.
 import { toast } from "sonner";
+// Import ikon yang dipakai form tambah pendapatan untuk menyimpan pemasukan baru untuk memperjelas tombol, menu, status, dan aksi di layar.
 import { ArrowLeftIcon, SaveIcon, CloudUploadIcon, ChevronDownIcon } from "@astraicons/react/bold";
+// Import komponen UI reusable supaya form tambah pendapatan untuk menyimpan pemasukan baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
+// Import komponen UI reusable supaya form tambah pendapatan untuk menyimpan pemasukan baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";
+// Import komponen UI reusable supaya form tambah pendapatan untuk menyimpan pemasukan baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
+// Import komponen UI reusable supaya form tambah pendapatan untuk menyimpan pemasukan baru memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import helper database yang dipakai form tambah pendapatan untuk menyimpan pemasukan baru untuk mengambil atau menyimpan data Supabase.
 import { getClients, getCategories, getPaymentMethods, createIncome, getInvoicesByClient, Client, Category, PaymentMethod, Invoice } from "@/lib/db";
+// Import uploadFile supaya form tambah pendapatan untuk menyimpan pemasukan baru bisa mengirim lampiran ke Supabase Storage.
 import { uploadFile } from "@/lib/storage";
+// Import utility project supaya form tambah pendapatan untuk menyimpan pemasukan baru bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatRupiah, parseRupiah } from "@/lib/utils";
 
+// TambahPendapatanPage menyimpan pemasukan baru, termasuk kategori, metode pembayaran, item, dan lampiran.
 export default function TambahPendapatanPage() {
   const router = useRouter();
+  // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [loading, setLoading] = useState(false);
+  // amountDisplay menyimpan nilai amount display yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [amountDisplay, setAmountDisplay] = useState("");
   
   // Data for dropdowns
@@ -25,21 +40,33 @@ export default function TambahPendapatanPage() {
   
   // Form State
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  // clientId menyimpan nilai client id yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [clientId, setClientId] = useState("");
+  // categoryId menyimpan nilai category id yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [categoryId, setCategoryId] = useState("");
+  // paymentMethodId menyimpan nilai payment method id yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [paymentMethodId, setPaymentMethodId] = useState("");
+  // amount menyimpan nilai amount yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [amount, setAmount] = useState(0);
+  // notes menyimpan nilai notes yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [notes, setNotes] = useState("");
+  // refNumber menyimpan nilai ref number yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [refNumber, setRefNumber] = useState("");
+  // invoiceId menyimpan nilai invoice id yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [invoiceId, setInvoiceId] = useState("");
   const [clientInvoices, setClientInvoices] = useState<Invoice[]>([]);
+  // addTax menyimpan nilai add tax yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [addTax, setAddTax] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
+  // isDropdownOpen menyimpan nilai is dropdown open yang berubah saat user berinteraksi dengan form tambah pendapatan untuk menyimpan pemasukan baru.
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Effect ini menutup dropdown/modal kecil ketika user klik area di luar komponennya.
   useEffect(() => {
+    // fetchData mengambil data yang dibutuhkan form tambah pendapatan untuk menyimpan pemasukan baru dari Supabase lalu mengisi state halaman.
     const fetchData = async () => {
+      // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
       const [clientsData, catsData, paymentData] = await Promise.all([
         getClients(),
         getCategories('income'),
@@ -51,24 +78,30 @@ export default function TambahPendapatanPage() {
       
       // Auto select first option if available
       if (catsData.length > 0) setCategoryId(catsData[0].id);
+      // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
       if (paymentData.length > 0) setPaymentMethodId(paymentData[0].id);
     };
     fetchData();
 
     // Click outside handler for combobox
     function handleClickOutside(event: MouseEvent) {
+      // Kondisi if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form tambah pendapatan.
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
+    // fetchData menampilkan UI untuk form tambah pendapatan untuk menyimpan pemasukan baru.
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Fetch invoices when client changes
   useEffect(() => {
+    // fetchClientInvoices mengambil data yang dibutuhkan form tambah pendapatan untuk menyimpan pemasukan baru dari Supabase lalu mengisi state halaman.
     const fetchClientInvoices = async () => {
+      // Kondisi if (clientId && clientId !== "lainnya") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form tambah pendapatan.
       if (clientId && clientId !== "lainnya") {
+        // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
         const data = await getInvoicesByClient(clientId);
         // Filter to only show unpaid/overdue invoices
         setClientInvoices(data.filter(inv => inv.status !== 'paid' && inv.status !== 'cancelled'));
@@ -80,6 +113,7 @@ export default function TambahPendapatanPage() {
     fetchClientInvoices();
   }, [clientId]);
 
+  // handleAmountChange adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     const parsed = parseRupiah(raw);
@@ -87,23 +121,31 @@ export default function TambahPendapatanPage() {
     setAmountDisplay(parsed > 0 ? formatRupiah(parsed) : raw === "0" ? "0" : "");
   };
 
+  // handleSubmit menangani aksi user di form tambah pendapatan untuk menyimpan pemasukan baru, seperti klik tombol, submit form, atau perubahan input.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Kalau nominal kosong atau nol, formatter menampilkan nilai kosong/0 sesuai kebutuhan kartu ringkasan.
     if (!amount || amount <= 0) return alert("Jumlah pendapatan harus lebih dari 0");
+    // Kalau customer belum dipilih, proses simpan invoice dihentikan dan modal peringatan ditampilkan.
     if (!clientId && !notes) return alert("Pilih Customer atau tambahkan Catatan Sumber");
     
     setLoading(true);
+    // try ini membaca, menyimpan, mengedit, menghapus, atau export data pendapatan dari Supabase.
     try {
       const clientName = clients.find(c => c.id === clientId)?.name || "Lainnya";
       
       let finalAmount = amount;
+      // Kondisi if (addTax) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form tambah pendapatan.
       if (addTax) {
         finalAmount = Math.round(amount * 1.11); // Add 11% PPN
       }
 
       let attachmentUrl = null;
+      // Kalau user memilih lampiran, file diupload dulu sebelum invoice disimpan.
       if (attachment) {
+        // await menunggu upload lampiran selesai agar invoice menyimpan URL file yang benar.
         const { url, error } = await uploadFile(attachment, 'uploads');
+        // Kalau Supabase mengembalikan error atau data kosong, form tambah pendapatan menampilkan pesan gagal atau mengembalikan data kosong agar UI tidak rusak.
         if (error) {
           toast.error("Gagal mengunggah file. Pastikan bucket 'uploads' sudah ada di Supabase.");
         } else {
@@ -111,6 +153,7 @@ export default function TambahPendapatanPage() {
         }
       }
 
+      // await menunggu proses async selesai sebelum kode ini melanjutkan langkah berikutnya.
       await createIncome({
         date,
         source: clientId ? clientName : notes.substring(0, 50),
@@ -142,6 +185,7 @@ export default function TambahPendapatanPage() {
     }
   };
 
+  // handleSubmit menampilkan UI untuk form tambah pendapatan untuk menyimpan pemasukan baru.
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -175,6 +219,7 @@ export default function TambahPendapatanPage() {
                 <CustomSelect 
                   placeholder="Pilih Customer"
                   options={[
+                    // map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase.
                     ...clients.map(c => ({ value: c.id, label: c.name })),
                     { value: "lainnya", label: "Tunai / Lainnya" }
                   ]}
@@ -187,6 +232,7 @@ export default function TambahPendapatanPage() {
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Kategori <span className="text-danger">*</span></label>
                 <CustomSelect 
                   placeholder="Pilih Kategori"
+                  // map ini membuat pilihan kategori income/expense dari daftar kategori aktif.
                   options={categories.map(c => ({ value: c.id, label: c.name }))}
                   value={categoryId}
                   onChange={setCategoryId}
@@ -206,10 +252,12 @@ export default function TambahPendapatanPage() {
                       onChange={e => {
                         const val = e.target.value;
                         setRefNumber(val);
+                        // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
                         if (clientInvoices.length > 0) setIsDropdownOpen(true);
                         
                         // Check exact match
                         const matchedInv = clientInvoices.find(inv => inv.invoice_number === val);
+                        // Kondisi if (matchedInv) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form tambah pendapatan.
                         if (matchedInv) {
                           setInvoiceId(matchedInv.id);
                           setAmount(matchedInv.grand_total);
@@ -231,7 +279,9 @@ export default function TambahPendapatanPage() {
                     <div className="absolute z-[100] w-full mt-1 bg-white border border-gray-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
                       <ul className="max-h-60 overflow-auto p-1.5 space-y-0.5 scrollbar-none">
                         {clientInvoices
+                          // filter ini menyisakan data form tambah pendapatan yang cocok dengan pencarian, status, role, atau tanggal aktif.
                           .filter(inv => inv.invoice_number.toLowerCase().includes(refNumber.toLowerCase()) || refNumber === '')
+                          // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh form tambah pendapatan.
                           .map(inv => (
                           <li 
                             key={inv.id}
@@ -248,6 +298,7 @@ export default function TambahPendapatanPage() {
                             <span className="text-xs font-semibold">Rp {inv.grand_total.toLocaleString('id-ID')}</span>
                           </li>
                         ))}
+                        {/* filter ini menyisakan data form tambah pendapatan yang cocok dengan pencarian, status, role, atau tanggal aktif. */}
                         {clientInvoices.filter(inv => inv.invoice_number.toLowerCase().includes(refNumber.toLowerCase())).length === 0 && (
                           <li className="px-3 py-2 text-sm text-gray-500 text-center italic">Tidak ada invoice yang cocok</li>
                         )}
@@ -292,6 +343,7 @@ export default function TambahPendapatanPage() {
                 <label className="block text-sm font-medium text-text-primary mb-1.5">Metode Pembayaran</label>
                 <CustomSelect 
                   placeholder="Pilih Metode Pembayaran"
+                  // map ini membuat pilihan metode pembayaran dari data master pembayaran.
                   options={paymentMethods.map(p => ({ value: p.id, label: p.name }))}
                   value={paymentMethodId}
                   onChange={setPaymentMethodId}
@@ -327,6 +379,7 @@ export default function TambahPendapatanPage() {
                         type="file" 
                         className="sr-only" 
                         onChange={e => {
+                          // Kalau user memilih file dari input lampiran, simpan file itu ke state attachment.
                           if (e.target.files && e.target.files[0]) {
                             setAttachment(e.target.files[0]);
                           }
