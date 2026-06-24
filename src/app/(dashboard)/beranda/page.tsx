@@ -144,6 +144,7 @@ export default function DashboardPage() {
 
   // Period filter states
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
+  const [loadedPeriod, setLoadedPeriod] = useState<string>("");
   const [periodOptions, setPeriodOptions] = useState<{ value: string, label: string }[]>([]);
   // isLoading menandai proses sedang berjalan supaya tombol bisa dibuat disabled atau layar loading muncul.
   const [isLoading, setIsLoading] = useState(true);
@@ -326,6 +327,7 @@ export default function DashboardPage() {
           { name: 'Jatuh T.', value: data.overdueInvoices, color: '#f08a5d' },
         ]);
       }
+      setLoadedPeriod(selectedPeriod);
     };
 
     loadData();
@@ -446,7 +448,7 @@ export default function DashboardPage() {
           </h2>
           <ChartWrapper height={220}>
             <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={chartData}>
+              <LineChart key={loadedPeriod} data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} minTickGap={30} interval="equidistantPreserveStart" />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} />
@@ -454,9 +456,9 @@ export default function DashboardPage() {
                   cursor={{ stroke: '#5C67F2', strokeWidth: 1, strokeDasharray: '4 4' }} 
                   content={<CustomTooltip />}
                 />
-                <Line type="monotone" dataKey="pendapatan" stroke="#76c893" strokeWidth={3} dot={false} />
-                <Line type="monotone" dataKey="pengeluaran" stroke="#f08a5d" strokeWidth={3} dot={false} />
-                <Line type="monotone" dataKey="laba" stroke="#7983ff" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="pendapatan" stroke="#76c893" strokeWidth={3} dot={false} animationDuration={800} animationEasing="ease-out" />
+                <Line type="monotone" dataKey="pengeluaran" stroke="#f08a5d" strokeWidth={3} dot={false} animationDuration={800} animationEasing="ease-out" />
+                <Line type="monotone" dataKey="laba" stroke="#7983ff" strokeWidth={3} dot={false} animationDuration={800} animationEasing="ease-out" />
               </LineChart>
             </ResponsiveContainer>
           </ChartWrapper>
