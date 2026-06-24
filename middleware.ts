@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
   // Protected routes — redirect to login if no valid session
   const protectedPaths = [
     '/beranda', '/pendapatan', '/pengeluaran', '/e-invoice',
-    '/laporan', '/klien', '/pengaturan', '/profil'
+    '/laporan', '/klien', '/customer', '/pencarian', '/pengaturan', '/profil'
   ]
   const isProtected = protectedPaths.some(p => pathname.startsWith(p))
 
