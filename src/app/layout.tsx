@@ -6,6 +6,8 @@ import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/Toaster";
 // Import CSS global yang berisi Tailwind, token warna, dan style dasar seluruh aplikasi.
 import "./globals.css";
+// Import Analytics untuk integrasi dengan Vercel Analytics.
+import { Analytics } from "@vercel/analytics/react";
 
 // poppins menyimpan konfigurasi font Poppins yang akan dipasang ke body aplikasi.
 const poppins = Poppins({
@@ -33,7 +35,9 @@ export default function RootLayout({
       <body className={`${poppins.className} ${poppins.variable} antialiased bg-background text-text-primary`}>
         {children}
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
 }
+
