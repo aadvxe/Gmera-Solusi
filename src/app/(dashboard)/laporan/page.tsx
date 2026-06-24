@@ -77,7 +77,7 @@ export default function LaporanPage() {
   };
 
   // handleExport menangani aksi user di halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export, seperti klik tombol, submit form, atau perubahan input.
-  const handleExport = async (type: 'transaksi' | 'bukubesar' | 'labarugi', format: 'pdf' | 'excel') => {
+  const handleExport = async (type: 'transaksi' | 'pendapatan' | 'pengeluaran' | 'bukubesar' | 'labarugi', format: 'pdf' | 'excel') => {
     toast.info(`Sedang menyiapkan ekspor ${type.toUpperCase()}...`);
     // try ini mengambil data laporan dari Supabase lalu menyiapkan ringkasan, grafik, atau file export.
     try {
@@ -104,6 +104,34 @@ export default function LaporanPage() {
           type: t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
           description: t.title + (t.description ? ` - ${t.description}` : ''),
         }));
+      } else if (type === 'pendapatan') {
+        title = "Laporan Pendapatan";
+        cols = [
+          { header: 'Tanggal', key: 'date', width: 12, isDate: true },
+          { header: 'Keterangan', key: 'description', width: 35 },
+          { header: 'Kategori', key: 'category', width: 15 },
+          { header: 'Nominal', key: 'amount', isCurrency: true, width: 20 },
+        ];
+        data = rawTransactions
+          .filter(t => t.type === 'income')
+          .map(t => ({
+            ...t,
+            description: t.title + (t.description ? ` - ${t.description}` : ''),
+          }));
+      } else if (type === 'pengeluaran') {
+        title = "Laporan Pengeluaran";
+        cols = [
+          { header: 'Tanggal', key: 'date', width: 12, isDate: true },
+          { header: 'Keterangan', key: 'description', width: 35 },
+          { header: 'Kategori', key: 'category', width: 15 },
+          { header: 'Nominal', key: 'amount', isCurrency: true, width: 20 },
+        ];
+        data = rawTransactions
+          .filter(t => t.type === 'expense')
+          .map(t => ({
+            ...t,
+            description: t.title + (t.description ? ` - ${t.description}` : ''),
+          }));
       } else if (type === 'bukubesar') {
         title = "Buku Besar";
         cols = [
@@ -172,7 +200,7 @@ export default function LaporanPage() {
           { keterangan: 'HDR: Pengeluaran', total: null },
           ...expenseItems,
           { keterangan: 'SUB: Jumlah Pengeluaran', total: summary.totalExpense },
-          { keterangan: 'FTR: LABA/ RUGI BERSIH', total: summary.netProfit },
+          { keterangan: 'FTR: SISA SALDO TERAKHIR', total: summary.netProfit },
         ];
       }
 
@@ -248,7 +276,7 @@ export default function LaporanPage() {
           variant="danger"
         />
         <MetricCard
-          title="Laba Bersih (Net Profit)"
+          title="Sisa Saldo Terakhir"
           amount={formatCurrency(summary.netProfit)}
           period="Periode Terpilih"
           icon={WalletIcon}
@@ -290,18 +318,34 @@ export default function LaporanPage() {
           </p>
         </div>
 
-        <div className={`grid grid-cols-1 md:grid-cols-${[true, SHOW_BUKU_BESAR, SHOW_LABA_RUGI].filter(Boolean).length} gap-6`}>
-          {/* Laporan Transaksi */}
+        <div className={`grid grid-cols-1 md:grid-cols-${[true, true, SHOW_BUKU_BESAR, SHOW_LABA_RUGI].filter(Boolean).length} gap-6`}>
+          {/* Laporan Pendapatan */}
           <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
-            <h3 className="text-lg font-bold text-[#151D48] mb-2">Laporan Transaksi</h3>
+            <h3 className="text-lg font-bold text-[#151D48] mb-2">Laporan Pendapatan</h3>
             <p className="text-xs text-gray-500 mb-6 flex-1">
-              Daftar lengkap seluruh pendapatan dan pengeluaran secara kronologis.
+              Daftar lengkap seluruh pendapatan secara kronologis.
             </p>
             <div className="flex gap-2 w-full">
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors" onClick={() => handleExport('transaksi', 'pdf')} disabled={loading}>
+              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors" onClick={() => handleExport('pendapatan', 'pdf')} disabled={loading}>
                 <Document1Icon className="w-4 h-4" /> PDF
               </Button>
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors" onClick={() => handleExport('transaksi', 'excel')} disabled={loading}>
+              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors" onClick={() => handleExport('pendapatan', 'excel')} disabled={loading}>
+                <DocumentDownloadIcon className="w-4 h-4" /> Excel
+              </Button>
+            </div>
+          </div>
+
+          {/* Laporan Pengeluaran */}
+          <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
+            <h3 className="text-lg font-bold text-[#151D48] mb-2">Laporan Pengeluaran</h3>
+            <p className="text-xs text-gray-500 mb-6 flex-1">
+              Daftar lengkap seluruh pengeluaran secara kronologis.
+            </p>
+            <div className="flex gap-2 w-full">
+              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors" onClick={() => handleExport('pengeluaran', 'pdf')} disabled={loading}>
+                <Document1Icon className="w-4 h-4" /> PDF
+              </Button>
+              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors" onClick={() => handleExport('pengeluaran', 'excel')} disabled={loading}>
                 <DocumentDownloadIcon className="w-4 h-4" /> Excel
               </Button>
             </div>

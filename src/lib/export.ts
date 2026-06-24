@@ -441,7 +441,7 @@ export function exportToPDF(
   const colStyles: Record<number, any> = {};
   // Kalau export memakai layout standar, tambahkan nomor baris dan baris TOTAL; layout accounting tidak memakai tambahan ini.
   if (!isAccountingLayout) {
-    colStyles[0] = { halign: 'center', cellWidth: 10 }; // No.
+    colStyles[0] = { halign: 'center', cellWidth: 15 }; // No.
   }
   currencyColIndices.forEach(i => {
     colStyles[i] = { halign: 'right', fontStyle: 'normal' };
