@@ -234,7 +234,27 @@ export async function getReportChartData(startDate: string, endDate: string) {
   const expenses = expenseRes.data || [];
 
   const start = new Date(startDate);
-  const end = new Date(endDate);
+  let end = new Date(endDate);
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isOngoingPeriod = endDate > todayStr;
+
+  if (isOngoingPeriod && (incomes.length > 0 || expenses.length > 0)) {
+    let maxDateStr = startDate;
+    incomes.forEach(i => { if (i.date > maxDateStr) maxDateStr = i.date; });
+    expenses.forEach(e => { if (e.date > maxDateStr) maxDateStr = e.date; });
+
+    if (todayStr >= startDate && todayStr <= endDate) {
+      if (todayStr > maxDateStr) {
+        maxDateStr = todayStr;
+      }
+    }
+
+    if (maxDateStr > startDate) {
+      end = new Date(maxDateStr);
+    }
+  }
+
   start.setHours(0, 0, 0, 0);
   end.setHours(0, 0, 0, 0);
 

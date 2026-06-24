@@ -1,7 +1,7 @@
 "use client";
 
 // Import React hook yang dipakai kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan, misalnya untuk state, efek setelah render, atau referensi elemen.
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 // import Recharts dipakai untuk membuat grafik di dashboard/laporan.
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -55,6 +55,34 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // FinancialChart mengubah data transaksi menjadi grafik batang sesuai periode yang dipilih user.
 export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color, total }: FinancialChartProps) {
   const [period, setPeriod] = useState<"Harian" | "Mingguan" | "Bulanan">("Harian");
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [activeTabRect, setActiveTabRect] = useState<{ width: number; left: number } | null>(null);
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  const handlePeriodChange = (newPeriod: typeof period) => {
+    if (newPeriod === period) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setPeriod(newPeriod);
+      setIsTransitioning(false);
+    }, 150);
+  };
+
+  useEffect(() => {
+    const updateTabRect = () => {
+      const activeBtn = tabRefs.current[period];
+      if (activeBtn) {
+        setActiveTabRect({
+          width: activeBtn.offsetWidth,
+          left: activeBtn.offsetLeft
+        });
+      }
+    };
+
+    updateTabRect();
+    window.addEventListener("resize", updateTabRect);
+    return () => window.removeEventListener("resize", updateTabRect);
+  }, [period]);
 
   // Memo ini menghitung data turunan untuk kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan hanya saat inputnya berubah, supaya render tidak melakukan hitungan yang sama terus.
   const groupedData = useMemo(() => {
@@ -134,6 +162,8 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
     return `Rp ${sign}${(absValue / 1000).toFixed(0)}k`;
   };
 
+  const periods = ["Harian", "Mingguan", "Bulanan"] as const;
+
   // formatCurrency menampilkan UI untuk kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan.
   return (
     <div className="bg-surface rounded-xl p-6 border border-border shadow-sm flex flex-col">
@@ -142,15 +172,25 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
           {Icon && <Icon className="w-5 h-5" style={{ color }} />}
           {title}
         </h3>
-        <div className="flex bg-background rounded-lg p-1">
-          {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh FinancialChart. */}
-          {["Harian", "Mingguan", "Bulanan"].map((p) => (
+        <div className="relative flex bg-background rounded-lg p-1">
+          {/* Sliding capsule background */}
+          {activeTabRect && (
+            <div 
+              className="absolute top-1 bottom-1 bg-surface rounded-md shadow-sm transition-all duration-300 ease-out"
+              style={{
+                left: `${activeTabRect.left}px`,
+                width: `${activeTabRect.width}px`
+              }}
+            />
+          )}
+          {periods.map((p) => (
             <button
               key={p}
-              onClick={() => setPeriod(p as any)}
-              className={`px-3 py-1 text-xs rounded-md transition-all ${
+              ref={el => { tabRefs.current[p] = el; }}
+              onClick={() => handlePeriodChange(p)}
+              className={`relative z-10 px-3 py-1 text-xs rounded-md transition-colors duration-200 font-medium ${
                 period === p 
-                  ? "bg-surface text-text-primary shadow-sm font-medium" 
+                  ? "text-text-primary" 
                   : "text-text-secondary hover:text-text-primary"
               }`}
             >
@@ -160,7 +200,9 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
         </div>
       </div>
 
-      <div className="h-[240px] w-full mb-4">
+      <div className={`h-[240px] w-full mb-4 transition-opacity duration-150 ease-in-out ${
+        isTransitioning ? "opacity-30" : "opacity-100"
+      }`}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={groupedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E7EB" />
