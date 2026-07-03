@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  
+
   // Random Greeting
   const [greeting, setGreeting] = useState("Selamat Datang 👋");
 
@@ -73,102 +73,107 @@ export default function LoginPage() {
       {/* Left Panel (Showcase Wrapper) */}
       <div className="hidden lg:flex lg:w-1/2 h-full p-4">
         <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-[#fafbfe] rounded-[2rem]">
-        
-        {/* Drifting Mesh Gradient Blobs */}
-        <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-[#7983ff] rounded-full blur-[130px] opacity-40 pointer-events-none"></div>
-        <div className="absolute -top-20 -right-20 w-[26rem] h-[26rem] bg-[#f72585] rounded-full blur-[150px] opacity-25 pointer-events-none"></div>
-        <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-[#4cc9f0] rounded-full blur-[110px] opacity-35 pointer-events-none"></div>
 
-        {/* Grain Texture Overlay with Gaussian Blur */}
-        <div className="absolute inset-0 opacity-[0.06] mix-blend-overlay pointer-events-none" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeGaussianBlur stdDeviation='0.5'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")" }}></div>
+          {/* Mesh Gradient Blobs (radial-gradient to avoid banding) */}
+          <div className="absolute inset-0 animate-blob-one pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 80%, rgba(121,131,255,0.35) 0%, transparent 60%)' }}></div>
+          <div className="absolute inset-0 animate-blob-two pointer-events-none" style={{ background: 'radial-gradient(circle at 80% 20%, rgba(247,37,133,0.2) 0%, transparent 55%)' }}></div>
+          <div className="absolute inset-0 animate-blob-three pointer-events-none" style={{ background: 'radial-gradient(circle at 40% 40%, rgba(76,201,240,0.25) 0%, transparent 50%)' }}></div>
 
-        {/* Static KPI Dashboard Mockups */}
-        <div className="relative w-full h-full">
-          
-          {/* Card 3: Chart (CENTERPIECE - Background) */}
-          <div className="absolute z-10 bg-white/90 backdrop-blur shadow-lg border border-border/60 rounded-2xl p-6 w-80 lg:w-96" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-            <div className="flex justify-between items-center mb-5">
-              <div>
-                <p className="text-sm font-semibold text-text-primary">Arus Kas</p>
-                <p className="text-xs text-text-secondary mt-0.5">Ringkasan pergerakan dana</p>
-              </div>
-              <span className="text-xs font-medium text-text-secondary bg-surface px-2 py-1 rounded">Nov 2026</span>
-            </div>
-            <div className="flex items-end space-x-3 h-28">
-              <div className="w-full bg-primary/20 rounded-t-sm h-[40%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[20%] transition-all"></div></div>
-              <div className="w-full bg-primary/20 rounded-t-sm h-[60%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[30%] transition-all"></div></div>
-              <div className="w-full bg-primary/20 rounded-t-sm h-[80%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[50%] transition-all"></div></div>
-              <div className="w-full bg-primary/20 rounded-t-sm h-[100%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[70%] transition-all"></div></div>
-              <div className="w-full bg-primary/20 rounded-t-sm h-[70%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[40%] transition-all"></div></div>
-            </div>
-          </div>
+          {/* Grain Texture Overlay */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-[1] opacity-[0.35] mix-blend-soft-light" xmlns="http://www.w3.org/2000/svg">
+            <filter id="loginGrain">
+              <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" stitchTiles="stitch" />
+            </filter>
+            <rect width="100%" height="100%" filter="url(#loginGrain)" />
+          </svg>
 
-          {/* Card 1: Revenue (Top Left) */}
-          <div className="absolute z-40 bg-white shadow-xl border border-border rounded-2xl p-5 w-60" style={{ top: '15%', left: '8%' }}>
-            <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">Pendapatan</p>
-            <h3 className="text-xl font-bold text-text-primary mb-2">Rp 120.5M</h3>
-            <div className="w-full bg-border rounded-full h-1.5 mb-2"><div className="bg-success h-1.5 rounded-full" style={{ width: '75%' }}></div></div>
-            <p className="text-[10px] text-success font-medium">+15% bulan ini</p>
-          </div>
+          {/* Static KPI Dashboard Mockups */}
+          <div className="relative w-full h-full">
 
-          {/* Card 2: Expense (Top Right) */}
-          <div className="absolute z-30 bg-white/95 backdrop-blur shadow-lg border border-border/50 rounded-2xl p-4 w-52" style={{ top: '22%', right: '10%' }}>
-            <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">Pengeluaran</p>
-            <h3 className="text-lg font-bold text-text-primary mb-2">Rp 45.2M</h3>
-            <div className="flex items-center space-x-1">
-              <span className="h-2 w-2 rounded-full bg-danger"></span>
-              <p className="text-[10px] text-text-secondary">Didominasi operasional</p>
-            </div>
-          </div>
-
-          {/* Card 4: Pending Invoices (Attached to Chart) */}
-          <div className="absolute z-40 bg-white shadow-lg border border-border rounded-xl p-3 w-44" style={{ top: '62%', left: '12%' }}>
-            <div className="flex items-center space-x-3">
-              <div className="h-8 w-8 rounded-full bg-warning/20 flex items-center justify-center shrink-0">
-                <span className="text-warning font-bold text-xs">12</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-text-primary">Unpaid</p>
-                <p className="text-[10px] text-text-secondary">E-Invoice</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 5: Table (Bottom Right) */}
-          <div className="absolute z-40 bg-white shadow-xl border border-border rounded-xl overflow-hidden w-64" style={{ bottom: '15%', right: '12%' }}>
-            <div className="bg-surface px-3 py-2 border-b border-border">
-              <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">E-Invoice Terbaru</p>
-            </div>
-            <div className="p-0">
-              <div className="flex justify-between items-center px-3 py-2 border-b border-border/50">
+            {/* Card 3: Chart (CENTERPIECE - Background) */}
+            <div className="absolute z-10 bg-white/90 backdrop-blur shadow-lg border border-border/60 rounded-2xl p-6 w-80 lg:w-96" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+              <div className="flex justify-between items-center mb-5">
                 <div>
-                  <p className="text-xs font-semibold text-text-primary">INV-001</p>
-                  <p className="text-[10px] text-text-secondary">Maju Bersama</p>
+                  <p className="text-sm font-semibold text-text-primary">Arus Kas</p>
+                  <p className="text-xs text-text-secondary mt-0.5">Ringkasan pergerakan dana</p>
                 </div>
-                <span className="px-1.5 py-0.5 bg-success/10 text-success text-[8px] font-bold rounded">LUNAS</span>
+                <span className="text-xs font-medium text-text-secondary bg-surface px-2 py-1 rounded">Nov 2026</span>
               </div>
-              <div className="flex justify-between items-center px-3 py-2">
-                <div>
-                  <p className="text-xs font-semibold text-text-primary">INV-002</p>
-                  <p className="text-[10px] text-text-secondary">Karya Abadi</p>
-                </div>
-                <span className="px-1.5 py-0.5 bg-warning/10 text-warning text-[8px] font-bold rounded">PENDING</span>
+              <div className="flex items-end space-x-3 h-28">
+                <div className="w-full bg-primary/20 rounded-t-sm h-[40%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[20%] transition-all"></div></div>
+                <div className="w-full bg-primary/20 rounded-t-sm h-[60%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[30%] transition-all"></div></div>
+                <div className="w-full bg-primary/20 rounded-t-sm h-[80%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[50%] transition-all"></div></div>
+                <div className="w-full bg-primary/20 rounded-t-sm h-[100%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[70%] transition-all"></div></div>
+                <div className="w-full bg-primary/20 rounded-t-sm h-[70%] relative"><div className="absolute bottom-0 w-full bg-primary rounded-t-sm h-[40%] transition-all"></div></div>
               </div>
             </div>
+
+            {/* Card 1: Revenue (Top Left) */}
+            <div className="absolute z-40 bg-white shadow-xl border border-border rounded-2xl p-5 w-60" style={{ top: '15%', left: '8%' }}>
+              <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">Pendapatan</p>
+              <h3 className="text-xl font-bold text-text-primary mb-2">Rp 120.5M</h3>
+              <div className="w-full bg-border rounded-full h-1.5 mb-2"><div className="bg-success h-1.5 rounded-full" style={{ width: '75%' }}></div></div>
+              <p className="text-[10px] text-success font-medium">+15% bulan ini</p>
+            </div>
+
+            {/* Card 2: Expense (Top Right) */}
+            <div className="absolute z-30 bg-white/95 backdrop-blur shadow-lg border border-border/50 rounded-2xl p-4 w-52" style={{ top: '22%', right: '10%' }}>
+              <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">Pengeluaran</p>
+              <h3 className="text-lg font-bold text-text-primary mb-2">Rp 45.2M</h3>
+              <div className="flex items-center space-x-1">
+                <span className="h-2 w-2 rounded-full bg-danger"></span>
+                <p className="text-[10px] text-text-secondary">Didominasi operasional</p>
+              </div>
+            </div>
+
+            {/* Card 4: Pending Invoices (Attached to Chart) */}
+            <div className="absolute z-40 bg-white shadow-lg border border-border rounded-xl p-3 w-44" style={{ top: '62%', left: '12%' }}>
+              <div className="flex items-center space-x-3">
+                <div className="h-8 w-8 rounded-full bg-warning/20 flex items-center justify-center shrink-0">
+                  <span className="text-warning font-bold text-xs">12</span>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-text-primary">Unpaid</p>
+                  <p className="text-[10px] text-text-secondary">E-Invoice</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5: Table (Bottom Right) */}
+            <div className="absolute z-40 bg-white shadow-xl border border-border rounded-xl overflow-hidden w-64" style={{ bottom: '15%', right: '12%' }}>
+              <div className="bg-surface px-3 py-2 border-b border-border">
+                <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">E-Invoice Terbaru</p>
+              </div>
+              <div className="p-0">
+                <div className="flex justify-between items-center px-3 py-2 border-b border-border/50">
+                  <div>
+                    <p className="text-xs font-semibold text-text-primary">INV-001</p>
+                    <p className="text-[10px] text-text-secondary">Maju Bersama</p>
+                  </div>
+                  <span className="px-1.5 py-0.5 bg-success/10 text-success text-[8px] font-bold rounded">LUNAS</span>
+                </div>
+                <div className="flex justify-between items-center px-3 py-2">
+                  <div>
+                    <p className="text-xs font-semibold text-text-primary">INV-002</p>
+                    <p className="text-[10px] text-text-secondary">Karya Abadi</p>
+                  </div>
+                  <span className="px-1.5 py-0.5 bg-warning/10 text-warning text-[8px] font-bold rounded">PENDING</span>
+                </div>
+              </div>
+            </div>
+
+
           </div>
-
-
         </div>
       </div>
-    </div>
 
       {/* Right Panel (Form) */}
       <div className="w-full lg:w-1/2 h-full flex flex-col justify-center px-6 py-6 sm:py-10 sm:px-12 lg:px-24 bg-surface relative overflow-y-auto">
         <div className="mx-auto w-full max-w-md">
-          
+
           {/* Logo */}
           <div className="flex items-center space-x-2 mb-4">
-             <img src="/logo_gmera.png" alt="GMera Logo" className="h-12 w-auto object-contain" />
+            <img src="/logo_gmera.png" alt="GMera Logo" className="h-12 w-auto object-contain" />
           </div>
 
           <div className="mb-4">
@@ -182,8 +187,11 @@ export default function LoginPage() {
 
           <form className="space-y-4" onSubmit={handleLogin}>
             {error && (
-              <div className="bg-danger/10 border-l-4 border-danger p-4 rounded-lg flex items-start">
-                <p className="text-sm text-danger font-medium">{error}</p>
+              <div className="bg-danger/[0.05] border border-danger/25 p-3.5 rounded-xl flex items-center space-x-2.5 animate-fade-in-up">
+                <svg className="h-5 w-5 text-danger shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="text-sm font-semibold text-danger leading-none">{error}</span>
               </div>
             )}
 
@@ -199,7 +207,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="masukan email anda"
+                placeholder="Masukan email anda"
                 className="appearance-none block w-full px-4 py-3 bg-background border border-border rounded-xl shadow-sm placeholder-text-muted text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all sm:text-sm"
               />
             </div>
@@ -217,10 +225,10 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="masukan password anda"
+                  placeholder="Masukan password anda"
                   className="appearance-none block w-full px-4 py-3 bg-background border border-border rounded-xl shadow-sm placeholder-text-muted text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all sm:text-sm pr-10"
                 />
-                <button 
+                <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-primary focus:outline-none transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
