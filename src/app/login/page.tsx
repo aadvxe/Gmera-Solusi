@@ -72,12 +72,12 @@ export default function LoginPage() {
     <div className="flex h-dvh w-screen overflow-hidden bg-surface">
       {/* Left Panel (Showcase Wrapper) */}
       <div className="hidden lg:flex lg:w-1/2 h-full p-4">
-        <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-[#fafbfe] rounded-[2rem]">
+        <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-[#fafbfe] rounded-[2rem] isolate [transform:translate3d(0,0,0)] [backface-visibility:hidden]">
 
           {/* Mesh Gradient Blobs (radial-gradient to avoid banding) */}
-          <div className="absolute inset-0 animate-blob-one pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 80%, rgba(121,131,255,0.35) 0%, transparent 60%)' }}></div>
-          <div className="absolute inset-0 animate-blob-two pointer-events-none" style={{ background: 'radial-gradient(circle at 80% 20%, rgba(247,37,133,0.2) 0%, transparent 55%)' }}></div>
-          <div className="absolute inset-0 animate-blob-three pointer-events-none" style={{ background: 'radial-gradient(circle at 40% 40%, rgba(76,201,240,0.25) 0%, transparent 50%)' }}></div>
+          <div className="absolute -inset-20 animate-blob-one pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 80%, rgba(121,131,255,0.35) 0%, transparent 60%)' }}></div>
+          <div className="absolute -inset-20 animate-blob-two pointer-events-none" style={{ background: 'radial-gradient(circle at 80% 20%, rgba(247,37,133,0.2) 0%, transparent 55%)' }}></div>
+          <div className="absolute -inset-20 animate-blob-three pointer-events-none" style={{ background: 'radial-gradient(circle at 40% 40%, rgba(76,201,240,0.25) 0%, transparent 50%)' }}></div>
 
           {/* Grain Texture Overlay */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-[1] opacity-[0.35] mix-blend-soft-light" xmlns="http://www.w3.org/2000/svg">

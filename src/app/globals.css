@@ -96,45 +96,51 @@
   /* Keyframes for moving gradient blobs */
   @keyframes blob-one {
     0%, 100% {
-      transform: translate(0px, 0px) scale(1);
+      transform: translate3d(0px, 0px, 0) scale(1);
     }
     33% {
-      transform: translate(45px, -65px) scale(1.15);
+      transform: translate3d(45px, -65px, 0) scale(1.15);
     }
     66% {
-      transform: translate(-35px, 25px) scale(0.9);
+      transform: translate3d(-35px, 25px, 0) scale(0.9);
     }
   }
 
   @keyframes blob-two {
     0%, 100% {
-      transform: translate(0px, 0px) scale(1);
+      transform: translate3d(0px, 0px, 0) scale(1);
     }
     50% {
-      transform: translate(-55px, 55px) scale(1.2);
+      transform: translate3d(-55px, 55px, 0) scale(1.2);
     }
   }
 
   @keyframes blob-three {
     0%, 100% {
-      transform: translate(0px, 0px) scale(1);
+      transform: translate3d(0px, 0px, 0) scale(1);
     }
     40% {
-      transform: translate(65px, -35px) scale(0.85);
+      transform: translate3d(65px, -35px, 0) scale(0.85);
     }
     70% {
-      transform: translate(-45px, 45px) scale(1.1);
+      transform: translate3d(-45px, 45px, 0) scale(1.1);
     }
   }
 
   .animate-blob-one {
     animation: blob-one 25s infinite alternate ease-in-out;
+    will-change: transform;
+    backface-visibility: hidden;
   }
   .animate-blob-two {
     animation: blob-two 30s infinite alternate ease-in-out;
+    will-change: transform;
+    backface-visibility: hidden;
   }
   .animate-blob-three {
     animation: blob-three 28s infinite alternate ease-in-out;
+    will-change: transform;
+    backface-visibility: hidden;
   }
 }
 
