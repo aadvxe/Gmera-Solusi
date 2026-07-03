@@ -69,9 +69,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex h-dvh w-screen overflow-hidden bg-surface">
+    <div className="flex flex-col lg:flex-row h-dvh w-screen overflow-hidden bg-surface">
       {/* Left Panel (Showcase Wrapper) */}
-      <div className="hidden lg:flex lg:w-1/2 h-full p-4">
+      <div className="flex h-1/2 lg:h-full w-full lg:w-1/2 p-2 sm:p-4 shrink-0">
         <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-[#fafbfe] rounded-[2rem] isolate [transform:translate3d(0,0,0)] [backface-visibility:hidden]">
 
           {/* Mesh Gradient Blobs (radial-gradient to avoid banding) */}
@@ -88,10 +88,10 @@ export default function LoginPage() {
           </svg>
 
           {/* Static KPI Dashboard Mockups */}
-          <div className="relative w-full h-full">
+          <div className="relative w-[480px] h-[440px] shrink-0 origin-center scale-[0.6] sm:scale-75 md:scale-90 lg:scale-100">
 
             {/* Card 3: Chart (CENTERPIECE - Background) */}
-            <div className="absolute z-10 bg-white/90 backdrop-blur shadow-lg border border-border/60 rounded-2xl p-6 w-80 lg:w-96" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+            <div className="absolute z-10 bg-white/90 backdrop-blur shadow-lg border border-border/60 rounded-2xl p-6 w-[340px]" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
               <div className="flex justify-between items-center mb-5">
                 <div>
                   <p className="text-sm font-semibold text-text-primary">Arus Kas</p>
@@ -109,7 +109,7 @@ export default function LoginPage() {
             </div>
 
             {/* Card 1: Revenue (Top Left) */}
-            <div className="absolute z-40 bg-white shadow-xl border border-border rounded-2xl p-5 w-60" style={{ top: '15%', left: '8%' }}>
+            <div className="absolute z-40 bg-white shadow-xl border border-border rounded-2xl p-5 w-[220px]" style={{ top: '10px', left: '15px' }}>
               <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">Pendapatan</p>
               <h3 className="text-xl font-bold text-text-primary mb-2">Rp 120.5M</h3>
               <div className="w-full bg-border rounded-full h-1.5 mb-2"><div className="bg-success h-1.5 rounded-full" style={{ width: '75%' }}></div></div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
             </div>
 
             {/* Card 2: Expense (Top Right) */}
-            <div className="absolute z-30 bg-white/95 backdrop-blur shadow-lg border border-border/50 rounded-2xl p-4 w-52" style={{ top: '22%', right: '10%' }}>
+            <div className="absolute z-30 bg-white/95 backdrop-blur shadow-lg border border-border/50 rounded-2xl p-4 w-[180px]" style={{ top: '45px', right: '15px' }}>
               <p className="text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1">Pengeluaran</p>
               <h3 className="text-lg font-bold text-text-primary mb-2">Rp 45.2M</h3>
               <div className="flex items-center space-x-1">
@@ -127,7 +127,7 @@ export default function LoginPage() {
             </div>
 
             {/* Card 4: Pending Invoices (Attached to Chart) */}
-            <div className="absolute z-40 bg-white shadow-lg border border-border rounded-xl p-3 w-44" style={{ top: '62%', left: '12%' }}>
+            <div className="absolute z-40 bg-white shadow-lg border border-border rounded-xl p-3 w-[150px]" style={{ bottom: '95px', left: '20px' }}>
               <div className="flex items-center space-x-3">
                 <div className="h-8 w-8 rounded-full bg-warning/20 flex items-center justify-center shrink-0">
                   <span className="text-warning font-bold text-xs">12</span>
@@ -140,7 +140,7 @@ export default function LoginPage() {
             </div>
 
             {/* Card 5: Table (Bottom Right) */}
-            <div className="absolute z-40 bg-white shadow-xl border border-border rounded-xl overflow-hidden w-64" style={{ bottom: '15%', right: '12%' }}>
+            <div className="absolute z-40 bg-white shadow-xl border border-border rounded-xl overflow-hidden w-[230px]" style={{ bottom: '25px', right: '15px' }}>
               <div className="bg-surface px-3 py-2 border-b border-border">
                 <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">E-Invoice Terbaru</p>
               </div>
@@ -168,15 +168,15 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel (Form) */}
-      <div className="w-full lg:w-1/2 h-full flex flex-col justify-center px-6 py-6 sm:py-10 sm:px-12 lg:px-24 bg-surface relative overflow-y-auto">
+      <div className="w-full lg:w-1/2 h-1/2 lg:h-full flex flex-col justify-center px-6 py-6 sm:py-10 sm:px-12 lg:px-24 bg-surface relative overflow-y-auto">
         <div className="mx-auto w-full max-w-md">
 
           {/* Logo */}
-          <div className="flex items-center space-x-2 mb-4">
+          <div className="hidden lg:flex items-center space-x-2 mb-4">
             <img src="/logo_gmera.png" alt="GMera Logo" className="h-12 w-auto object-contain" />
           </div>
 
-          <div className="mb-4">
+          <div className="hidden lg:block mb-4">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight mb-1.5">
               {greeting}
             </h2>
