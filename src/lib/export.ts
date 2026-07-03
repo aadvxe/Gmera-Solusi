@@ -42,6 +42,7 @@ export interface ExportColumn {
   isCurrency?: boolean;
   isDate?: boolean;
   width?: number;        // Excel col width in characters
+  disableTotal?: boolean; // If true, do not sum in standard totals row
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -117,15 +118,18 @@ export function exportToExcel(
   // Kalau export memakai layout standar, tambahkan nomor baris dan baris TOTAL; layout accounting tidak memakai tambahan ini.
   if (!isAccountingLayout) {
     columns.forEach((col, i) => {
-      // Kalau kolom adalah nominal uang, simpan sebagai angka supaya Excel bisa menghitung dan memformatnya.
       if (col.isCurrency) {
-        // reduce ini menggabungkan daftar data menjadi satu nilai ringkasan yang dibutuhkan helper export PDF dan Excel untuk laporan/invoice.
-        const sum = sortedData.reduce((acc, row) => {
-          const v = resolveKey(row, col.key);
-          // reduce ini menambahkan nominal kolom uang ke total bawah tabel Excel.
-          return acc + (typeof v === 'number' ? v : 0);
-        }, 0);
-        totalsRow.push(sum);
+        if (col.disableTotal) {
+          totalsRow.push('');
+        } else {
+          // reduce ini menggabungkan daftar data menjadi satu nilai ringkasan yang dibutuhkan helper export PDF dan Excel untuk laporan/invoice.
+          const sum = sortedData.reduce((acc, row) => {
+            const v = resolveKey(row, col.key);
+            // reduce ini menambahkan nominal kolom uang ke total bawah tabel Excel.
+            return acc + (typeof v === 'number' ? v : 0);
+          }, 0);
+          totalsRow.push(sum);
+        }
       } else if (i === 0) {
         totalsRow.push('TOTAL');
       } else {
@@ -420,15 +424,18 @@ export function exportToPDF(
   // Kalau export memakai layout standar, tambahkan nomor baris dan baris TOTAL; layout accounting tidak memakai tambahan ini.
   if (!isAccountingLayout) {
     columns.forEach((col, i) => {
-      // Kalau kolom adalah nominal uang, simpan sebagai angka supaya Excel bisa menghitung dan memformatnya.
       if (col.isCurrency) {
-        // reduce ini menggabungkan daftar data menjadi satu nilai ringkasan yang dibutuhkan helper export PDF dan Excel untuk laporan/invoice.
-        const sum = sortedData.reduce((acc, row) => {
-          const v = resolveKey(row, col.key);
-          // reduce ini menambahkan nominal kolom uang ke total bawah tabel Excel.
-          return acc + (typeof v === 'number' ? v : 0);
-        }, 0);
-        totalsRow.push(fmtAccounting(sum));
+        if (col.disableTotal) {
+          totalsRow.push('');
+        } else {
+          // reduce ini menggabungkan daftar data menjadi satu nilai ringkasan yang dibutuhkan helper export PDF dan Excel untuk laporan/invoice.
+          const sum = sortedData.reduce((acc, row) => {
+            const v = resolveKey(row, col.key);
+            // reduce ini menambahkan nominal kolom uang ke total bawah tabel Excel.
+            return acc + (typeof v === 'number' ? v : 0);
+          }, 0);
+          totalsRow.push(fmtAccounting(sum));
+        }
       } else if (i === 0) {
         totalsRow.push('TOTAL');
       } else {

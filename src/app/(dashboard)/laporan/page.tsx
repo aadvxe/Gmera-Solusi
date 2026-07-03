@@ -77,7 +77,7 @@ export default function LaporanPage() {
   };
 
   // handleExport menangani aksi user di halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export, seperti klik tombol, submit form, atau perubahan input.
-  const handleExport = async (type: 'transaksi' | 'pendapatan' | 'pengeluaran' | 'bukubesar' | 'labarugi', format: 'pdf' | 'excel') => {
+  const handleExport = async (type: 'mutasi' | 'transaksi' | 'pendapatan' | 'pengeluaran' | 'bukubesar' | 'labarugi', format: 'pdf' | 'excel') => {
     toast.info(`Sedang menyiapkan ekspor ${type.toUpperCase()}...`);
     // try ini mengambil data laporan dari Supabase lalu menyiapkan ringkasan, grafik, atau file export.
     try {
@@ -88,8 +88,37 @@ export default function LaporanPage() {
       let cols: any[] = [];
       let title = "";
 
-      // Kondisi if (type === 'transaksi') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman laporan.
-      if (type === 'transaksi') {
+      // Kondisi if (type === 'mutasi') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman laporan.
+      if (type === 'mutasi') {
+        title = "Laporan";
+        cols = [
+          { header: 'Tanggal', key: 'date', width: 12, isDate: true },
+          { header: 'Keterangan', key: 'description', width: 35 },
+          { header: 'Kategori', key: 'category', width: 15 },
+          { header: 'Pendapatan', key: 'pendapatan', isCurrency: true, width: 20 },
+          { header: 'Pengeluaran', key: 'pengeluaran', isCurrency: true, width: 20 },
+          { header: 'Saldo Akhir', key: 'saldo_akhir', isCurrency: true, disableTotal: true, width: 20 },
+        ];
+
+        const sortedTx = [...rawTransactions].sort((a, b) => {
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        });
+
+        let runningBalance = 0;
+        data = sortedTx.map(t => {
+          const pendapatan = t.type === 'income' ? t.amount : null;
+          const pengeluaran = t.type === 'expense' ? t.amount : null;
+          runningBalance += (pendapatan ?? 0) - (pengeluaran ?? 0);
+          return {
+            date: t.date,
+            description: t.title + (t.description ? ` - ${t.description}` : ''),
+            category: t.category,
+            pendapatan,
+            pengeluaran,
+            saldo_akhir: runningBalance
+          };
+        });
+      } else if (type === 'transaksi') {
         title = "Laporan Transaksi";
         cols = [
           { header: 'Tanggal', key: 'date', width: 12, isDate: true },
@@ -318,34 +347,18 @@ export default function LaporanPage() {
           </p>
         </div>
 
-        <div className={`grid grid-cols-1 md:grid-cols-${[true, true, SHOW_BUKU_BESAR, SHOW_LABA_RUGI].filter(Boolean).length} gap-6`}>
-          {/* Laporan Pendapatan */}
+        <div className={`grid grid-cols-1 ${[true, SHOW_BUKU_BESAR, SHOW_LABA_RUGI].filter(Boolean).length > 1 ? 'md:grid-cols-2 lg:grid-cols-3' : 'max-w-md mx-auto'} gap-6`}>
+          {/* Laporan Mutasi Kas */}
           <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
-            <h3 className="text-lg font-bold text-[#151D48] mb-2">Laporan Pendapatan</h3>
+            <h3 className="text-lg font-bold text-[#151D48] mb-2">Laporan</h3>
             <p className="text-xs text-gray-500 mb-6 flex-1">
-              Daftar lengkap seluruh pendapatan secara kronologis.
+              Daftar lengkap seluruh pendapatan dan pengeluaran beserta saldo berjalan secara kronologis.
             </p>
-            <div className="flex gap-2 w-full">
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors" onClick={() => handleExport('pendapatan', 'pdf')} disabled={loading}>
+            <div className="flex gap-4 w-full">
+              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors py-2.5 rounded-xl" onClick={() => handleExport('mutasi', 'pdf')} disabled={loading}>
                 <Document1Icon className="w-4 h-4" /> PDF
               </Button>
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors" onClick={() => handleExport('pendapatan', 'excel')} disabled={loading}>
-                <DocumentDownloadIcon className="w-4 h-4" /> Excel
-              </Button>
-            </div>
-          </div>
-
-          {/* Laporan Pengeluaran */}
-          <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
-            <h3 className="text-lg font-bold text-[#151D48] mb-2">Laporan Pengeluaran</h3>
-            <p className="text-xs text-gray-500 mb-6 flex-1">
-              Daftar lengkap seluruh pengeluaran secara kronologis.
-            </p>
-            <div className="flex gap-2 w-full">
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors" onClick={() => handleExport('pengeluaran', 'pdf')} disabled={loading}>
-                <Document1Icon className="w-4 h-4" /> PDF
-              </Button>
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors" onClick={() => handleExport('pengeluaran', 'excel')} disabled={loading}>
+              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors py-2.5 rounded-xl" onClick={() => handleExport('mutasi', 'excel')} disabled={loading}>
                 <DocumentDownloadIcon className="w-4 h-4" /> Excel
               </Button>
             </div>
@@ -359,10 +372,10 @@ export default function LaporanPage() {
                 Format debit, kredit, dan saldo berjalan (running balance) per transaksi.
               </p>
               <div className="flex gap-2 w-full">
-                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors" onClick={() => handleExport('bukubesar', 'pdf')} disabled={loading}>
+                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors py-2.5 rounded-xl" onClick={() => handleExport('bukubesar', 'pdf')} disabled={loading}>
                   <Document1Icon className="w-4 h-4" /> PDF
                 </Button>
-                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors" onClick={() => handleExport('bukubesar', 'excel')} disabled={loading}>
+                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors py-2.5 rounded-xl" onClick={() => handleExport('bukubesar', 'excel')} disabled={loading}>
                   <DocumentDownloadIcon className="w-4 h-4" /> Excel
                 </Button>
               </div>
@@ -377,10 +390,10 @@ export default function LaporanPage() {
                 Ringkasan total pendapatan dan pengeluaran untuk melihat net profit.
               </p>
               <div className="flex gap-2 w-full">
-                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors" onClick={() => handleExport('labarugi', 'pdf')} disabled={loading}>
+                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors py-2.5 rounded-xl" onClick={() => handleExport('labarugi', 'pdf')} disabled={loading}>
                   <Document1Icon className="w-4 h-4" /> PDF
                 </Button>
-                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors" onClick={() => handleExport('labarugi', 'excel')} disabled={loading}>
+                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors py-2.5 rounded-xl" onClick={() => handleExport('labarugi', 'excel')} disabled={loading}>
                   <DocumentDownloadIcon className="w-4 h-4" /> Excel
                 </Button>
               </div>
