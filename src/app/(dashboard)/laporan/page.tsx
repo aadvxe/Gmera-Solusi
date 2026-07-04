@@ -342,7 +342,7 @@ export default function LaporanPage() {
         </div>
         <h3 className="text-xl font-bold text-text-primary">Unduh Laporan Transaksi</h3>
         <p className="text-sm text-text-secondary max-w-lg mx-auto mt-2 mb-8">
-          Ekspor seluruh transaksi untuk periode yang dipilih dalam format PDF yang rapi atau Excel untuk analisis lebih lanjut.
+          Ekspor daftar lengkap seluruh pendapatan dan pengeluaran beserta saldo berjalan secara kronologis dalam format PDF atau Excel.
         </p>
 
         <div className="flex gap-4 w-full max-w-md">
