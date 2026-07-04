@@ -90,7 +90,7 @@ export default function LaporanPage() {
 
       // Kondisi if (type === 'mutasi') membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman laporan.
       if (type === 'mutasi') {
-        title = "Laporan";
+        title = "Laporan Transaksi";
         cols = [
           { header: 'Tanggal', key: 'date', width: 12, isDate: true },
           { header: 'Keterangan', key: 'description', width: 35 },
@@ -264,7 +264,7 @@ export default function LaporanPage() {
       {/* Header & Filter */}
       <div className="bg-surface border border-border rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Laporan Keuangan</h1>
+          <h1 className="text-2xl font-bold text-text-primary">Laporan Transaksi</h1>
           <p className="text-sm text-text-secondary mt-1">Analitik dan ringkasan arus kas perusahaan</p>
         </div>
 
@@ -336,69 +336,22 @@ export default function LaporanPage() {
       </div>
 
       {/* Export Actions Section (Moved to bottom) */}
-      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-8 shadow-sm">
-        <div className="text-center mb-8 flex flex-col items-center">
-          <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center text-primary shadow-sm mb-4">
-            <Document1Icon className="w-8 h-8" />
-          </div>
-          <h3 className="text-xl font-bold text-text-primary">Unduh Laporan Lengkap</h3>
-          <p className="text-sm text-text-secondary max-w-lg mx-auto mt-2">
-            Ekspor seluruh transaksi untuk periode yang dipilih dalam format PDF yang rapi atau Excel untuk analisis lebih lanjut.
-          </p>
+      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-8 shadow-sm text-center flex flex-col items-center">
+        <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center text-primary shadow-sm mb-4">
+          <Document1Icon className="w-8 h-8" />
         </div>
+        <h3 className="text-xl font-bold text-text-primary">Unduh Laporan Transaksi</h3>
+        <p className="text-sm text-text-secondary max-w-lg mx-auto mt-2 mb-8">
+          Ekspor seluruh transaksi untuk periode yang dipilih dalam format PDF yang rapi atau Excel untuk analisis lebih lanjut.
+        </p>
 
-        <div className={`grid grid-cols-1 ${[true, SHOW_BUKU_BESAR, SHOW_LABA_RUGI].filter(Boolean).length > 1 ? 'md:grid-cols-2 lg:grid-cols-3' : 'max-w-md mx-auto'} gap-6`}>
-          {/* Laporan Mutasi Kas */}
-          <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
-            <h3 className="text-lg font-bold text-[#151D48] mb-2">Laporan</h3>
-            <p className="text-xs text-gray-500 mb-6 flex-1">
-              Daftar lengkap seluruh pendapatan dan pengeluaran beserta saldo berjalan secara kronologis.
-            </p>
-            <div className="flex gap-4 w-full">
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors py-2.5 rounded-xl" onClick={() => handleExport('mutasi', 'pdf')} disabled={loading}>
-                <Document1Icon className="w-4 h-4" /> PDF
-              </Button>
-              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors py-2.5 rounded-xl" onClick={() => handleExport('mutasi', 'excel')} disabled={loading}>
-                <DocumentDownloadIcon className="w-4 h-4" /> Excel
-              </Button>
-            </div>
-          </div>
-
-          {/* Buku Besar */}
-          {SHOW_BUKU_BESAR && (
-            <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
-              <h3 className="text-lg font-bold text-[#151D48] mb-2">Buku Besar</h3>
-              <p className="text-xs text-gray-500 mb-6 flex-1">
-                Format debit, kredit, dan saldo berjalan (running balance) per transaksi.
-              </p>
-              <div className="flex gap-2 w-full">
-                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors py-2.5 rounded-xl" onClick={() => handleExport('bukubesar', 'pdf')} disabled={loading}>
-                  <Document1Icon className="w-4 h-4" /> PDF
-                </Button>
-                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors py-2.5 rounded-xl" onClick={() => handleExport('bukubesar', 'excel')} disabled={loading}>
-                  <DocumentDownloadIcon className="w-4 h-4" /> Excel
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Laba Rugi */}
-          {SHOW_LABA_RUGI && (
-            <div className="bg-white border border-primary/10 rounded-2xl p-6 text-center shadow-sm flex flex-col items-center">
-              <h3 className="text-lg font-bold text-[#151D48] mb-2">Laba Rugi</h3>
-              <p className="text-xs text-gray-500 mb-6 flex-1">
-                Ringkasan total pendapatan dan pengeluaran untuk melihat net profit.
-              </p>
-              <div className="flex gap-2 w-full">
-                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors py-2.5 rounded-xl" onClick={() => handleExport('labarugi', 'pdf')} disabled={loading}>
-                  <Document1Icon className="w-4 h-4" /> PDF
-                </Button>
-                <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-xs text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors py-2.5 rounded-xl" onClick={() => handleExport('labarugi', 'excel')} disabled={loading}>
-                  <DocumentDownloadIcon className="w-4 h-4" /> Excel
-                </Button>
-              </div>
-            </div>
-          )}
+        <div className="flex gap-4 w-full max-w-md">
+          <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-sm font-medium text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors py-3 rounded-xl" onClick={() => handleExport('mutasi', 'pdf')} disabled={loading}>
+            <Document1Icon className="w-5 h-5" /> PDF
+          </Button>
+          <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-sm font-medium text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors py-3 rounded-xl" onClick={() => handleExport('mutasi', 'excel')} disabled={loading}>
+            <DocumentDownloadIcon className="w-5 h-5" /> Excel
+          </Button>
         </div>
       </div>
     </div>

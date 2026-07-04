@@ -26,7 +26,7 @@ const PAGE_SHORTCUTS: PageShortcut[] = [
   { id: 'page-pendapatan', type: 'page', title: 'Pendapatan', subtitle: 'Daftar & kelola pemasukan', href: '/pendapatan', keywords: ['pendapatan', 'pemasukan', 'income'] },
   { id: 'page-pengeluaran', type: 'page', title: 'Pengeluaran', subtitle: 'Daftar & kelola pengeluaran', href: '/pengeluaran', keywords: ['pengeluaran', 'biaya', 'expense'] },
   { id: 'page-einvoice', type: 'page', title: 'E-Invoice', subtitle: 'Kelola faktur & invoice', href: '/e-invoice', keywords: ['invoice', 'faktur', 'tagihan', 'e-invoice'] },
-  { id: 'page-laporan', type: 'page', title: 'Laporan', subtitle: 'Laporan keuangan & analitik', href: '/laporan', keywords: ['laporan', 'report', 'analitik', 'grafik'] },
+  { id: 'page-laporan', type: 'page', title: 'Laporan', subtitle: 'Laporan transaksi & analitik', href: '/laporan', keywords: ['laporan', 'report', 'analitik', 'grafik'] },
   { id: 'page-customer', type: 'page', title: 'Customer', subtitle: 'Daftar & kelola pelanggan', href: '/customer', keywords: ['customer', 'pelanggan', 'klien', 'client'] },
   { id: 'page-pengaturan', type: 'page', title: 'Pengaturan', subtitle: 'Konfigurasi akun & perusahaan', href: '/pengaturan', keywords: ['pengaturan', 'setting', 'konfigurasi', 'profil'] },
 ];
