@@ -262,8 +262,8 @@ export default function DashboardPage() {
       const [data, cData, clients, activities, yData] = await Promise.all([
         getDashboardSummary(year, month),
         getDashboardChartData(year, month),
-        getTopClientsStats(4),
-        getRecentActivities(6),
+        getTopClientsStats(5),
+        getRecentActivities(8),
         getDashboardYearlyData(year)
       ]);
 
@@ -542,7 +542,7 @@ export default function DashboardPage() {
         
         {/* Customer Teratas */}
         <div className="bg-white rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-[#151D48] mb-6">Customer Teratas</h2>
+          <h2 className="text-lg font-bold text-[#151D48] mb-4">Customer Teratas</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-xs text-gray-400 border-b border-gray-100">
@@ -557,14 +557,14 @@ export default function DashboardPage() {
                 {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
                 {topClients.map((client) => (
                   <tr key={client.id} className="border-b border-gray-50 last:border-0">
-                    <td className="py-4 text-gray-500">{client.id}</td>
-                    <td className="py-4 text-[#151D48] font-medium">{client.name}</td>
-                    <td className="py-4 w-32">
+                    <td className="py-3.5 text-gray-500">{client.id}</td>
+                    <td className="py-3.5 text-[#151D48] font-medium">{client.name}</td>
+                    <td className="py-3.5 w-32">
                       <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div className="h-full rounded-full animate-pulse-slow" style={{ width: `${client.percent}%`, backgroundColor: client.color }}></div>
                       </div>
                     </td>
-                    <td className="py-4 text-right">
+                    <td className="py-3.5 text-right">
                       <span className="px-2 py-1 rounded-xl border text-xs font-bold" style={{
                         borderColor: client.color,
                         color: client.color,
@@ -582,7 +582,7 @@ export default function DashboardPage() {
 
         {/* Aktivitas Terbaru */}
         <div className="bg-white rounded-2xl p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-[#151D48]">Aktivitas Terbaru</h2>
             <button 
               onClick={() => setIsAktivitasModalOpen(true)}
@@ -592,13 +592,13 @@ export default function DashboardPage() {
             </button>
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
-            {aktivitasTerbaru.map((activity, idx) => (
+            {aktivitasTerbaru.slice(0, 4).map((activity, idx) => (
               <div key={activity.id} className="flex gap-4 relative">
                 {/* Timeline Line */}
-                {idx !== aktivitasTerbaru.length - 1 && (
-                  <div className="absolute left-5 top-10 bottom-[-24px] w-0.5 bg-gray-100"></div>
+                {idx !== Math.min(aktivitasTerbaru.length, 4) - 1 && (
+                  <div className="absolute left-5 top-10 bottom-[-16px] w-0.5 bg-gray-100"></div>
                 )}
                 
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 ${
