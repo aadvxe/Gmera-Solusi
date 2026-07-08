@@ -12,7 +12,7 @@ import { ChartWrapper } from "@/components/ui/ChartWrapper";
 import { Modal } from "@/components/ui/Modal";
 // Import authStore supaya halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
-// Import SkeletonDashboard untuk loading state premium.
+// Import SkeletonDashboard untuk loading state.
 import { SkeletonDashboard } from "@/components/ui/Skeleton";
 // Import helper database yang dipakai halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru untuk mengambil atau menyimpan data Supabase.
 import { getDashboardSummary } from "@/lib/db";
@@ -235,7 +235,7 @@ export default function DashboardPage() {
           }
         }
 
-        options.reverse(); // Reverse chronology for premium UI feel
+        options.reverse(); // Reverse chronology for UI feel
         setPeriodOptions(options);
         setSelectedPeriod(`${defaultYear}-${defaultMonth}`);
         setIsLoading(false);

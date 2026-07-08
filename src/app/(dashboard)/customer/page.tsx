@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 // Import komponen UI reusable supaya halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
-// Import SkeletonTableRow untuk loading state table yang premium.
+// Import SkeletonTableRow untuk loading state table.
 import { SkeletonTableRow } from "@/components/ui/Skeleton";
 // Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman customer.
 import { 

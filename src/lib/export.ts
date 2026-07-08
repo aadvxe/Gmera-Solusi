@@ -187,7 +187,7 @@ export function exportToExcel(
       // Kondisi if (!cell) continue; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di helper export PDF/Excel.
       if (!cell) continue;
 
-      // Define default premium cell style
+      // Define default cell style
       const cellStyle: any = {
         font: { name: 'Arial', sz: 9.5, bold: false, color: { rgb: '1E1E32' } },
         fill: { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } },

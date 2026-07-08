@@ -20,7 +20,7 @@ import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 // Import utility project supaya halaman preview invoice yang sudah tersimpan dan siap dicetak/export bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatCurrency } from "@/lib/utils";
-// Import SkeletonDetail untuk loading state detail yang premium.
+// Import SkeletonDetail untuk loading state detail.
 import { SkeletonDetail } from "@/components/ui/Skeleton";
 
 /** Accounting number: 1.234.567,00 */

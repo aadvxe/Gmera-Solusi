@@ -24,7 +24,7 @@ import { uploadFile } from "@/lib/storage";
 import { toast } from "sonner";
 // Import utility project supaya form tambah pengeluaran untuk menyimpan biaya baru bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatRupiah, parseRupiah } from "@/lib/utils";
-// Import Skeleton dan SkeletonForm untuk loading state yang premium.
+// Import Skeleton dan SkeletonForm untuk loading state.
 import { Skeleton, SkeletonForm } from "@/components/ui/Skeleton";
 
 // TambahPengeluaranPage menyimpan pengeluaran baru, termasuk kategori, metode pembayaran, item, dan lampiran.

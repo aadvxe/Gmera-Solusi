@@ -24,7 +24,7 @@ import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 // Import komponen UI reusable supaya form edit invoice yang memuat data lama lalu menyimpan perubahan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
-// Import SkeletonForm untuk loading state form yang premium.
+// Import SkeletonForm untuk loading state form.
 import { SkeletonForm } from "@/components/ui/Skeleton";
 // Import uploadFile supaya form edit invoice yang memuat data lama lalu menyimpan perubahan bisa mengirim lampiran ke Supabase Storage.
 import { uploadFile } from "@/lib/storage";

@@ -26,7 +26,7 @@ import { createAuditLog } from "@/lib/db/users";
 import { useAuthStore } from "@/store/authStore";
 // Import Sonner untuk menampilkan toast sukses/error di halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export.
 import { toast } from "sonner";
-// Import SkeletonLaporanContent untuk loading state yang premium.
+// Import SkeletonLaporanContent untuk loading state.
 import { SkeletonLaporanContent } from "@/components/ui/Skeleton";
 
 const SHOW_LABA_RUGI = false; // Toggle to true to show the Laba Rugi button/card in the future

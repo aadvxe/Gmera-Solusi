@@ -32,7 +32,7 @@ import { toast } from "sonner";
 import { createAuditLog } from "@/lib/db/users";
 // Import authStore supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
-// Import Skeleton dan SkeletonForm untuk loading state yang premium.
+// Import Skeleton dan SkeletonForm untuk loading state.
 import { Skeleton, SkeletonForm } from "@/components/ui/Skeleton";
 
 // Interface ini menjelaskan field yang dipakai form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru supaya data form/database tidak salah bentuk.
@@ -593,7 +593,7 @@ export default function BuatInvoicePage() {
             </div>
           </div>
 
-          {/* Section 3: Informasi Pengiriman (Merged & Premium) */}
+          {/* Section 3: Informasi Pengiriman (Merged) */}
           <div className="bg-surface border border-border rounded-2xl shadow-sm p-6">
             <h3 className="text-lg font-semibold text-text-primary border-b border-border pb-2 mb-4 flex items-center gap-2">
               <TruckIcon className="w-[18px] h-[18px] text-primary" /> Informasi Pengiriman (Opsional)

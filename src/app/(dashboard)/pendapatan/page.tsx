@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/Input";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 // Import komponen UI reusable supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
-// Import SkeletonTableRow untuk loading state table yang premium.
+// Import SkeletonTableRow untuk loading state table.
 import { SkeletonTableRow } from "@/components/ui/Skeleton";
 // Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman daftar pendapatan.
 import { 

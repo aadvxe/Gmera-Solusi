@@ -24,7 +24,7 @@ import { getClients, getCategories, getPaymentMethods, createIncome, getInvoices
 import { uploadFile } from "@/lib/storage";
 // Import utility project supaya form tambah pendapatan untuk menyimpan pemasukan baru bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatRupiah, parseRupiah } from "@/lib/utils";
-// Import Skeleton dan SkeletonForm untuk loading state yang premium.
+// Import Skeleton dan SkeletonForm untuk loading state.
 import { Skeleton, SkeletonForm } from "@/components/ui/Skeleton";
 
 // TambahPendapatanPage menyimpan pemasukan baru, termasuk kategori, metode pembayaran, item, dan lampiran.

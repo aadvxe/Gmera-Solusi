@@ -23,7 +23,7 @@ import {
 import { SearchIcon, Menu2Icon } from "@astraicons/react/linear";
 // Import komponen UI reusable supaya halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Button } from "@/components/ui/Button";
-// Import SkeletonForm untuk loading state form yang premium.
+// Import SkeletonForm untuk loading state form.
 import { SkeletonForm } from "@/components/ui/Skeleton";
 // Import komponen UI reusable supaya halaman pengaturan untuk profil perusahaan, user, kategori, pajak, dan pembayaran memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { Input } from "@/components/ui/Input";

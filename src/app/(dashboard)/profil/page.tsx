@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 // Import authStore supaya halaman profil user yang sedang login bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore, MOCK_PROFILES, ROLE_LABELS } from "@/store/authStore";
-// Import Skeleton dan SkeletonForm untuk loading state yang premium.
+// Import Skeleton dan SkeletonForm untuk loading state.
 import { Skeleton, SkeletonForm } from "@/components/ui/Skeleton";
 
 // ProfilPage menampilkan dan memperbarui data profil user yang sedang login.

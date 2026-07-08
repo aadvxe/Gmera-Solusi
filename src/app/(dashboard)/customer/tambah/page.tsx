@@ -14,7 +14,7 @@ import { ArrowLeftIcon } from "@astraicons/react/bold";
 import { toast } from "sonner";
 // Import Link supaya menu/tombol di form tambah customer untuk menyimpan pelanggan baru bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
-// Import Skeleton dan SkeletonForm untuk loading state yang premium.
+// Import Skeleton dan SkeletonForm untuk loading state.
 import { Skeleton, SkeletonForm } from "@/components/ui/Skeleton";
 
 // Import authStore supaya form tambah customer untuk menyimpan pelanggan baru bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
