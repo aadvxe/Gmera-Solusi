@@ -798,7 +798,7 @@ export default function PengaturanPage() {
             </div>
             
             <div className="border border-gray-100 rounded-2xl overflow-hidden">
-              <Table>
+              <Table className="min-w-full">
                 <TableHeader className="bg-gray-50">
                   <TableRow>
                     <TableHead>Nama & Email</TableHead>
@@ -885,7 +885,7 @@ export default function PengaturanPage() {
             </div>
 
             <div className="relative border border-gray-100 rounded-2xl overflow-hidden">
-              <Table>
+              <Table className="min-w-full">
                 <TableBody>
                   {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman pengaturan. */}
                   {visibleCategories.map((cat, idx) => (
