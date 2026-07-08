@@ -139,7 +139,20 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
       });
     }
 
-    // monthKey mengembalikan nilai yang dibutuhkan oleh FinancialChart.
+    // Trim trailing empty data points so the bar grows per data
+    let lastIndex = -1;
+    for (let i = 0; i < result.length; i++) {
+      if (result[i].value > 0) {
+        lastIndex = i;
+      }
+    }
+
+    if (lastIndex === -1 && result.length > 0) {
+      return [result[0]];
+    } else if (lastIndex >= 0) {
+      return result.slice(0, lastIndex + 1);
+    }
+
     return result;
   }, [rawData, period, dataKey]);
 
@@ -150,16 +163,20 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
     : 0;
 
   const absAverage = Math.abs(averageValue);
-  const averageText = `Rp ${absAverage >= 1000000 ? (averageValue / 1000000).toFixed(1) + 'jt' : (averageValue / 1000).toFixed(0) + 'k'} / ${period === 'Harian' ? 'hr' : period === 'Mingguan' ? 'mgg' : 'bln'}`;
+  const getAverageFormatted = (val: number) => {
+    const abs = Math.abs(val);
+    if (abs >= 1000000000) return (val / 1000000000).toFixed(1) + ' M';
+    if (abs >= 1000000) return (val / 1000000).toFixed(1) + ' Jt';
+    return (val / 1000).toFixed(0) + ' k';
+  };
+  const averageText = `Rp ${getAverageFormatted(averageValue)} / ${period === 'Harian' ? 'hr' : period === 'Mingguan' ? 'mgg' : 'bln'}`;
 
-  // formatCurrency mengubah angka menjadi format mata uang Indonesia lengkap dengan Rp.
   const formatCurrency = (value: number) => {
     const absValue = Math.abs(value);
     const sign = value < 0 ? "-" : "";
-    // Kondisi if (absValue >= 1000000) return `Rp ${sign}${(absValue / 1000000).toFixed(0)}jt`; membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di FinancialChart.
-    if (absValue >= 1000000) return `Rp ${sign}${(absValue / 1000000).toFixed(0)}jt`;
-    // sign mengembalikan nilai yang dibutuhkan oleh FinancialChart.
-    return `Rp ${sign}${(absValue / 1000).toFixed(0)}k`;
+    if (absValue >= 1000000000) return `Rp ${sign}${(absValue / 1000000000).toFixed(1)} M`;
+    if (absValue >= 1000000) return `Rp ${sign}${(absValue / 1000000).toFixed(0)} Jt`;
+    return `Rp ${sign}${(absValue / 1000).toFixed(0)} k`;
   };
 
   const periods = ["Harian", "Mingguan", "Bulanan"] as const;
@@ -167,12 +184,12 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
   // formatCurrency menampilkan UI untuk kartu grafik keuangan yang mengelompokkan data harian, mingguan, atau bulanan.
   return (
     <div className="bg-surface rounded-xl p-6 border border-border shadow-sm flex flex-col">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-6">
         <h3 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-          {Icon && <Icon className="w-5 h-5" style={{ color }} />}
+          {Icon && <Icon className="w-5 h-5 shrink-0" style={{ color }} />}
           {title}
         </h3>
-        <div className="relative flex bg-background rounded-lg p-1">
+        <div className="relative flex bg-background rounded-lg p-1 self-start sm:self-auto max-w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {/* Sliding capsule background */}
           {activeTabRect && (
             <div 
@@ -204,7 +221,7 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
         isTransitioning ? "opacity-30" : "opacity-100"
       }`}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={groupedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <BarChart data={groupedData} margin={{ top: 25, right: 10, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E7EB" />
             <XAxis 
               dataKey="name" 
@@ -219,6 +236,7 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
               tickLine={false} 
               tick={{ fill: '#636E72', fontSize: 12 }}
               tickFormatter={formatCurrency}
+              width={75}
             />
             <Tooltip 
               cursor={{ fill: '#F5F6FA' }}

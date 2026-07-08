@@ -40,11 +40,11 @@ const formatCompactCurrency = (value: number) => {
   const sign = value < 0 ? "-" : "";
   
   // Kondisi if (absValue >= 1000000) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
-  if (absValue >= 1000000) {
-    // sign mengembalikan hasil untuk halaman beranda, sesuai data yang dihitung tepat sebelum baris return ini.
+  if (absValue >= 1000000000) {
+    return `${sign}${(absValue / 1000000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} M`;
+  } else if (absValue >= 1000000) {
     return `${sign}${(absValue / 1000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Jt`;
   } else if (absValue >= 1000) {
-    // sign mengembalikan hasil untuk halaman beranda, sesuai data yang dihitung tepat sebelum baris return ini.
     return `${sign}${(absValue / 1000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} k`;
   }
   // sign mengembalikan hasil untuk halaman beranda, sesuai data yang dihitung tepat sebelum baris return ini.
@@ -131,8 +131,6 @@ export default function DashboardPage() {
 
   // greeting menyimpan nilai greeting yang berubah saat user berinteraksi dengan halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
   const [greeting, setGreeting] = useState("Selamat Pagi");
-  // periodeKas menyimpan nilai periode kas yang berubah saat user berinteraksi dengan halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
-  const [periodeKas, setPeriodeKas] = useState("Bulan Ini");
   // isAktivitasModalOpen menyimpan nilai is aktivitas modal open yang berubah saat user berinteraksi dengan halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
   const [isAktivitasModalOpen, setIsAktivitasModalOpen] = useState(false);
   const [summary, setSummary] = useState<any>(null);
@@ -181,32 +179,6 @@ export default function DashboardPage() {
 
       // try ini mengambil ringkasan dashboard, grafik, aktivitas terbaru, dan invoice belum bayar dari Supabase.
       try {
-        // Query to find the latest transaction date to set smart default active month
-        const [latestIncome, latestExpense] = await Promise.all([
-          supabase.from('income').select('date').order('date', { ascending: false }).limit(1),
-          supabase.from('expense').select('date').order('date', { ascending: false }).limit(1)
-        ]);
-
-        const incomeDate = latestIncome.data?.[0]?.date;
-        const expenseDate = latestExpense.data?.[0]?.date;
-        let latestDate = null;
-        // Kondisi if (incomeDate && expenseDate) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
-        if (incomeDate && expenseDate) {
-          latestDate = incomeDate > expenseDate ? incomeDate : expenseDate;
-        } else if (incomeDate) {
-          latestDate = incomeDate;
-        } else if (expenseDate) {
-          latestDate = expenseDate;
-        }
-
-        // Kondisi if (latestDate) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
-        if (latestDate) {
-          // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda.
-          const [y, m] = latestDate.split('-').map(Number);
-          defaultYear = y;
-          defaultMonth = m;
-        }
-
         // Query oldest transaction date to establish start bounds for filter dropdown
         const [oldestIncome, oldestExpense] = await Promise.all([
           supabase.from('income').select('date').order('date', { ascending: true }).limit(1),
@@ -370,11 +342,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Top Row: Ringkasan & Tren Arus Kas */}
+      {/* Top Row: Ringkasan */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Ringkasan Keuangan */}
-        <div className="bg-white rounded-2xl p-6 lg:col-span-7">
+        <div className="bg-white rounded-2xl p-6 lg:col-span-12">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-lg font-bold text-[#151D48]">Ringkasan Keuangan</h2>
@@ -439,155 +411,71 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
-        {/* Tren Arus Kas */}
-        <div className="bg-white rounded-2xl p-6 lg:col-span-5">
-          <h2 className="text-lg font-bold text-[#151D48] mb-6 flex items-center gap-2">
-            <ChartIcon className="w-5 h-5 text-[#5C67F2]" />
-            Tren Arus Kas
-          </h2>
-          <ChartWrapper height={220}>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart key={loadedPeriod} data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} minTickGap={30} interval="equidistantPreserveStart" />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} />
-                <Tooltip 
-                  cursor={{ stroke: '#5C67F2', strokeWidth: 1, strokeDasharray: '4 4' }} 
-                  content={<CustomTooltip />}
-                />
-                <Line type="monotone" dataKey="pendapatan" stroke="#76c893" strokeWidth={3} dot={false} animationDuration={800} animationEasing="ease-out" />
-                <Line type="monotone" dataKey="pengeluaran" stroke="#f08a5d" strokeWidth={3} dot={false} animationDuration={800} animationEasing="ease-out" />
-                <Line type="monotone" dataKey="laba" stroke="#7983ff" strokeWidth={3} dot={false} animationDuration={800} animationEasing="ease-out" />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartWrapper>
-          <div className="flex justify-center gap-4 mt-2 text-xs text-gray-500">
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#76c893]"></span> Pendapatan</div>
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#f08a5d]"></span> Pengeluaran</div>
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#7983ff]"></span> Laba Bersih</div>
-          </div>
-        </div>
       </div>
 
-      {/* Middle Row: Arus Kas Harian, Laba Bersih, Status Invoice */}
+      {/* Middle Row: Tren Pendapatan, Tren Pengeluaran, Status Invoice */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Perbandingan Arus Kas */}
+        {/* Tren Pendapatan */}
         <div className="bg-white rounded-2xl p-6 lg:col-span-1 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-bold text-[#151D48] flex items-center gap-2">
               <ChartIcon className="w-5 h-5 text-[#3CD856]" />
-              Perbandingan Arus Kas
+              Tren Pendapatan
             </h2>
-            <div className="w-36">
-              <CustomSelect 
-                options={[
-                  { value: "Minggu Ini", label: "Minggu Ini" },
-                  { value: "Bulan Ini", label: "Bulan Ini" },
-                  { value: "Tahun Ini", label: "Tahun Ini" }
-                ]}
-                value={periodeKas}
-                onChange={setPeriodeKas}
-              />
-            </div>
           </div>
           <ChartWrapper height={180}>
             <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={(() => {
-                // Kondisi if (periodeKas === "Minggu Ini") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
-                if (periodeKas === "Minggu Ini") {
-                  const now = new Date();
-                  const dayOfWeek = now.getDay();
-                  const monday = new Date(now);
-                  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-                  
-                  const weekDays = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
-                  // loadData mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
-                  return weekDays.map((dayName, index) => {
-                    const date = new Date(monday);
-                    date.setDate(monday.getDate() + index);
-                    const dayNum = date.getDate();
-                    const dayData = chartData.find(d => parseInt(d.name) === dayNum);
-                    // loadData mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
-                    return {
-                      name: dayName,
-                      pendapatan: dayData?.pendapatan || 0,
-                      pengeluaran: dayData?.pengeluaran || 0,
-                      laba: dayData?.laba || 0
-                    };
-                  });
-                }
-                // Kondisi if (periodeKas === "Tahun Ini") membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
-                if (periodeKas === "Tahun Ini") {
-                  // loadData mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
-                  return yearlyData;
-                }
-                // loadData mengirim hasil akhir yang dibutuhkan oleh bagian kode yang memanggilnya.
-                return chartData;
-              })()} barGap={4}>
+              <BarChart data={yearlyData} barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} minTickGap={30} interval="equidistantPreserveStart" />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} width={55} />
                 <Tooltip 
                   cursor={{ fill: '#F3F4F6' }}
                   content={<CustomTooltip />}
                 />
-                <Bar dataKey="pendapatan" fill="#76c893" radius={[4, 4, 0, 0]} barSize={8} />
-                <Bar dataKey="pengeluaran" fill="#f08a5d" radius={[4, 4, 0, 0]} barSize={8} />
+                <Bar dataKey="pendapatan" fill="#76c893" radius={[4, 4, 0, 0]} maxBarSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </ChartWrapper>
-          <div className="flex justify-center gap-6 mt-4 text-xs text-gray-500">
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#76c893]"></span> Pendapatan</div>
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#f08a5d]"></span> Pengeluaran</div>
+          <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-auto">
+            <div className="text-sm">
+              <span className="text-gray-500">Total Tahun Ini:</span>{" "}
+              <span className="font-bold text-[#151D48] tabular-nums">
+                Rp {formatCompactCurrency(yearlyData.reduce((sum, item) => sum + (item.pendapatan || 0), 0))}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Pertumbuhan Laba Bersih */}
-        <div className="bg-white rounded-2xl p-6 lg:col-span-1">
-          <h2 className="text-lg font-bold text-[#151D48] mb-6 flex items-center gap-2">
-            <StatusUpIcon className="w-5 h-5 text-[#5C67F2]" />
-            Pertumbuhan Laba Bersih
-          </h2>
-          <ChartWrapper height={140}>
-            <ResponsiveContainer width="100%" height={140}>
-              <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7983ff" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#7983ff" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
+        {/* Tren Pengeluaran */}
+        <div className="bg-white rounded-2xl p-6 lg:col-span-1 flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold text-[#151D48] flex items-center gap-2">
+              <ChartIcon className="w-5 h-5 text-[#f08a5d]" />
+              Tren Pengeluaran
+            </h2>
+          </div>
+          <ChartWrapper height={180}>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={yearlyData} barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                <XAxis dataKey="name" hide />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} width={60} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} minTickGap={30} interval="equidistantPreserveStart" />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} width={55} />
                 <Tooltip 
-                  cursor={{ stroke: '#5C67F2', strokeWidth: 1, strokeDasharray: '4 4' }}
-                  content={<CustomTooltip hideHeader={true} />}
+                  cursor={{ fill: '#F3F4F6' }}
+                  content={<CustomTooltip />}
                 />
-                <Area type="monotone" dataKey="last" stroke="#76c893" fill="none" strokeWidth={2} dot={false} />
-                <Area type="monotone" dataKey="laba" stroke="#7983ff" fill="url(#colorCurrent)" strokeWidth={2} dot={false} />
-              </AreaChart>
+                <Bar dataKey="pengeluaran" fill="#f08a5d" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              </BarChart>
             </ResponsiveContainer>
           </ChartWrapper>
-          <div className="flex justify-center gap-6 mt-6 pt-4 border-t border-gray-100">
-            <div className="text-center">
-              <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1 justify-center">
-                <span className="w-3 h-1 bg-[#76c893] rounded-full"></span> Laba Bulan Lalu
-              </div>
-              <p className="font-bold text-[#1E293B]">
-                {summary ? `Rp ${formatCompactCurrency(summary.prevNetProfitMTD)}` : "..."}
-              </p>
-            </div>
-            <div className="w-px bg-gray-100"></div>
-            <div className="text-center">
-              <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1 justify-center">
-                <span className="w-3 h-1 bg-[#7983ff] rounded-full"></span> Laba Bulan Ini
-              </div>
-              <p className="font-bold text-[#1E293B]">
-                {summary ? `Rp ${formatCompactCurrency(summary.netProfit)}` : "..."}
-              </p>
+          <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-auto">
+            <div className="text-sm">
+              <span className="text-gray-500">Total Tahun Ini:</span>{" "}
+              <span className="font-bold text-[#151D48] tabular-nums">
+                Rp {formatCompactCurrency(yearlyData.reduce((sum, item) => sum + (item.pengeluaran || 0), 0))}
+              </span>
             </div>
           </div>
         </div>

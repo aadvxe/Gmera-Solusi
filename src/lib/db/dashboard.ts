@@ -201,8 +201,19 @@ export async function getDashboardYearlyData(year: number) {
     };
   });
 
-  // monthExpense mengembalikan nilai yang dibutuhkan oleh helper data dashboard.
-  return yearlyData;
+  let lastIndex = -1;
+  for (let i = 0; i < yearlyData.length; i++) {
+    if (yearlyData[i].pendapatan > 0 || yearlyData[i].pengeluaran > 0) {
+      lastIndex = i;
+    }
+  }
+
+  // Jika tidak ada data sama sekali, kembalikan array kosong atau cuma bulan pertama
+  if (lastIndex === -1) {
+    return [yearlyData[0]];
+  }
+
+  return yearlyData.slice(0, lastIndex + 1);
 }
 
 // ─── REPORT CHART DATA ────────────────────────────────────────────────────────
@@ -236,22 +247,14 @@ export async function getReportChartData(startDate: string, endDate: string) {
   const start = new Date(startDate);
   let end = new Date(endDate);
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const isOngoingPeriod = endDate > todayStr;
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-  if (isOngoingPeriod && (incomes.length > 0 || expenses.length > 0)) {
-    let maxDateStr = startDate;
-    incomes.forEach(i => { if (i.date > maxDateStr) maxDateStr = i.date; });
-    expenses.forEach(e => { if (e.date > maxDateStr) maxDateStr = e.date; });
-
-    if (todayStr >= startDate && todayStr <= endDate) {
-      if (todayStr > maxDateStr) {
-        maxDateStr = todayStr;
-      }
-    }
-
-    if (maxDateStr > startDate) {
-      end = new Date(maxDateStr);
+  if (endDate > todayStr) {
+    if (todayStr >= startDate) {
+      end = new Date(todayStr);
+    } else {
+      end = new Date(startDate);
     }
   }
 
@@ -260,7 +263,10 @@ export async function getReportChartData(startDate: string, endDate: string) {
 
   const chartData = [];
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split('T')[0];
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     // filter ini menyisakan data helper data dashboard yang cocok dengan pencarian, status, role, atau tanggal aktif.
     const dayIncome = incomes.filter(i => i.date === dateStr).reduce((s, i) => s + Number(i.amount), 0);
     // filter ini menyisakan data helper data dashboard yang cocok dengan pencarian, status, role, atau tanggal aktif.
