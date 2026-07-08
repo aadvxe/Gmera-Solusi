@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 // Import authStore supaya halaman profil user yang sedang login bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore, MOCK_PROFILES, ROLE_LABELS } from "@/store/authStore";
+// Import Skeleton dan SkeletonForm untuk loading state yang premium.
+import { Skeleton, SkeletonForm } from "@/components/ui/Skeleton";
 
 // ProfilPage menampilkan dan memperbarui data profil user yang sedang login.
 export default function ProfilPage() {
@@ -44,10 +46,19 @@ export default function ProfilPage() {
 
   // Password form state
   const [currentPwd, setCurrentPwd] = useState("");
-  // newPwd menyimpan nilai new pwd yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
+  // phone menyimpan nilai phone yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [newPwd, setNewPwd] = useState("");
   // confirmPwd menyimpan nilai confirm pwd yang berubah saat user berinteraksi dengan halaman profil user yang sedang login.
   const [confirmPwd, setConfirmPwd] = useState("");
+
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  // Sync state once user info loads
+  React.useEffect(() => {
+    if (user) {
+      setName(getDisplayName());
+    }
+  }, [user]);
 
   // handleSaveProfile adalah fungsi penangan aksi user; fungsi ini berjalan saat user mengklik, mengetik, memilih, atau submit sesuatu.
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -92,6 +103,32 @@ export default function ProfilPage() {
   };
   const userRole = user?.user_metadata?.role || "viewer";
   const roleColor = roleColorMap[userRole] || "bg-gray-100 text-gray-600";
+
+  // Renders profile-specific skeleton layout when loading or user session is resolving.
+  if (isLoading || !user) {
+    return (
+      <div className="flex flex-col gap-6 max-w-4xl animate-pulse">
+        <div>
+          <Skeleton className="h-8 w-48 bg-gray-200/60" />
+          <Skeleton className="h-4 w-80 bg-gray-200/60 mt-1" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <div className="bg-surface border border-border rounded-2xl shadow-sm p-6 flex flex-col items-center gap-4">
+              <Skeleton className="w-24 h-24 rounded-2xl bg-gray-200/60" />
+              <Skeleton className="h-6 w-32 bg-gray-200/60 mt-2" />
+              <Skeleton className="h-4 w-20 bg-gray-200/60" />
+            </div>
+          </div>
+          <div className="lg:col-span-2">
+            <div className="bg-surface border border-border rounded-2xl shadow-sm p-6">
+              <SkeletonForm />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ProfilPage menampilkan UI untuk halaman profil user yang sedang login.
   return (

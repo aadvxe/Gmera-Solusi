@@ -481,7 +481,7 @@ export default function PengeluaranPage() {
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, idx) => (
-                  <SkeletonTableRow key={idx} cols={7} />
+                  <SkeletonTableRow key={idx} cols={7} widths={["w-24", "w-20", "w-40", "w-28", "ml-auto w-24", "w-20", "ml-auto w-12"]} />
                 ))
               ) : filteredExpenses.length === 0 ? (
                 <TableRow>

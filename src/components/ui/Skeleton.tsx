@@ -47,12 +47,17 @@ export function SkeletonTable() {
 // SkeletonTableRow renders row cells with skeleton pulse animations for dynamic tables.
 import { TableRow, TableCell } from "./Table";
 
-export function SkeletonTableRow({ cols }: { cols: number }) {
+export function SkeletonTableRow({ cols, widths }: { cols: number; widths?: string[] }) {
   return (
     <TableRow>
       {Array.from({ length: cols }).map((_, i) => (
         <TableCell key={i}>
-          <Skeleton className="h-5 w-full rounded-lg bg-gray-200/60" />
+          <Skeleton 
+            className={cn(
+              "h-5 rounded-lg bg-gray-200/60",
+              widths && widths[i] ? widths[i] : "w-full"
+            )} 
+          />
         </TableCell>
       ))}
     </TableRow>
@@ -336,6 +341,91 @@ export function SkeletonLaporanContent() {
           <Skeleton className="h-11 flex-1 rounded-xl bg-gray-200/60" />
           <Skeleton className="h-11 flex-1 rounded-xl bg-gray-200/60" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// SkeletonTablePage represents a full list page with search, filters, and table row placeholders.
+export function SkeletonTablePage({ cols = 7 }: { cols?: number }) {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Header & Filter */}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-36 bg-gray-200/60" />
+          <Skeleton className="h-4 w-60 bg-gray-200/60" />
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Skeleton className="h-10 w-20 rounded-xl bg-gray-200/60" />
+          <Skeleton className="h-10 w-20 rounded-xl bg-gray-200/60" />
+          <Skeleton className="h-10 w-32 rounded-xl bg-gray-200/60" />
+        </div>
+      </div>
+
+      {/* Search & Table Card */}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col overflow-hidden">
+        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row gap-4">
+          <Skeleton className="h-10 flex-1 max-w-md rounded-xl bg-gray-200/60" />
+          <Skeleton className="h-10 w-24 rounded-xl bg-gray-200/60" />
+        </div>
+        
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between pb-2 border-b border-gray-100">
+            {Array.from({ length: cols }).map((_, i) => (
+              <Skeleton key={i} className="h-4 w-20 bg-gray-200/60" />
+            ))}
+          </div>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex justify-between py-2 border-b border-gray-100/50">
+              {Array.from({ length: cols }).map((_, j) => (
+                <Skeleton key={j} className="h-5 w-24 bg-gray-200/60 animate-pulse" />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// SkeletonLaporanPage represents the full layout placeholder for reports.
+export function SkeletonLaporanPage() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Header & Filter */}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48 bg-gray-200/60" />
+          <Skeleton className="h-4 w-80 bg-gray-200/60" />
+        </div>
+        <div className="flex flex-wrap md:flex-nowrap gap-3 items-center w-full md:w-auto">
+          <Skeleton className="h-10 w-36 rounded-xl bg-gray-200/60" />
+          <Skeleton className="h-10 w-36 rounded-xl bg-gray-200/60" />
+          <Skeleton className="h-10 w-24 rounded-xl bg-gray-200/60" />
+        </div>
+      </div>
+      <SkeletonLaporanContent />
+    </div>
+  );
+}
+
+// SkeletonPengaturanPage represents the layout placeholder for settings screen.
+export function SkeletonPengaturanPage() {
+  return (
+    <div className="flex min-h-[calc(100dvh-6rem)] flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm md:h-[calc(100vh-8rem)] md:flex-row animate-pulse">
+      {/* Sidebar Navigation */}
+      <div className="w-full shrink-0 border-b border-gray-100 bg-gray-50 p-4 md:w-64 md:border-b-0 md:border-r space-y-4">
+        <Skeleton className="h-4 w-32 bg-gray-200/60" />
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full rounded-xl bg-gray-200/60" />
+          ))}
+        </div>
+      </div>
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+        <SkeletonForm />
       </div>
     </div>
   );

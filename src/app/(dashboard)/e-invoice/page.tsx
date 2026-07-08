@@ -522,7 +522,7 @@ export default function EInvoicePage() {
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, idx) => (
-                  <SkeletonTableRow key={idx} cols={7} />
+                  <SkeletonTableRow key={idx} cols={7} widths={["w-24", "w-36", "w-24", "w-24", "ml-auto w-28", "w-20", "ml-auto w-12"]} />
                 ))
               ) : filteredInvoices.length === 0 ? (
                 <TableRow>

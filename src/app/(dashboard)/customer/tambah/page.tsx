@@ -14,6 +14,8 @@ import { ArrowLeftIcon } from "@astraicons/react/bold";
 import { toast } from "sonner";
 // Import Link supaya menu/tombol di form tambah customer untuk menyimpan pelanggan baru bisa berpindah halaman tanpa reload penuh.
 import Link from "next/link";
+// Import Skeleton dan SkeletonForm untuk loading state yang premium.
+import { Skeleton, SkeletonForm } from "@/components/ui/Skeleton";
 
 // Import authStore supaya form tambah customer untuk menyimpan pelanggan baru bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
@@ -24,6 +26,24 @@ export default function TambahCustomerPage() {
   // isSubmitting menyimpan nilai is submitting yang berubah saat user berinteraksi dengan form tambah customer untuk menyimpan pelanggan baru.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const role = useAuthStore(state => state.role);
+  const isLoading = useAuthStore(state => state.isLoading);
+
+  if (isLoading) {
+    return (
+      <div className="bg-surface border border-border rounded-2xl shadow-sm flex flex-col h-full min-h-[500px]">
+        <div className="p-6 border-b border-border flex items-center gap-4 animate-pulse">
+          <Skeleton className="h-10 w-10 rounded-xl bg-gray-200/60" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-48 bg-gray-200/60" />
+            <Skeleton className="h-4 w-72 bg-gray-200/60" />
+          </div>
+        </div>
+        <div className="p-6 md:p-8">
+          <SkeletonForm />
+        </div>
+      </div>
+    );
+  }
 
   // Kondisi ini mengecek role agar menu/fitur yang tampil sesuai hak akses user.
   if (role === 'viewer') {

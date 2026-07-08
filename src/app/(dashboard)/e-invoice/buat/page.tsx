@@ -32,6 +32,8 @@ import { toast } from "sonner";
 import { createAuditLog } from "@/lib/db/users";
 // Import authStore supaya form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import Skeleton dan SkeletonForm untuk loading state yang premium.
+import { Skeleton, SkeletonForm } from "@/components/ui/Skeleton";
 
 // Interface ini menjelaskan field yang dipakai form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru supaya data form/database tidak salah bentuk.
 interface InvoiceItem {
@@ -119,6 +121,7 @@ export default function BuatInvoicePage() {
   const user = useAuthStore(state => state.user);
   // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   const [loading, setLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [clients, setClients] = useState<Client[]>([]);
 
   // Form State
@@ -174,6 +177,7 @@ export default function BuatInvoicePage() {
       ]);
       setClients(clientsData || []);
       setCompanyProfile(companyData || null);
+      setIsInitialLoading(false);
     };
     fetchData();
   }, []);
@@ -405,6 +409,42 @@ export default function BuatInvoicePage() {
     }
     setIsPreviewOpen(true);
   };
+
+  if (isInitialLoading) {
+    return (
+      <div className="max-w-5xl mx-auto space-y-6 pb-20">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Link href="/e-invoice">
+            <button className="p-2 bg-surface border border-border rounded-xl hover:bg-background transition-colors text-text-secondary">
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+          </Link>
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48 bg-gray-200/60" />
+            <Skeleton className="h-4 w-80 bg-gray-200/60" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm">
+              <SkeletonForm />
+            </div>
+          </div>
+          <div className="lg:col-span-1">
+            <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm space-y-4">
+              <Skeleton className="h-6 w-32 bg-gray-200/60" />
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-full rounded-xl bg-gray-200/60" />
+                <Skeleton className="h-10 w-full rounded-xl bg-gray-200/60" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // handleSubmit menampilkan UI untuk form invoice yang mengubah customer, item, pajak, diskon, dan ongkir menjadi invoice baru.
   return (

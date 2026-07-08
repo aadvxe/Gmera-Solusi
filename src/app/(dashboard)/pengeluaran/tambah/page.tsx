@@ -24,12 +24,15 @@ import { uploadFile } from "@/lib/storage";
 import { toast } from "sonner";
 // Import utility project supaya form tambah pengeluaran untuk menyimpan biaya baru bisa memformat class Tailwind atau angka Rupiah dengan cara yang sama.
 import { formatRupiah, parseRupiah } from "@/lib/utils";
+// Import Skeleton dan SkeletonForm untuk loading state yang premium.
+import { Skeleton, SkeletonForm } from "@/components/ui/Skeleton";
 
 // TambahPengeluaranPage menyimpan pengeluaran baru, termasuk kategori, metode pembayaran, item, dan lampiran.
 export default function TambahPengeluaranPage() {
   const router = useRouter();
   // loading menyimpan nilai loading yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [loading, setLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   // amountDisplay menyimpan nilai amount display yang berubah saat user berinteraksi dengan form tambah pengeluaran untuk menyimpan biaya baru.
   const [amountDisplay, setAmountDisplay] = useState("");
   
@@ -57,7 +60,6 @@ export default function TambahPengeluaranPage() {
 
   // Effect ini mengambil data yang diperlukan form tambah pengeluaran untuk menyimpan biaya baru saat halaman dibuka atau filter berubah.
   useEffect(() => {
-    // fetchData mengambil data yang dibutuhkan form tambah pengeluaran untuk menyimpan biaya baru dari Supabase lalu mengisi state halaman.
     const fetchData = async () => {
       // await Promise.all menunggu beberapa query berjalan paralel sampai semuanya selesai.
       const [catsData, paymentData] = await Promise.all([
@@ -71,6 +73,7 @@ export default function TambahPengeluaranPage() {
       if (catsData.length > 0) setCategoryId(catsData[0].id);
       // Kondisi ini mengecek jumlah item agar daftar kosong, pagination, atau total bisa ditangani dengan benar.
       if (paymentData.length > 0) setPaymentMethodId(paymentData[0].id);
+      setIsInitialLoading(false);
     };
     fetchData();
   }, []);
@@ -129,6 +132,30 @@ export default function TambahPengeluaranPage() {
       setLoading(false);
     }
   };
+
+  if (isInitialLoading) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Link href="/pengeluaran">
+            <button className="p-2 bg-surface border border-border rounded-xl hover:bg-background transition-colors text-text-secondary">
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+          </Link>
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48 bg-gray-200/60" />
+            <Skeleton className="h-4 w-80 bg-gray-200/60" />
+          </div>
+        </div>
+
+        {/* Form Card */}
+        <div className="bg-surface border border-border rounded-2xl p-6 md:p-8 shadow-sm">
+          <SkeletonForm />
+        </div>
+      </div>
+    );
+  }
 
   // handleSubmit menampilkan UI untuk form tambah pengeluaran untuk menyimpan biaya baru.
   return (

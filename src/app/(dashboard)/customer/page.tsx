@@ -515,7 +515,7 @@ export default function CustomerPage() {
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, idx) => (
-                  <SkeletonTableRow key={idx} cols={5} />
+                  <SkeletonTableRow key={idx} cols={5} widths={["w-44", "w-36", "w-16 mx-auto", "ml-auto w-28", "ml-auto w-12"]} />
                 ))
               ) : filteredClients.length === 0 ? (
                 <TableRow>
@@ -859,7 +859,7 @@ export default function CustomerPage() {
                       <TableBody>
                         {loadingInvoices ? (
                           Array.from({ length: 3 }).map((_, idx) => (
-                            <SkeletonTableRow key={idx} cols={4} />
+                             <SkeletonTableRow key={idx} cols={4} widths={["w-24", "w-20", "ml-auto w-24", "w-16"]} />
                           ))
                         ) : clientInvoices.length === 0 ? (
                           <TableRow>
