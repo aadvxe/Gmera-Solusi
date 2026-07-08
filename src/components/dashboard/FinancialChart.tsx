@@ -39,7 +39,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
               </div>
               <span className="font-bold text-[#151D48]">
                 Rp {Math.abs(entry.value) >= 1000000 
-                  ? `${(entry.value / 1000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Jt` 
+                  ? `${(entry.value / 1000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Juta` 
                   : entry.value.toLocaleString('id-ID')}
               </span>
             </div>
@@ -165,8 +165,8 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
   const absAverage = Math.abs(averageValue);
   const getAverageFormatted = (val: number) => {
     const abs = Math.abs(val);
-    if (abs >= 1000000000) return (val / 1000000000).toFixed(1) + ' M';
-    if (abs >= 1000000) return (val / 1000000).toFixed(1) + ' Jt';
+    if (abs >= 1000000000) return (val / 1000000000).toFixed(1) + ' Miliyar';
+    if (abs >= 1000000) return (val / 1000000).toFixed(1) + ' Juta';
     return (val / 1000).toFixed(0) + ' k';
   };
   const averageText = `Rp ${getAverageFormatted(averageValue)} / ${period === 'Harian' ? 'hr' : period === 'Mingguan' ? 'mgg' : 'bln'}`;
@@ -174,8 +174,8 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
   const formatCurrency = (value: number) => {
     const absValue = Math.abs(value);
     const sign = value < 0 ? "-" : "";
-    if (absValue >= 1000000000) return `Rp ${sign}${(absValue / 1000000000).toFixed(1)} M`;
-    if (absValue >= 1000000) return `Rp ${sign}${(absValue / 1000000).toFixed(0)} Jt`;
+    if (absValue >= 1000000000) return `Rp ${sign}${(absValue / 1000000000).toFixed(1)} Miliyar`;
+    if (absValue >= 1000000) return `Rp ${sign}${(absValue / 1000000).toFixed(0)} Juta`;
     return `Rp ${sign}${(absValue / 1000).toFixed(0)} k`;
   };
 

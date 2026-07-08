@@ -41,9 +41,9 @@ const formatCompactCurrency = (value: number) => {
   
   // Kondisi if (absValue >= 1000000) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
   if (absValue >= 1000000000) {
-    return `${sign}${(absValue / 1000000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} M`;
+    return `${sign}${(absValue / 1000000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Miliyar`;
   } else if (absValue >= 1000000) {
-    return `${sign}${(absValue / 1000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Jt`;
+    return `${sign}${(absValue / 1000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Juta`;
   } else if (absValue >= 1000) {
     return `${sign}${(absValue / 1000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} k`;
   }
