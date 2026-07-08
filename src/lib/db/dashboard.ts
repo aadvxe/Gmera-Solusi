@@ -114,7 +114,10 @@ export async function getDashboardChartData(year: number, month: number) {
     supabase.from('expense').select('date, amount').gte('date', prevStart).lt('date', prevEnd),
   ]);
 
-  const daysInMonth = new Date(year, month, 0).getDate();
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month;
+  const daysInMonth = isCurrentMonth ? today.getDate() : new Date(year, month, 0).getDate();
+  
   const chartData = [];
 
   for (let i = 1; i <= daysInMonth; i++) {

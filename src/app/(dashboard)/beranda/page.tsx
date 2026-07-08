@@ -424,25 +424,25 @@ export default function DashboardPage() {
               Tren Pendapatan
             </h2>
           </div>
-          <ChartWrapper height={180}>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={yearlyData} barGap={4}>
+          <ChartWrapper height={210}>
+            <ResponsiveContainer width="100%" height={210}>
+              <LineChart key={`pendapatan-${JSON.stringify(chartData.map(d => d.pendapatan))}`} data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} minTickGap={30} interval="equidistantPreserveStart" />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} width={55} />
                 <Tooltip 
-                  cursor={{ fill: '#F3F4F6' }}
+                  cursor={{ stroke: '#F3F4F6', strokeWidth: 1 }}
                   content={<CustomTooltip />}
                 />
-                <Bar dataKey="pendapatan" fill="#76c893" radius={[4, 4, 0, 0]} maxBarSize={40} />
-              </BarChart>
+                <Line type="monotone" dataKey="pendapatan" stroke="#76c893" strokeWidth={3} dot={false} activeDot={{ r: 6 }} animationDuration={800} animationEasing="ease-out" />
+              </LineChart>
             </ResponsiveContainer>
           </ChartWrapper>
           <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-auto">
             <div className="text-sm">
-              <span className="text-gray-500">Total Tahun Ini:</span>{" "}
+              <span className="text-gray-500">Total Bulan Ini:</span>{" "}
               <span className="font-bold text-[#151D48] tabular-nums">
-                Rp {formatCompactCurrency(yearlyData.reduce((sum, item) => sum + (item.pendapatan || 0), 0))}
+                Rp {formatCompactCurrency(chartData.reduce((sum, item) => sum + (item.pendapatan || 0), 0))}
               </span>
             </div>
           </div>
@@ -456,25 +456,25 @@ export default function DashboardPage() {
               Tren Pengeluaran
             </h2>
           </div>
-          <ChartWrapper height={180}>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={yearlyData} barGap={4}>
+          <ChartWrapper height={210}>
+            <ResponsiveContainer width="100%" height={210}>
+              <LineChart key={`pengeluaran-${JSON.stringify(chartData.map(d => d.pengeluaran))}`} data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} minTickGap={30} interval="equidistantPreserveStart" />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} width={55} />
                 <Tooltip 
-                  cursor={{ fill: '#F3F4F6' }}
+                  cursor={{ stroke: '#F3F4F6', strokeWidth: 1 }}
                   content={<CustomTooltip />}
                 />
-                <Bar dataKey="pengeluaran" fill="#f08a5d" radius={[4, 4, 0, 0]} maxBarSize={40} />
-              </BarChart>
+                <Line type="monotone" dataKey="pengeluaran" stroke="#f08a5d" strokeWidth={3} dot={false} activeDot={{ r: 6 }} animationDuration={800} animationEasing="ease-out" />
+              </LineChart>
             </ResponsiveContainer>
           </ChartWrapper>
           <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-auto">
             <div className="text-sm">
-              <span className="text-gray-500">Total Tahun Ini:</span>{" "}
+              <span className="text-gray-500">Total Bulan Ini:</span>{" "}
               <span className="font-bold text-[#151D48] tabular-nums">
-                Rp {formatCompactCurrency(yearlyData.reduce((sum, item) => sum + (item.pengeluaran || 0), 0))}
+                Rp {formatCompactCurrency(chartData.reduce((sum, item) => sum + (item.pengeluaran || 0), 0))}
               </span>
             </div>
           </div>
