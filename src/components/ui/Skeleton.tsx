@@ -64,7 +64,7 @@ export function SkeletonDashboard() {
   return (
     <div className="space-y-6 animate-pulse">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pt-2 sm:pt-0">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pt-6 sm:pt-0">
         <div className="space-y-2">
           <Skeleton className="h-8 w-48 bg-gray-200/60" />
           <Skeleton className="h-4 w-80 bg-gray-200/60" />
