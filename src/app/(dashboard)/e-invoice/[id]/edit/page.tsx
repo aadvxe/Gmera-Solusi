@@ -24,6 +24,8 @@ import { formatRupiah, parseRupiah, formatCurrency } from "@/lib/utils";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 // Import komponen UI reusable supaya form edit invoice yang memuat data lama lalu menyimpan perubahan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import SkeletonForm untuk loading state form yang premium.
+import { SkeletonForm } from "@/components/ui/Skeleton";
 // Import uploadFile supaya form edit invoice yang memuat data lama lalu menyimpan perubahan bisa mengirim lampiran ke Supabase Storage.
 import { uploadFile } from "@/lib/storage";
 // Import helper database yang dipakai form edit invoice yang memuat data lama lalu menyimpan perubahan untuk mengambil atau menyimpan data Supabase.
@@ -375,7 +377,7 @@ export default function EditInvoicePage() {
   // Kondisi if (loading) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di form edit invoice.
   if (loading) {
     // handleSubmit menampilkan potongan UI yang dipakai di form edit invoice yang memuat data lama lalu menyimpan perubahan.
-    return <div className="p-10 text-center text-gray-500">Memuat data invoice...</div>;
+    return <SkeletonForm />;
   }
 
   // handleSubmit menampilkan UI untuk form edit invoice yang memuat data lama lalu menyimpan perubahan.

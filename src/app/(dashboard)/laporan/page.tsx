@@ -26,6 +26,8 @@ import { createAuditLog } from "@/lib/db/users";
 import { useAuthStore } from "@/store/authStore";
 // Import Sonner untuk menampilkan toast sukses/error di halaman laporan yang menghitung pendapatan, pengeluaran, laba, dan export.
 import { toast } from "sonner";
+// Import SkeletonLaporanContent untuk loading state yang premium.
+import { SkeletonLaporanContent } from "@/components/ui/Skeleton";
 
 const SHOW_LABA_RUGI = false; // Toggle to true to show the Laba Rugi button/card in the future
 const SHOW_BUKU_BESAR = false; // Toggle to true to show the Buku Besar button/card
@@ -288,72 +290,76 @@ export default function LaporanPage() {
         </div>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <MetricCard
-          title="Total Pendapatan"
-          amount={formatCurrency(summary.totalIncome)}
-          period="Periode Terpilih"
-          icon={ArrowUpIcon}
-          variant="success"
-        />
-        <MetricCard
-          title="Total Pengeluaran"
-          amount={formatCurrency(summary.totalExpense)}
-          period="Periode Terpilih"
-          icon={ArrowDownIcon}
-          variant="danger"
-        />
-        <MetricCard
-          title="Sisa Saldo Terakhir"
-          amount={formatCurrency(summary.netProfit)}
-          period="Periode Terpilih"
-          icon={WalletIcon}
-          variant="info"
-        />
-      </div>
+      {loading ? (
+        <SkeletonLaporanContent />
+      ) : (
+        <div className="space-y-6 animate-fade-in">
+          {/* Metrics Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <MetricCard
+              title="Total Pendapatan"
+              amount={formatCurrency(summary.totalIncome)}
+              period="Periode Terpilih"
+              icon={ArrowUpIcon}
+              variant="success"
+            />
+            <MetricCard
+              title="Total Pengeluaran"
+              amount={formatCurrency(summary.totalExpense)}
+              period="Periode Terpilih"
+              icon={ArrowDownIcon}
+              variant="danger"
+            />
+            <MetricCard
+              title="Sisa Saldo Terakhir"
+              amount={formatCurrency(summary.netProfit)}
+              period="Periode Terpilih"
+              icon={WalletIcon}
+              variant="info"
+            />
+          </div>
 
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <FinancialChart
+              title="Tren Pendapatan"
+              icon={MarginIcon}
+              rawData={chartData}
+              dataKey="income"
+              color="#76c893"
+              total={formatCurrency(summary.totalIncome)}
+            />
+            <FinancialChart
+              title="Tren Pengeluaran"
+              icon={NegativeMarginIcon}
+              rawData={chartData}
+              dataKey="expense"
+              color="#f08a5d"
+              total={formatCurrency(summary.totalExpense)}
+            />
+          </div>
 
+          {/* Export Actions Section (Moved to bottom) */}
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-8 shadow-sm text-center flex flex-col items-center">
+            <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center text-primary shadow-sm mb-4">
+              <Document1Icon className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-text-primary">Unduh Laporan Transaksi</h3>
+            <p className="text-sm text-text-secondary max-w-lg mx-auto mt-2 mb-8">
+              Ekspor daftar lengkap seluruh pendapatan dan pengeluaran beserta saldo berjalan secara kronologis dalam format PDF atau Excel.
+            </p>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <FinancialChart
-          title="Tren Pendapatan"
-          icon={MarginIcon}
-          rawData={chartData}
-          dataKey="income"
-          color="#76c893"
-          total={formatCurrency(summary.totalIncome)}
-        />
-        <FinancialChart
-          title="Tren Pengeluaran"
-          icon={NegativeMarginIcon}
-          rawData={chartData}
-          dataKey="expense"
-          color="#f08a5d"
-          total={formatCurrency(summary.totalExpense)}
-        />
-      </div>
-
-      {/* Export Actions Section (Moved to bottom) */}
-      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-8 shadow-sm text-center flex flex-col items-center">
-        <div className="w-16 h-16 bg-surface rounded-2xl flex items-center justify-center text-primary shadow-sm mb-4">
-          <Document1Icon className="w-8 h-8" />
+            <div className="flex gap-4 w-full max-w-md">
+              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-sm font-medium text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors py-3 rounded-xl" onClick={() => handleExport('mutasi', 'pdf')} disabled={loading}>
+                <Document1Icon className="w-5 h-5" /> PDF
+              </Button>
+              <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-sm font-medium text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors py-3 rounded-xl" onClick={() => handleExport('mutasi', 'excel')} disabled={loading}>
+                <DocumentDownloadIcon className="w-5 h-5" /> Excel
+              </Button>
+            </div>
+          </div>
         </div>
-        <h3 className="text-xl font-bold text-text-primary">Unduh Laporan Transaksi</h3>
-        <p className="text-sm text-text-secondary max-w-lg mx-auto mt-2 mb-8">
-          Ekspor daftar lengkap seluruh pendapatan dan pengeluaran beserta saldo berjalan secara kronologis dalam format PDF atau Excel.
-        </p>
-
-        <div className="flex gap-4 w-full max-w-md">
-          <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-sm font-medium text-red-500 hover:text-white border-red-200 hover:bg-red-500 hover:border-red-500 transition-colors py-3 rounded-xl" onClick={() => handleExport('mutasi', 'pdf')} disabled={loading}>
-            <Document1Icon className="w-5 h-5" /> PDF
-          </Button>
-          <Button variant="outline" className="flex-1 flex items-center justify-center gap-1.5 text-sm font-medium text-[#3CD856] hover:text-white border-[#3CD856]/30 hover:bg-[#3CD856] hover:border-[#3CD856] transition-colors py-3 rounded-xl" onClick={() => handleExport('mutasi', 'excel')} disabled={loading}>
-            <DocumentDownloadIcon className="w-5 h-5" /> Excel
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

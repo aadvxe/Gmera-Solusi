@@ -12,6 +12,8 @@ import { ChartWrapper } from "@/components/ui/ChartWrapper";
 import { Modal } from "@/components/ui/Modal";
 // Import authStore supaya halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru bisa membaca user login, role, nama tampilan, atau mengosongkan session saat logout.
 import { useAuthStore } from "@/store/authStore";
+// Import SkeletonDashboard untuk loading state premium.
+import { SkeletonDashboard } from "@/components/ui/Skeleton";
 // Import helper database yang dipakai halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru untuk mengambil atau menyimpan data Supabase.
 import { getDashboardSummary } from "@/lib/db";
 // Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman beranda.
@@ -306,8 +308,12 @@ export default function DashboardPage() {
   }, [selectedPeriod]);
 
   // loadData menampilkan UI untuk halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
+  if (summary === null) {
+    return <SkeletonDashboard />;
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       
       {/* Top Greeting & Period Filter */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pt-2 sm:pt-0">

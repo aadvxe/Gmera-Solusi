@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 // Import komponen UI reusable supaya halaman customer untuk melihat, mencari, mengedit, dan menghapus data pelanggan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import SkeletonTableRow untuk loading state table yang premium.
+import { SkeletonTableRow } from "@/components/ui/Skeleton";
 // Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman customer.
 import { 
   Table, 
@@ -512,11 +514,9 @@ export default function CustomerPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-gray-500">
-                    Memuat data customer...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <SkeletonTableRow key={idx} cols={5} />
+                ))
               ) : filteredClients.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-10 text-gray-500">
@@ -526,7 +526,7 @@ export default function CustomerPage() {
               ) : (
                 // filter ini menyisakan data halaman customer yang cocok dengan pencarian, status, role, atau tanggal aktif.
                 paginatedClients.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow key={row.id} className="animate-fade-in">
                     <TableCell>
                       <div className="font-semibold text-[#151D48]">{row.name}</div>
                       <div className="text-xs text-gray-500 mt-0.5 truncate max-w-[200px]">{row.address}</div>
@@ -858,9 +858,9 @@ export default function CustomerPage() {
                       </TableHeader>
                       <TableBody>
                         {loadingInvoices ? (
-                          <TableRow>
-                            <TableCell colSpan={4} className="text-center py-6 text-gray-500">Memuat riwayat...</TableCell>
-                          </TableRow>
+                          Array.from({ length: 3 }).map((_, idx) => (
+                            <SkeletonTableRow key={idx} cols={4} />
+                          ))
                         ) : clientInvoices.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={4} className="text-center py-6 text-gray-500">Belum ada invoice untuk customer ini.</TableCell>
@@ -868,7 +868,7 @@ export default function CustomerPage() {
                         ) : (
                           // map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman customer.
                           clientInvoices.map((inv) => (
-                            <TableRow key={inv.id}>
+                            <TableRow key={inv.id} className="animate-fade-in">
                               <TableCell className="font-medium text-[#5C67F2]">{inv.invoice_number}</TableCell>
                               <TableCell>{new Date(inv.invoice_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
                               <TableCell className="text-right font-medium text-[#151D48]">{formatCurrency(inv.grand_total || 0)}</TableCell>

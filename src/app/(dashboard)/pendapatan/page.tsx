@@ -20,6 +20,8 @@ import { Input } from "@/components/ui/Input";
 import { CustomDatePicker } from "@/components/ui/CustomDatePicker";
 // Import komponen UI reusable supaya halaman daftar pendapatan untuk filter, edit, hapus, dan export pemasukan memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import SkeletonTableRow untuk loading state table yang premium.
+import { SkeletonTableRow } from "@/components/ui/Skeleton";
 // Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman daftar pendapatan.
 import { 
   Table, 
@@ -483,11 +485,9 @@ export default function PendapatanPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-gray-500">
-                    Memuat data...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <SkeletonTableRow key={idx} cols={7} />
+                ))
               ) : filteredIncomes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-10 text-gray-500">
@@ -497,7 +497,7 @@ export default function PendapatanPage() {
               ) : (
                 // filter ini menyisakan data halaman daftar pendapatan yang cocok dengan pencarian, status, role, atau tanggal aktif.
                 paginatedIncomes.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow key={row.id} className="animate-fade-in">
                     <TableCell className="font-medium text-[#151D48]">{new Date(row.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
                     <TableCell className="text-gray-600">{row.reference_number || '-'}</TableCell>
                     <TableCell className="text-gray-600">{row.source}</TableCell>

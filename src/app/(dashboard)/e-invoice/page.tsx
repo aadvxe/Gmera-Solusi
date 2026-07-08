@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 // Import komponen UI reusable supaya halaman daftar invoice untuk status pembayaran, edit, preview, hapus, dan export memakai tampilan tombol, modal, input, atau tabel yang konsisten.
 import { CustomSelect } from "@/components/ui/CustomSelect";
+// Import SkeletonTableRow untuk loading state table yang premium.
+import { SkeletonTableRow } from "@/components/ui/Skeleton";
 // Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman daftar invoice.
 import { 
   Table, 
@@ -519,11 +521,9 @@ export default function EInvoicePage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-gray-500">
-                    Memuat data invoice...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <SkeletonTableRow key={idx} cols={7} />
+                ))
               ) : filteredInvoices.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-10 text-gray-500">
@@ -533,7 +533,7 @@ export default function EInvoicePage() {
               ) : (
                 // filter ini menyisakan data halaman daftar invoice yang cocok dengan pencarian, status, role, atau tanggal aktif.
                 paginatedInvoices.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow key={row.id} className="animate-fade-in">
                     <TableCell className="font-medium text-[#5C67F2] cursor-pointer hover:underline">{row.invoice_number}</TableCell>
                     <TableCell className="font-semibold text-[#151D48]">{row.clients?.name}</TableCell>
                     <TableCell className="text-gray-600">{new Date(row.invoice_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
