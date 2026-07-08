@@ -221,7 +221,7 @@ export function FinancialChart({ title, icon: Icon, rawData = [], dataKey, color
         isTransitioning ? "opacity-30" : "opacity-100"
       }`}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={groupedData} margin={{ top: 25, right: 10, left: 0, bottom: 0 }}>
+          <BarChart data={groupedData} margin={{ top: 25, right: 10, left: 20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E7EB" />
             <XAxis 
               dataKey="name" 
