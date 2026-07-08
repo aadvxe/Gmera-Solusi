@@ -313,7 +313,12 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pt-2 sm:pt-0">
         <div>
           <h1 className="text-2xl font-bold text-[#151D48] mb-1">
-            {greeting}, {displayName}! 🌤️
+            {greeting}, {displayName}! {
+              greeting === "Selamat Pagi" ? "🌤️" :
+              greeting === "Selamat Siang" ? "☀️" :
+              greeting === "Selamat Sore" ? "⛅" :
+              "🌙"
+            }
           </h1>
           <p className="text-sm text-gray-500">
             {summary ? (
