@@ -16,6 +16,7 @@ import { useAuthStore } from "@/store/authStore";
 import { SkeletonDashboard } from "@/components/ui/Skeleton";
 // Import helper database yang dipakai halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru untuk mengambil atau menyimpan data Supabase.
 import { getDashboardSummary } from "@/lib/db";
+import { formatCurrency } from "@/lib/utils";
 // Import berikutnya mengambil komponen/helper yang langsung dipakai oleh halaman beranda.
 import {
   LineChart,
@@ -40,7 +41,7 @@ import { getDashboardChartData, getTopClientsStats, getRecentActivities, getDash
 const formatCompactCurrency = (value: number) => {
   const absValue = Math.abs(value);
   const sign = value < 0 ? "-" : "";
-  
+
   // Kondisi if (absValue >= 1000000) membuat isi blok if di bawahnya hanya berjalan saat kondisi itu benar di halaman beranda.
   if (absValue >= 1000000000) {
     return `${sign}${(absValue / 1000000000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Miliyar`;
@@ -65,10 +66,10 @@ const CustomTooltip = ({ active, payload, label, hideHeader }: any) => {
           {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
           {payload.map((entry: any, index: number) => {
             // Mapping label names to be more readable
-            const displayName = entry.name === 'current' || entry.name === 'laba' ? 'Laba Bersih' 
-              : entry.name === 'last' ? 'Laba (Bulan Lalu)' 
-              : entry.name;
-            
+            const displayName = entry.name === 'current' || entry.name === 'laba' ? 'Laba Bersih'
+              : entry.name === 'last' ? 'Laba (Bulan Lalu)'
+                : entry.name;
+
             // formatCompactCurrency menampilkan UI untuk halaman beranda yang menampilkan ringkasan keuangan dan aktivitas terbaru.
             return (
               <div key={index} className="flex items-center justify-between gap-6 text-sm">
@@ -220,7 +221,7 @@ export default function DashboardPage() {
         let loopMonth = startMonth;
 
         while (
-          loopYear < currentYear || 
+          loopYear < currentYear ||
           (loopYear === currentYear && loopMonth <= currentMonth)
         ) {
           options.push({
@@ -275,7 +276,7 @@ export default function DashboardPage() {
       setSummary(data);
       setChartData(cData);
       setYearlyData(yData);
-      
+
       // map ini membuat opsi/baris customer dari data clients yang sudah diambil dari Supabase.
       setTopClients(clients.map((c, i) => ({
         id: String(i + 1).padStart(2, '0'),
@@ -314,16 +315,16 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      
+
       {/* Top Greeting & Period Filter */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pt-6 sm:pt-0">
         <div>
           <h1 className="text-2xl font-bold text-[#151D48] mb-1">
             {greeting}, {displayName}! {
               greeting === "Selamat Pagi" ? "🌤️" :
-              greeting === "Selamat Siang" ? "☀️" :
-              greeting === "Selamat Sore" ? "⛅" :
-              "🌙"
+                greeting === "Selamat Siang" ? "☀️" :
+                  greeting === "Selamat Sore" ? "⛅" :
+                    "🌙"
             }
           </h1>
           <p className="text-sm text-gray-500">
@@ -331,10 +332,10 @@ export default function DashboardPage() {
               summary.overdueInvoices > 0
                 ? `Ada ${summary.overdueInvoices} invoice jatuh tempo yang perlu perhatian Anda segera ⚠️`
                 : summary.unpaidInvoices > 0
-                ? `Ada ${summary.unpaidInvoices} invoice yang belum dibayar menunggu pelunasan ⏳`
-                : summary.totalInvoices > 0
-                ? `Kerja bagus! Semua ${summary.paidInvoices} invoice telah lunas dibayar ✅`
-                : "Belum ada invoice. Mulai catat pendapatan atau buat invoice baru 🚀"
+                  ? `Ada ${summary.unpaidInvoices} invoice yang belum dibayar menunggu pelunasan ⏳`
+                  : summary.totalInvoices > 0
+                    ? `Kerja bagus! Semua ${summary.paidInvoices} invoice telah lunas dibayar ✅`
+                    : "Belum ada invoice. Mulai catat pendapatan atau buat invoice baru 🚀"
             ) : (
               "Memuat ringkasan data..."
             )}
@@ -355,7 +356,7 @@ export default function DashboardPage() {
 
       {/* Top Row: Ringkasan */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Ringkasan Keuangan */}
         <div className="bg-white rounded-2xl p-6 lg:col-span-12">
           <div className="flex justify-between items-center mb-6">
@@ -366,17 +367,17 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {/* Card 1: Pendapatan Bulan Ini */}
             <div className="bg-[#76c893]/10 rounded-xl p-4">
               <div className="w-10 h-10 rounded-full bg-[#76c893] text-white flex items-center justify-center mb-4">
                 <StatusUpIcon className="w-5 h-5" />
               </div>
-              <h3 className="text-2xl font-bold text-[#1E293B] mb-1">
-                {summary ? `Rp ${formatCompactCurrency(summary.totalIncomeMonth)}` : "..."}
+              <h3 className="text-xl font-bold text-[#1E293B] mb-1">
+                {summary ? formatCurrency(summary.totalIncomeMonth) : "..."}
               </h3>
-              <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Pendapatan<br/>Bulan Ini</p>
+              <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Pendapatan<br />Bulan Ini</p>
               <p className="text-xs mt-auto">
                 {summary ? renderComparison(summary.totalIncomeMonth, summary.prevMonthIncomeMTD) : "..."}
               </p>
@@ -387,37 +388,37 @@ export default function DashboardPage() {
               <div className="w-10 h-10 rounded-full bg-[#f08a5d] text-white flex items-center justify-center mb-4">
                 <ArrowDownIcon className="w-5 h-5" />
               </div>
-              <h3 className="text-2xl font-bold text-[#1E293B] mb-1">
-                {summary ? `Rp ${formatCompactCurrency(summary.totalExpenseMonth)}` : "..."}
+              <h3 className="text-xl font-bold text-[#1E293B] mb-1">
+                {summary ? formatCurrency(summary.totalExpenseMonth) : "..."}
               </h3>
-              <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Pengeluaran<br/>Bulan Ini</p>
+              <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Pengeluaran<br />Bulan Ini</p>
               <p className="text-xs mt-auto">
                 {summary ? renderComparison(summary.totalExpenseMonth, summary.prevMonthExpenseMTD) : "..."}
               </p>
             </div>
-            
+
             {/* Card 3: Saldo Saat Ini */}
             <div className="bg-[#7983ff]/10 rounded-xl p-4 flex flex-col">
               <div className="w-10 h-10 rounded-full bg-[#7983ff] text-white flex items-center justify-center mb-4">
                 <WalletIcon className="w-5 h-5" />
               </div>
-              <h3 className="text-2xl font-bold text-[#1E293B] mb-1">
-                {summary ? `Rp ${formatCompactCurrency(summary.netProfit)}` : "..."}
+              <h3 className="text-xl font-bold text-[#1E293B] mb-1">
+                {summary ? formatCurrency(summary.netProfit) : "..."}
               </h3>
-              <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Saldo Saat Ini<br/>(Total)</p>
+              <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Saldo Saat Ini<br />(Total)</p>
             </div>
-            
+
             {/* Card 4: Invoice Belum Bayar */}
             <div className="bg-[#ffd166]/10 rounded-xl p-4 flex flex-col">
               <div className="w-10 h-10 rounded-full bg-[#ffd166] text-white flex items-center justify-center mb-4">
                 <DocumentIcon className="w-5 h-5" />
               </div>
-              <h3 className="text-2xl font-bold text-[#1E293B] mb-1">
+              <h3 className="text-xl font-bold text-[#1E293B] mb-1">
                 {summary ? (summary.unpaidInvoices + summary.overdueInvoices) : "..."}
               </h3>
-              <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Invoice<br/>Belum Bayar</p>
+              <p className="text-sm font-medium text-[#1E293B] mb-2 leading-tight">Invoice<br />Belum Bayar</p>
               <p className="text-xs text-[#ffd166] mt-auto">
-                {summary ? `Rp ${formatCompactCurrency(summary.totalPiutang)}` : "..."}
+                {summary ? formatCurrency(summary.totalPiutang) : "..."}
               </p>
             </div>
           </div>
@@ -426,7 +427,7 @@ export default function DashboardPage() {
 
       {/* Middle Row: Tren Pendapatan, Tren Pengeluaran, Status Invoice */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Tren Pendapatan */}
         <div className="bg-white rounded-2xl p-6 lg:col-span-1 flex flex-col">
           <div className="flex justify-between items-center mb-6">
@@ -441,7 +442,7 @@ export default function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} minTickGap={30} interval="equidistantPreserveStart" />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} width={55} />
-                <Tooltip 
+                <Tooltip
                   cursor={{ stroke: '#F3F4F6', strokeWidth: 1 }}
                   content={<CustomTooltip />}
                 />
@@ -473,7 +474,7 @@ export default function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} minTickGap={30} interval="equidistantPreserveStart" />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(value) => formatCompactCurrency(value)} width={55} />
-                <Tooltip 
+                <Tooltip
                   cursor={{ stroke: '#F3F4F6', strokeWidth: 1 }}
                   content={<CustomTooltip />}
                 />
@@ -518,7 +519,7 @@ export default function DashboardPage() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     content={<CustomPieTooltip />}
                   />
                 </PieChart>
@@ -550,7 +551,7 @@ export default function DashboardPage() {
 
       {/* Bottom Row: Customer Teratas, Aktivitas Terbaru */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Customer Teratas */}
         <div className="bg-white rounded-2xl p-6">
           <h2 className="text-lg font-bold text-[#151D48] mb-4">Customer Teratas</h2>
@@ -595,14 +596,14 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-[#151D48]">Aktivitas Terbaru</h2>
-            <button 
+            <button
               onClick={() => setIsAktivitasModalOpen(true)}
               className="text-xs font-semibold text-[#5C67F2] bg-[#5C67F2]/10 hover:bg-[#5C67F2]/20 px-3 py-1.5 rounded-lg transition-colors"
             >
               Lihat Semua
             </button>
           </div>
-          
+
           <div className="space-y-4">
             {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
             {aktivitasTerbaru.slice(0, 4).map((activity, idx) => (
@@ -611,21 +612,20 @@ export default function DashboardPage() {
                 {idx !== Math.min(aktivitasTerbaru.length, 4) - 1 && (
                   <div className="absolute left-5 top-10 bottom-[-16px] w-0.5 bg-gray-100"></div>
                 )}
-                
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 ${
-                  activity.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
+
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 ${activity.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
                   activity.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
-                  activity.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
-                  activity.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
-                  'bg-[#7983ff]/10 text-[#7983ff]'
-                }`}>
-                  {activity.type === 'income' ? <ArrowUpRightIcon className="w-[18px] h-[18px]" /> : 
-                   activity.type === 'expense' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> : 
-                   activity.type === 'system' ? <SettingsIcon className="w-[18px] h-[18px]" /> :
-                   activity.type === 'reminder' ? <CalenderIcon className="w-[18px] h-[18px]" /> :
-                   <DocumentIcon className="w-[18px] h-[18px]" />}
+                    activity.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                      activity.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                        'bg-[#7983ff]/10 text-[#7983ff]'
+                  }`}>
+                  {activity.type === 'income' ? <ArrowUpRightIcon className="w-[18px] h-[18px]" /> :
+                    activity.type === 'expense' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> :
+                      activity.type === 'system' ? <SettingsIcon className="w-[18px] h-[18px]" /> :
+                        activity.type === 'reminder' ? <CalenderIcon className="w-[18px] h-[18px]" /> :
+                          <DocumentIcon className="w-[18px] h-[18px]" />}
                 </div>
-                
+
                 <div className="flex-1 pb-1">
                   <div className="flex justify-between items-start mb-1">
                     <h4 className="font-semibold text-[#151D48] text-sm">{activity.title}</h4>
@@ -647,14 +647,14 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold text-[#151D48]">Semua Aktivitas Terbaru</h2>
               <p className="text-sm text-gray-500 mt-1">Riwayat lengkap transaksi dan aktivitas sistem.</p>
             </div>
-            <button 
+            <button
               onClick={() => setIsAktivitasModalOpen(false)}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
               <CloseIcon className="w-5 h-5 text-gray-500" />
             </button>
           </div>
-          
+
           <div className="overflow-y-auto flex-1">
             <div className="p-6 space-y-6">
               {/* map ini membuat satu output untuk setiap item daftar yang sedang dirender oleh halaman beranda. */}
@@ -663,18 +663,17 @@ export default function DashboardPage() {
                   {idx !== arr.length - 1 && (
                     <div className="absolute left-5 top-10 bottom-[-24px] w-0.5 bg-gray-100"></div>
                   )}
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 ${
-                    activity.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 z-10 ${activity.type === 'income' ? 'bg-[#76c893]/10 text-[#76c893]' :
                     activity.type === 'expense' ? 'bg-[#f08a5d]/10 text-[#f08a5d]' :
-                    activity.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
-                    activity.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
-                    'bg-[#7983ff]/10 text-[#7983ff]'
-                  }`}>
-                    {activity.type === 'income' ? <ArrowUpRightIcon className="w-[18px] h-[18px]" /> : 
-                     activity.type === 'expense' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> : 
-                     activity.type === 'system' ? <SettingsIcon className="w-[18px] h-[18px]" /> :
-                     activity.type === 'reminder' ? <CalenderIcon className="w-[18px] h-[18px]" /> :
-                     <DocumentIcon className="w-[18px] h-[18px]" />}
+                      activity.type === 'system' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                        activity.type === 'reminder' ? 'bg-[#FF9F43]/10 text-[#FF9F43]' :
+                          'bg-[#7983ff]/10 text-[#7983ff]'
+                    }`}>
+                    {activity.type === 'income' ? <ArrowUpRightIcon className="w-[18px] h-[18px]" /> :
+                      activity.type === 'expense' ? <ArrowDownIcon className="w-[18px] h-[18px]" /> :
+                        activity.type === 'system' ? <SettingsIcon className="w-[18px] h-[18px]" /> :
+                          activity.type === 'reminder' ? <CalenderIcon className="w-[18px] h-[18px]" /> :
+                            <DocumentIcon className="w-[18px] h-[18px]" />}
                   </div>
                   <div className="flex-1 pb-1">
                     <div className="flex justify-between items-start mb-1">
