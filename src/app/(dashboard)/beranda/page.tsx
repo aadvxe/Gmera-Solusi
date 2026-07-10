@@ -454,7 +454,7 @@ export default function DashboardPage() {
             <div className="text-sm">
               <span className="text-gray-500">Total Bulan Ini:</span>{" "}
               <span className="font-bold text-[#151D48] tabular-nums">
-                Rp {formatCompactCurrency(chartData.reduce((sum, item) => sum + (item.pendapatan || 0), 0))}
+                {formatCurrency(chartData.reduce((sum, item) => sum + (item.pendapatan || 0), 0))}
               </span>
             </div>
           </div>
@@ -486,7 +486,7 @@ export default function DashboardPage() {
             <div className="text-sm">
               <span className="text-gray-500">Total Bulan Ini:</span>{" "}
               <span className="font-bold text-[#151D48] tabular-nums">
-                Rp {formatCompactCurrency(chartData.reduce((sum, item) => sum + (item.pengeluaran || 0), 0))}
+                {formatCurrency(chartData.reduce((sum, item) => sum + (item.pengeluaran || 0), 0))}
               </span>
             </div>
           </div>
