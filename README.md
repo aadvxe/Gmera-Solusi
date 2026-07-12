@@ -26,7 +26,6 @@ Last documentation refresh: 2026-07-12.
 - Sonner for toast notifications
 - `xlsx-js-style`, `jspdf`, `jspdf-autotable`, and `html2pdf.js` for exports
 - Astraicons and Lucide icons
-- Vercel Analytics
 
 ## Project Structure
 
