@@ -2,7 +2,7 @@
 
 Financial management and e-invoice system for PT GMera Solusi. The app replaces manual spreadsheet workflows with a Supabase-backed dashboard for income, expenses, customers, invoices, reports, and operational settings.
 
-Last documentation refresh: 2026-06-06.
+Last documentation refresh: 2026-07-12.
 
 ## What This App Does
 
@@ -24,8 +24,9 @@ Last documentation refresh: 2026-06-06.
 - Zustand for client auth/UI state
 - Recharts for charts
 - Sonner for toast notifications
-- `xlsx-js-style`, `jspdf`, and `jspdf-autotable` for exports
+- `xlsx-js-style`, `jspdf`, `jspdf-autotable`, and `html2pdf.js` for exports
 - Astraicons and Lucide icons
+- Vercel Analytics
 
 ## Project Structure
 
@@ -143,15 +144,16 @@ Key relationships:
 
 ## Known Notes
 
-- `middleware.ts` protects `/klien`, while the active customer route is `/customer`. Update this before relying on middleware protection for customer pages.
-- `/customer/[id]` currently displays mock detail/invoice history data.
-- Several debug `console.log` statements remain in dashboard and total aggregation helpers.
+- `/customer/[id]` currently displays mock detail/invoice history data instead of reading from Supabase.
+- Several debug `console.log` statements remain in `src/lib/db/dashboard.ts`, `src/lib/db/expense.ts`, `src/lib/db/income.ts`, and the dashboard page.
 - Route-level UI role checks exist, but database policies are permissive for authenticated users in the included schema.
 
 ## More Documentation
 
 - [Technical Specification](docs/technical-specification.md)
 - [Code Notes](docs/LLM.md)
+- [Codebase Explained (Simple)](docs/codebase-explained-simple.md)
+- [Code Syntax Explained](docs/code-explained-syntax.md)
 - [System Diagrams](docs/diagram.md)
 - [Wireframe Documentation](docs/wireframe-documentation.md)
 - [Feature Backlog](docs/feature-ideation-ux-improvements.md)
